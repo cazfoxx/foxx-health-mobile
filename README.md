@@ -1,14 +1,20 @@
-Technical Stack
-
-Framework: Flutter
-
-Authentication: Firebase Auth
-
-State Management: Flutter Bloc
+# Foxx Health Frontend
 
 
-Project Structure
+## Technical Stack
 
+- **Framework**: Flutter
+- **Authentication**: Firebase Auth
+- **State Management**: Flutter Bloc
+  
+ ## Installation
+- git clone <repository_url>
+- flutter pub get
+- flutter run
+
+## Project Structure
+
+```bash
 lib/
 ├── features/
 │   └── presentation/
@@ -24,16 +30,6 @@ lib/
 
 
 
-Typography
-
-The app uses the Merriweather font family with various styles.
 
 
-Installation
-
-1.Clone the repository
-
-2.Install dependencies: flutter pub get
-
-3.Run the app: flutter run
 
