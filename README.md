@@ -8,7 +8,7 @@
 - **State Management**: Flutter Bloc
   
  ## Installation
-- git clone <repository_url>
+- git clone https://github.com/foxxhealth/frontend.git
 - flutter pub get
 - flutter run
 
