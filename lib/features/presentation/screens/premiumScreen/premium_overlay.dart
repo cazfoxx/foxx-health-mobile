@@ -1,66 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
-class PremiumOverlay extends StatelessWidget {
+class PremiumOverlay extends StatefulWidget {
   const PremiumOverlay({super.key});
 
   @override
+  State<PremiumOverlay> createState() => _PremiumOverlayState();
+}
+
+class _PremiumOverlayState extends State<PremiumOverlay> {
+  bool isYearlySelected = true;
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.amethystViolet.withOpacity(0.92),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 35),
-                  AppBar(
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    centerTitle: true,
-                    title: const Text(
-                      'Premium Plan',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(30)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.black),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  _buildPremiumBenefits(),
-                  const SizedBox(height: 32),
-                  _buildSubscriptionOption(
-                    title: 'Yearly Subscription',
-                    price: '\$20',
-                    description: 'Auto renewal 1 year on expiry.',
-                    isSelected: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSubscriptionOption(
-                    title: 'Monthly Subscription',
-                    price: '\$2',
-                    description: 'Auto renewal 1 month on expiry.',
-                    isSelected: false,
-                  ),
-                  const SizedBox(height: 48),
-                  _buildTestimonial(),
-                  const SizedBox(height: 16),
-                  _buildTermsOfService(),
-                  const SizedBox(height: 24),
-                  _buildTrialButton(),
-                  const SizedBox(height: 24),
-                ],
+                    Text('Premium Plan', style: AppTextStyles.heading3),
+                    const SizedBox(width: 50),
+                  ],
+                ),
               ),
-            ),
+              _buildPremiumBenefits(),
+              const SizedBox(height: 32),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isYearlySelected = true;
+                  });
+                },
+                child: _buildSubscriptionOption(
+                  title: 'Yearly Subscription',
+                  price: '\$20',
+                  description: 'Auto renewal 1 year on expiry.',
+                  isSelected: isYearlySelected,
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isYearlySelected = false;
+                  });
+                },
+                child: _buildSubscriptionOption(
+                  title: 'Monthly Subscription',
+                  price: '\$2',
+                  description: 'Auto renewal 1 month on expiry.',
+                  isSelected: !isYearlySelected,
+                ),
+              ),
+              const SizedBox(height: 48),
+              _buildTestimonial(),
+              const SizedBox(height: 16),
+              _buildTermsOfService(),
+              const SizedBox(height: 24),
+              _buildTrialButton(),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
@@ -69,45 +82,38 @@ class PremiumOverlay extends StatelessWidget {
 
   Widget _buildPremiumBenefits() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Premium Benefits',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildBenefitItem('Unlock advanced health analysis with AI'),
-          _buildBenefitItem('Get customized checklists'),
-          _buildBenefitItem('Extra symptoms tracking options, and more!'),
-        ],
+      color: AppColors.lightViolet,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Premium Benefits',
+                style: AppTextStyles.heading2
+                    .copyWith(color: AppColors.amethystViolet)),
+            const SizedBox(height: 3),
+            _buildBenefitItem('Unlock advanced health analysis with AI'),
+            _buildBenefitItem('Get customized checklists'),
+            _buildBenefitItem('Extra symptoms tracking options, and more!'),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBenefitItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          const Text('• ', style: TextStyle(color: Colors.white, fontSize: 20)),
+          Text('• ', style: AppTextStyles.bodyOpenSans),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
+            child: Text(text, style: AppTextStyles.bodyOpenSans),
           ),
         ],
       ),
@@ -122,12 +128,11 @@ class PremiumOverlay extends StatelessWidget {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-        ),
+            color: isSelected ? AppColors.amethystViolet : Colors.grey),
       ),
       child: Row(
         children: [
@@ -140,7 +145,7 @@ class PremiumOverlay extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -148,14 +153,14 @@ class PremiumOverlay extends StatelessWidget {
                   description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.black.withOpacity(0.8),
                   ),
                 ),
                 Text(
                   'Cancel Anytime',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.black.withOpacity(0.8),
                   ),
                 ),
               ],
@@ -166,7 +171,7 @@ class PremiumOverlay extends StatelessWidget {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
         ],
@@ -176,12 +181,8 @@ class PremiumOverlay extends StatelessWidget {
 
   Widget _buildTestimonial() {
     return Text(
-      '"It\'s a great app that gives you so much more insight to how you\'re feeling at certain times of the month. It\'s really helping me."',
-      style: TextStyle(
-        fontSize: 16,
-        fontStyle: FontStyle.italic,
-        color: Colors.white.withOpacity(0.8),
-      ),
+      "Every woman deserves a tool like the FoXx Health app, designed to empower them to become their own health expert and take control of their well-being",
+      style: AppTextStyles.body,
       textAlign: TextAlign.center,
     );
   }
@@ -191,7 +192,7 @@ class PremiumOverlay extends StatelessWidget {
       child: Text(
         'Terms Of Service',
         style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.black.withOpacity(0.8),
           decoration: TextDecoration.underline,
         ),
       ),
@@ -199,25 +200,22 @@ class PremiumOverlay extends StatelessWidget {
   }
 
   Widget _buildTrialButton() {
-    return SizedBox(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          // Optional: use `isYearlySelected` here to know which plan was chosen
+        },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.amethystViolet,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
         ),
-        child: const Text(
-          'Start Free 3-day Trial',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.amethystViolet,
-          ),
-        ),
+        child: Text('Start Free 3-day Trial',
+            style: AppTextStyles.bodyOpenSans.copyWith(color: Colors.white)),
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
-import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class HearAboutUsScreen extends StatefulWidget {
   const HearAboutUsScreen({super.key});
@@ -12,6 +12,8 @@ class HearAboutUsScreen extends StatefulWidget {
 
 class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
   String? _selectedOption;
+  final TextEditingController _otherController = TextEditingController();
+  bool _isOtherSelected = false;
 
   final List<String> _options = [
     'Social Media',
@@ -19,16 +21,23 @@ class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
     'Healthcare Provider',
     'Online Search',
     'Advertisement',
-    'Other',
   ];
 
+  @override
+  void dispose() {
+    _otherController.dispose();
+    super.dispose();
+  }
+
   Widget _buildOption(String option) {
+    final isSelected = _selectedOption == option;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: InkWell(
         onTap: () {
           setState(() {
             _selectedOption = option;
+            _isOtherSelected = false;
           });
         },
         child: Container(
@@ -38,19 +47,22 @@ class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _selectedOption == option
-                  ? AppColors.amethystViolet
-                  : Colors.grey[300]!,
+              color: isSelected ? AppColors.amethystViolet : Colors.grey[300]!,
+              width: isSelected ? 2 : 1,
             ),
           ),
           child: Row(
             children: [
-              Expanded(child: Text(option)),
-              if (_selectedOption == option)
-                Icon(
-                  Icons.check,
-                  color: AppColors.amethystViolet,
+              Expanded(
+                child: Text(
+                  option,
+                  style: AppTextStyles.bodyOpenSans.copyWith(
+                    color: isSelected ? AppColors.amethystViolet : Colors.black,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
                 ),
+              ),
             ],
           ),
         ),
@@ -58,10 +70,76 @@ class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
     );
   }
 
-  void _handleCompletion() {
-    // TODO: Implement onboarding completion
-    // For now, just print selected option
-    print('Selected option: $_selectedOption');
+  Widget _buildOtherOption() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _isOtherSelected = true;
+            _selectedOption = null;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _isOtherSelected
+                  ? AppColors.amethystViolet
+                  : Colors.grey[300]!,
+              width: _isOtherSelected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Text(
+                      'Other',
+                      style: AppTextStyles.bodyOpenSans.copyWith(
+                        color: _isOtherSelected
+                            ? AppColors.amethystViolet
+                            : Colors.black,
+                        fontWeight: _isOtherSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+              if (_isOtherSelected)
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  child: TextField(
+                    controller: _otherController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter',
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.amethystViolet),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -79,8 +157,10 @@ class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  children:
-                      _options.map((option) => _buildOption(option)).toList(),
+                  children: [
+                    ..._options.map((option) => _buildOption(option)).toList(),
+                    _buildOtherOption(),
+                  ],
                 ),
               ),
             ),

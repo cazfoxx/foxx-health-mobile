@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/health_concerns_screen.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+
+class PreExistingConditionsScreen extends StatefulWidget {
+  const PreExistingConditionsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<PreExistingConditionsScreen> createState() =>
+      _PreExistingConditionsScreenState();
+}
+
+class _PreExistingConditionsScreenState
+    extends State<PreExistingConditionsScreen> {
+  final TextEditingController _conditionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _conditionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return HeaderWidget(
+      title: 'Do you have any pre-existing conditions?',
+      subtitle:
+          'Help us tailor your checklists and insights based on your full health picture',
+      progress: 0.2,
+      onNext: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => const HealthConcernsScreen(),
+        ));
+      },
+      body: Container(
+        padding: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(10.0),
+        height: 420,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              offset: const Offset(0, 0),
+              blurRadius: 13.0,
+              spreadRadius: 6.0,
+              color: Colors.black.withOpacity(0.09),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tips: How to get better assessment',
+                style: AppTextStyles.bodyOpenSans
+                    .copyWith(fontWeight: FontWeight.w600)),
+            SizedBox(height: 10),
+            Text('Enter any pre- existing conditions or diagnoses below',
+                style: AppTextStyles.body2OpenSans),
+            SizedBox(height: 10),
+            Container(
+              height: 300,
+              padding: EdgeInsets.all(10),
+              child: TextField(
+                controller: _conditionController,
+                decoration: InputDecoration(
+                  hintText:
+                      'Enter "None" if you have no pre-existing condition',
+                  hintStyle: AppTextStyles.body.copyWith(color: Colors.grey),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                maxLines: null,
+                expands: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

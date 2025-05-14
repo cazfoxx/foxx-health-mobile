@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/health_concers_screen.dart';
-import 'create_account_screen.dart';
 import 'about_yourself_screen.dart';
 import 'age_selection_screen.dart';
 import 'health_goals_screen.dart';
@@ -9,15 +10,9 @@ import 'hear_about_us_screen.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  OnboardingScreen(
-      {super.key,
-      this.isSocialAuth = false,
-      required this.email,
-      required this.isSignUp});
-
-  bool isSocialAuth;
-  bool isSignUp;
-  String email;
+  OnboardingScreen({
+    super.key,
+  });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -27,27 +22,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   late List<Widget> _pages;
+  final _aboutYourselfKey = GlobalKey<AboutYourselfScreenState>();
 
   @override
   void initState() {
     super.initState();
     _pages = [
-      CreateAccountScreen(
-        isSignUp: widget.isSignUp,
-        email: widget.email,
-      ),
-      const AboutYourselfScreen(),
+      AboutYourselfScreen(key: _aboutYourselfKey),
       const AgeSelectionScreen(),
       const HealthGoalsScreen(),
       const HealthConcersScreen(),
       const HearAboutUsScreen(),
     ];
-
-    if (widget.isSocialAuth) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageController.jumpToPage(1);
-      });
-    }
   }
 
   @override
@@ -57,6 +43,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void nextPage() {
+    if (_currentPage == 0) {
+      // Get the AboutYourselfScreen state
+      final aboutYourselfState = (_pages[0] as AboutYourselfScreen)
+          .createState() as AboutYourselfScreenState;
+
+      // Get user details
+      final username = aboutYourselfState.getUserName();
+      final pronoun = aboutYourselfState.getPronoun();
+
+      // Update LoginCubit
+      final loginCubit = context.read<LoginCubit>();
+      loginCubit.setUserDetails(
+        fullName: username.trim(),
+        pronoun: pronoun,
+      );
+    }
+
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),

@@ -42,7 +42,7 @@ class SplashScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 10),
                   const Text(
                     'Welcome FPO',
                     style: TextStyle(
@@ -51,22 +51,22 @@ class SplashScreen extends StatelessWidget {
                       color: Color(0xFF2D3142),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
                   _buildFeatureItem(
                     'Symptom tracking',
                     'Easily track and monitor your symptoms',
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   _buildFeatureItem(
                     'Tailored checklists',
                     'Knowing exactly what questions to ask. Self-advocate for your health effectively and thoroughly.',
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   _buildFeatureItem(
                     'Trusted health information',
                     'Access reliable, science-based health information directly',
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   _buildFeatureItem(
                     'Second opinion guidance',
                     'Get expert advice and resources on where and how to seek a second opinion',
@@ -78,13 +78,15 @@ class SplashScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              height: 56,
+              height: 44,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LoginScreen()));
+                          builder: (context) => LoginScreen(
+                                isSign: false,
+                              )));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.amethystViolet,
@@ -93,11 +95,43 @@ class SplashScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'Get Started',
+                  'Create an Account',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginScreen(isSign: true)));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(
+                    color: AppColors.amethystViolet,
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                child: const Text(
+                  'Sign In',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.amethystViolet,
                   ),
                 ),
               ),

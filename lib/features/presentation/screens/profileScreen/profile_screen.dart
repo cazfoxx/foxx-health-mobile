@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _handleSignOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => SplashScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to sign out: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(context),
               _buildProfileSection(),
               _buildSectionTitle('Health Profile'),
               _buildHealthSection(),
@@ -30,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -45,7 +61,39 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: AppColors.amethystViolet),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _handleSignOut(context);
+                        },
+                        child: const Text(
+                          'Sign Out',
+                          style: TextStyle(color: AppColors.amethystViolet),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
             child: const Text(
               'Sign out',
               style: TextStyle(
@@ -75,18 +123,18 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'RedDelicious',
+                  FirebaseAuth.instance.currentUser!.email.toString().split('@')[0],
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
+                const Text(
                   'She/her',
                   style: TextStyle(
                     fontSize: 16,

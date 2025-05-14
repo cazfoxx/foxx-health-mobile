@@ -3,12 +3,14 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/hear_about_u
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class HealthConcersScreen extends StatefulWidget {
   const HealthConcersScreen({super.key});
 
   @override
   State<HealthConcersScreen> createState() => _HealthConcersScreenState();
+    
 }
 
 class _HealthConcersScreenState extends State<HealthConcersScreen> {
@@ -20,6 +22,16 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
     'Preventative care',
     'Increase physical activity',
   ];
+  List<String> getSelectedConcerns() => _selectedGoals.toList();
+
+  final TextEditingController _otherGoalController = TextEditingController();
+  bool _isOtherSelected = false;
+
+  @override
+  void dispose() {
+    _otherGoalController.dispose();
+    super.dispose();
+  }
 
   Widget _buildGoalOption(String goal) {
     return Padding(
@@ -39,15 +51,10 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: _selectedGoals.contains(goal)
-                  ? AppColors.amethystViolet
-                  : Colors.grey[300]!,
-            ),
           ),
           child: Row(
             children: [
-              Expanded(child: Text(goal)),
+              Expanded(child: Text(goal, style: AppTextStyles.bodyOpenSans)),
               Checkbox(
                 value: _selectedGoals.contains(goal),
                 onChanged: (bool? value) {
@@ -61,6 +68,89 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
                 },
                 activeColor: AppColors.amethystViolet,
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtherGoalSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _isOtherSelected = !_isOtherSelected;
+            if (_isOtherSelected) {
+              _selectedGoals.add('Other: ${_otherGoalController.text}');
+            } else {
+              _selectedGoals.removeWhere((goal) => goal.startsWith('Other:'));
+            }
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Text('Other', style: AppTextStyles.bodyOpenSans),
+                    const Spacer(),
+                    Checkbox(
+                      value: _isOtherSelected,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _isOtherSelected = value ?? false;
+                          if (_isOtherSelected) {
+                            _selectedGoals
+                                .add('Other: ${_otherGoalController.text}');
+                          } else {
+                            _selectedGoals.removeWhere(
+                                (goal) => goal.startsWith('Other:'));
+                          }
+                        });
+                      },
+                      activeColor: AppColors.amethystViolet,
+                    ),
+                  ],
+                ),
+              ),
+              if (_isOtherSelected)
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  child: TextField(
+                    controller: _otherGoalController,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGoals
+                            .removeWhere((goal) => goal.startsWith('Other:'));
+                        _selectedGoals.add('Other: $value');
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Enter',
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: AppColors.amethystViolet),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -83,8 +173,10 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  children:
-                      _goals.map((goal) => _buildGoalOption(goal)).toList(),
+                  children: [
+                    ..._goals.map((goal) => _buildGoalOption(goal)).toList(),
+                    _buildOtherGoalSection(),
+                  ],
                 ),
               ),
             ),
