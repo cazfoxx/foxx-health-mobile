@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/checklist_details_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -68,14 +70,36 @@ class CompletionScreen extends StatelessWidget {
               OnboardingButton(
                 text: 'Next',
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ChecklistDetailsScreen(),
-                    ),
-                    (route) => false,
-                  );
+                  final checklistCubit = context.read<ChecklistCubit>();
+                  // Log all data before API call
+                  checklistCubit.logalldata();
+                  
+                  // Call the API
+                  checklistCubit.createChecklist();
                 },
+              ),
+              BlocListener<ChecklistCubit, ChecklistState>(
+                listener: (context, state) {
+                  if (state is ChecklistCreated) {
+                    // Navigate to next screen only on success
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChecklistDetailsScreen(),
+                      ),
+                      (route) => false,
+                    );
+                  } else if (state is ChecklistError) {
+                    // Show error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: const SizedBox.shrink(),
               ),
             ],
           ),

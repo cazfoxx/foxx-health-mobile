@@ -7,12 +7,12 @@ class HealthGoalsScreen extends StatefulWidget {
   const HealthGoalsScreen({super.key});
 
   @override
-  State<HealthGoalsScreen> createState() => _HealthGoalsScreenState();
+  State<HealthGoalsScreen> createState() => HealthGoalsScreenState();
   
  
 }
 
-class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
+class HealthGoalsScreenState extends State<HealthGoalsScreen> {
    List<String> getSelectedGoals() => _selectedGoals.toList();
   final Set<String> _selectedGoals = {};
   final List<String> _goals = [

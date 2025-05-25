@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
+    show AppointmentTypeModel;
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/widgets/appointment_list_bottomsheet_widget.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -17,57 +20,67 @@ class ChecklistDetailsScreen extends StatefulWidget {
 
 class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
   bool _isEditing = false;
-  final List<String> _allSuggestedQuestions = [
-    'How often should I schedule checkups?',
-    'What screenings should I be getting based on my age and family history?',
-    'Am I up-to-date on my immunizations?',
-    'Should I be taking supplements?',
-  ];
-
-  List<String> get _suggestedQuestions {
-    return _allSuggestedQuestions.take(3).toList();
-  }
-
-  final List<String> _personalQuestions = [
-    'Do I need a flu shot?',
-    'Should I be taking supplements?',
-    'Do I need a new blood test?',
-    'Can you explain my test results?',
-  ];
   String appointment = '';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
-                  _buildSection(
-                    'Suggested Questions',
-                    _suggestedQuestions,
-                    showSeeAll: true,
+    return BlocBuilder<ChecklistCubit, ChecklistState>(
+      builder: (context, state) {
+        final cubit = context.read<ChecklistCubit>();
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: _buildAppBar(),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderSection(),
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildReorderableSection(
+                        'Suggested Questions',
+                        cubit.suggestedQuestion,
+                        (oldIndex, newIndex) {
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final item =
+                                cubit.suggestedQuestion.removeAt(oldIndex);
+                            cubit.suggestedQuestion.insert(newIndex, item);
+                          });
+                        },
+                        showSeeAll: true,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildReorderableSection(
+                        'Personal Questions',
+                        cubit.customQuestion,
+                        (oldIndex, newIndex) {
+                          setState(() {
+                            if (newIndex > oldIndex) newIndex -= 1;
+                            final item =
+                                cubit.customQuestion.removeAt(oldIndex);
+                            cubit.customQuestion.insert(newIndex, item);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSection(
+                        'Prescriptions & Supplements',
+                        cubit.prescription,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSection('Medical Term Explainer', []),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  _buildSection('Personal Questions', _personalQuestions),
-                  const SizedBox(height: 24),
-                  _buildSection('Prescriptions & Supplements', []),
-                  const SizedBox(height: 24),
-                  _buildSection('Medical Term Explainer', []),
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -101,13 +114,11 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
   }
 
   void _shareChecklist() {
-    // Share.share('Collaborate your check list with other Foxx members\n\n' +
-    //     _suggestedQuestions.join('\n') +
-    //     '\n\n' +
-    //     _personalQuestions.join('\n'));
+    // Share functionality to be implemented
   }
 
   Widget _buildHeaderSection() {
+    final cubit = context.read<ChecklistCubit>();
     return Container(
       color: AppColors.lightViolet,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -121,10 +132,15 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(14.0),
-              child: Text(
-                'PCP Check List',
-                style: AppTextStyles.heading2.copyWith(
-                  color: AppColors.amethystViolet,
+              child: InkWell(
+                onTap: () => _showEditBottomSheet(cubit.checkListName),
+                child: Text(
+                  cubit.checkListName.isEmpty
+                      ? 'Check List'
+                      : cubit.checkListName,
+                  style: AppTextStyles.heading2.copyWith(
+                    color: AppColors.amethystViolet,
+                  ),
                 ),
               ),
             ),
@@ -142,6 +158,38 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showEditBottomSheet(String currentName) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final cubit = context.read<ChecklistCubit>();
+        TextEditingController controller =
+            TextEditingController(text: currentName);
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(hintText: 'Enter new name'),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  cubit.setCheckListName(controller.text);
+                  setState(() {}); // Refresh UI
+                  Navigator.of(context).pop();
+                },
+                child: Text('Save'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -167,7 +215,7 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: PopupMenuButton<String>(
-            offset: Offset(0, 40),
+            offset: const Offset(0, 40),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -188,17 +236,39 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
               ),
             ],
             onSelected: (value) async {
-              // Handle selection
               if (value == 'existing') {
-                final result = await showModalBottomSheet(
+                final AppointmentTypeModel result = await showModalBottomSheet(
                   context: context,
-                  backgroundColor: Colors.transparent,
                   isScrollControlled: true,
-                  builder: (context) => const AppointmentListBottomSheet(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => DraggableScrollableSheet(
+                    initialChildSize: 0.90,
+                    maxChildSize: 0.90,
+                    minChildSize: 0.5,
+                    builder: (context, scrollController) => Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: const AppointmentTypeScreen(),
+                    ),
+                  ),
                 );
-                setState(() {
-                  appointment = result;
-                });
+
+                if (result != null) {
+                  final checklistCubit = context.read<ChecklistCubit>();
+                  checklistCubit.setAppointmentTypeId(result.appointmentTypeId);
+                  checklistCubit.setCheckListName(result.appointmentTypeText);
+                  setState(() {
+                    appointment = result.appointmentTypeText;
+                  });
+                }
               } else {
                 showModalBottomSheet(
                   context: context,
@@ -208,18 +278,18 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                 );
               }
             },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(width: 4),
-                appointment.isEmpty ? Icon(Icons.add, size: 18) : SizedBox(),
-                const SizedBox(width: 4),
-                Text(
-                  appointment.isEmpty ? 'Add' : appointment,
-                  style: AppTextStyles.body2OpenSans.copyWith(),
-                ),
-                const SizedBox(width: 8),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    appointment.isEmpty ? 'Add to Visit' : appointment,
+                    style: AppTextStyles.body2OpenSans,
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, size: 16),
+                ],
+              ),
             ),
           ),
         ),
@@ -227,22 +297,19 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<String> items,
-      {bool showSeeAll = false}) {
-    final TextEditingController controller = TextEditingController();
-    final displayItems =
-        title == 'Suggested Questions' ? _suggestedQuestions : items;
-
+  Widget _buildReorderableSection(
+    String title,
+    List<String> items,
+    void Function(int, int) onReorder, {
+    bool showSeeAll = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const Spacer(),
+            Text(title, style: AppTextStyles.heading3),
             if (showSeeAll)
               TextButton(
                 onPressed: () {
@@ -252,153 +319,223 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                     builder: (context) => FractionallySizedBox(
                       heightFactor: 0.9,
                       child: SeeFullListScreen(
-                        selectedQuestions: _allSuggestedQuestions,
+                        selectedQuestions: items,
                         onUpdate: (updatedQuestions) {
-                          setState(() {
-                            _allSuggestedQuestions.clear();
-                            _allSuggestedQuestions.addAll(updatedQuestions);
-                          });
+                          // Handle updated questions
+                        },
+                      ),
+                    ),
+                  ).then(
+                    (value) {
+                      setState(() {});
+                    },
+                  );
+                },
+                child: Text(
+                  'See All',
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.amethystViolet,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (items.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.lightViolet.withOpacity(0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.add_circle_outline,
+                  color: AppColors.amethystViolet,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Add $title',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.amethystViolet,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else if (_isEditing)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.lightViolet.withOpacity(0.2),
+              ),
+            ),
+            child: ReorderableListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorder: onReorder,
+              children: [
+                for (int index = 0; index < items.length; index++)
+                  ListTile(
+                    key: ValueKey('$title-$index'),
+                    leading: const Icon(
+                        Icons.drag_handle), // Drag handle on the left
+                    title: Text(
+                      items[index],
+                      style: AppTextStyles.body2,
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () {
+                        setState(() {
+                          items.removeAt(index);
+                        });
+                      },
+                    ), // Delete button on the right
+                  ),
+              ],
+            ),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.lightViolet.withOpacity(0.2),
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              separatorBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                child: Divider(
+                  color: Colors.grey.withOpacity(0.3),
+                  height: 1,
+                ),
+              ),
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    items[index],
+                    style: AppTextStyles.body2,
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSection(String title, List<String> items,
+      {bool showSeeAll = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: AppTextStyles.heading3),
+            if (showSeeAll)
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SeeFullListScreen(
+                        selectedQuestions: items,
+                        onUpdate: (updatedQuestions) {
+                          // Handle updated questions
                         },
                       ),
                     ),
                   );
                 },
                 child: Text(
-                  'See Full List',
-                  style: AppTextStyles.body2.copyWith(
+                  'See All',
+                  style: AppTextStyles.body.copyWith(
                     color: AppColors.amethystViolet,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
           ],
         ),
-        SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              if (displayItems.isNotEmpty)
-                _isEditing
-                    ? _buildEditableList(displayItems)
-                    : _buildReadOnlyList(displayItems),
-              if (items.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Divider(
-                    thickness: 1,
-                    color: Colors.grey.withOpacity(0.2),
-                  ),
-                ),
-              if (!_isEditing && title != 'Suggested Questions')
-                Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: TextField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      hintText: 'Add',
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.only(bottom: 5),
-                        child: Icon(
-                          Icons.add_circle_outline,
-                          color: Colors.grey[600],
-                          // size: 20,
-                        ),
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    onSubmitted: (value) {
-                      if (value.trim().isNotEmpty) {
-                        setState(() {
-                          items.add(value.trim());
-                          controller.clear();
-                        });
-                      }
-                    },
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditableList(List<String> items) {
-    return ReorderableListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: items.length,
-      itemBuilder: (context, index) => Column(
-        key: ValueKey(items[index]),
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+        const SizedBox(height: 16),
+        if (items.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.lightViolet.withOpacity(0.2),
+              ),
+            ),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      items.removeAt(index);
-                    });
-                  },
-                  child: const Icon(
-                    Icons.remove_circle,
-                    color: Colors.red,
-                    size: 20,
-                  ),
+                Icon(
+                  Icons.add_circle_outline,
+                  color: AppColors.amethystViolet,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    items[index],
-                    style: AppTextStyles.body
-                        .copyWith(fontWeight: FontWeight.w400),
+                const SizedBox(width: 8),
+                Text(
+                  'Add $title',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.amethystViolet,
                   ),
-                ),
-                ReorderableDragStartListener(
-                  index: index,
-                  child: const Icon(Icons.drag_handle),
                 ),
               ],
             ),
+          )
+        else
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.lightViolet.withOpacity(0.2),
+              ),
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              separatorBuilder: (context, index) => Divider(
+                color: AppColors.lightViolet.withOpacity(0.2),
+                height: 1,
+              ),
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    items[index],
+                    style: AppTextStyles.body2,
+                  ),
+                  trailing: _isEditing
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            setState(() {
+                              items.removeAt(index);
+                            });
+                          },
+                        )
+                      : null,
+                );
+              },
+            ),
           ),
-          if (index < items.length - 1)
-            Divider(thickness: 1, color: Colors.grey.withOpacity(0.2)),
-        ],
-      ),
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
-          final item = items.removeAt(oldIndex);
-          items.insert(newIndex, item);
-        });
-      },
-    );
-  }
-
-  Widget _buildReadOnlyList(List<String> items) {
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: const EdgeInsets.all(16),
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => Divider(
-        thickness: 1,
-        color: Colors.grey.withOpacity(0.2),
-      ),
-      itemBuilder: (_, index) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(
-          items[index],
-          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w400),
-        ),
-      ),
+      ],
     );
   }
 }

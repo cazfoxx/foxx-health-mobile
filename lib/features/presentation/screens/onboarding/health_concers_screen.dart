@@ -9,20 +9,19 @@ class HealthConcersScreen extends StatefulWidget {
   const HealthConcersScreen({super.key});
 
   @override
-  State<HealthConcersScreen> createState() => _HealthConcersScreenState();
-    
+  State<HealthConcersScreen> createState() => HealthConcersScreenState();
 }
 
-class _HealthConcersScreenState extends State<HealthConcersScreen> {
-  final Set<String> _selectedGoals = {};
-  final List<String> _goals = [
-    'Improve overall wellness',
-    'Manage a chronic condition',
-    'Track symptoms',
-    'Preventative care',
-    'Increase physical activity',
+class HealthConcersScreenState extends State<HealthConcersScreen> {
+  final Set<String> _selectedConcers = {};
+  final List<String> _concers = [
+    'High blood pressure',
+    'Diabetes risk',
+    'Irregular periods',
+    'Chronic fatigue',
+    'Mood swings',
   ];
-  List<String> getSelectedConcerns() => _selectedGoals.toList();
+  List<String> getSelectedConcerns() => _selectedConcers.toList();
 
   final TextEditingController _otherGoalController = TextEditingController();
   bool _isOtherSelected = false;
@@ -39,10 +38,10 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
       child: InkWell(
         onTap: () {
           setState(() {
-            if (_selectedGoals.contains(goal)) {
-              _selectedGoals.remove(goal);
+            if (_selectedConcers.contains(goal)) {
+              _selectedConcers.remove(goal);
             } else {
-              _selectedGoals.add(goal);
+              _selectedConcers.add(goal);
             }
           });
         },
@@ -56,13 +55,13 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
             children: [
               Expanded(child: Text(goal, style: AppTextStyles.bodyOpenSans)),
               Checkbox(
-                value: _selectedGoals.contains(goal),
+                value: _selectedConcers.contains(goal),
                 onChanged: (bool? value) {
                   setState(() {
                     if (value ?? false) {
-                      _selectedGoals.add(goal);
+                      _selectedConcers.add(goal);
                     } else {
-                      _selectedGoals.remove(goal);
+                      _selectedConcers.remove(goal);
                     }
                   });
                 },
@@ -83,9 +82,9 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
           setState(() {
             _isOtherSelected = !_isOtherSelected;
             if (_isOtherSelected) {
-              _selectedGoals.add('Other: ${_otherGoalController.text}');
+              _selectedConcers.add('Other: ${_otherGoalController.text}');
             } else {
-              _selectedGoals.removeWhere((goal) => goal.startsWith('Other:'));
+              _selectedConcers.removeWhere((goal) => goal.startsWith('Other:'));
             }
           });
         },
@@ -109,10 +108,10 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
                         setState(() {
                           _isOtherSelected = value ?? false;
                           if (_isOtherSelected) {
-                            _selectedGoals
+                            _selectedConcers
                                 .add('Other: ${_otherGoalController.text}');
                           } else {
-                            _selectedGoals.removeWhere(
+                            _selectedConcers.removeWhere(
                                 (goal) => goal.startsWith('Other:'));
                           }
                         });
@@ -130,9 +129,9 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
                     controller: _otherGoalController,
                     onChanged: (value) {
                       setState(() {
-                        _selectedGoals
+                        _selectedConcers
                             .removeWhere((goal) => goal.startsWith('Other:'));
-                        _selectedGoals.add('Other: $value');
+                        _selectedConcers.add('Other: $value');
                       });
                     },
                     decoration: InputDecoration(
@@ -174,7 +173,7 @@ class _HealthConcersScreenState extends State<HealthConcersScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    ..._goals.map((goal) => _buildGoalOption(goal)).toList(),
+                    ..._concers.map((goal) => _buildGoalOption(goal)).toList(),
                     _buildOtherGoalSection(),
                   ],
                 ),

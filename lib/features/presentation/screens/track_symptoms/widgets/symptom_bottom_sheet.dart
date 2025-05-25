@@ -1,5 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -44,6 +49,27 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
   int? expandedSymptomIndex;
   Set<String> expandedCategories = {};
 
+  void _updateSymptomTracker() {
+    final selectedSymptoms = widget.categories.expand((category) {
+      return category.symptoms
+          .where((symptom) => symptom.isSelected && symptom.severity != null)
+          .map((symptom) {
+        return SymptomId(
+          symptomName: symptom.name,
+          symptomType: widget.title,
+          symptomCategory:
+              category.title, // Now we have access to category.title
+          severity: symptom.severity!.toLowerCase(),
+        );
+      });
+    }).toList();
+
+    if (selectedSymptoms.isNotEmpty) {
+      final cubit = context.read<SymptomTrackerCubit>();
+      cubit.setSymptomIds(selectedSymptoms);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -70,7 +96,17 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
                 widget.title,
                 style: AppTextStyles.heading3,
               ),
-              SizedBox(width: 50)
+              TextButton(
+                  onPressed: () {
+                    _updateSymptomTracker();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Save',
+                    style: AppTextStyles.body2OpenSans.copyWith(
+                      color: AppColors.amethystViolet,
+                    ),
+                  )),
             ],
           ),
         ),
@@ -125,8 +161,8 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
                       children: category.symptoms.asMap().entries.map((entry) {
                         final index = entry.key;
                         final symptom = entry.value;
-                        final isSymptomExpanded =
-                            expandedSymptomIndex == index && isExpanded;
+                        final isSymptomExpanded = expandedSymptomIndex ==
+                            index; // Remove the && isExpanded condition
                         return Container(
                           margin: EdgeInsets.only(bottom: 10),
                           decoration: BoxDecoration(
@@ -152,7 +188,8 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
                                 ),
                                 title: Text(symptom.name),
                               ),
-                              if (isSymptomExpanded && symptom.isSelected)
+                              if (symptom
+                                  .isSelected) // Only check if symptom is selected
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
                                   child: Row(
@@ -191,6 +228,7 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
         onTap: () {
           setState(() {
             symptom.severity = label;
+            _updateSymptomTracker();
           });
         },
         child: Container(

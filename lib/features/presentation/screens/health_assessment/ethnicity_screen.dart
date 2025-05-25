@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/heath_assesment_appointment_screen.dart.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -25,6 +27,11 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
 
   Set<String> selectedEthnicities = {};
 
+  void _setEthnicities(BuildContext context) {
+    final healthCubit = context.read<HealthAssessmentCubit>();
+    healthCubit.setEthnicities(selectedEthnicities.toList());
+  }
+
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
@@ -33,6 +40,7 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
           'Some health conditions can show up more often in certain communities. Sharing this helps us offer better, more personalized support. It\'s totally up to you, and your info stays private.',
       progress: 0.4,
       onNext: () {
+        _setEthnicities(context);
         Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => HealthAssessmentAppointTypeScreen()));
       },

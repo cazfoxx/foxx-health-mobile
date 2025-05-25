@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
+    show AppointmentTypeModel;
+import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart'
+    show SymptomTrackerCubit;
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/widgets/checklist_selection_sheet.dart';
+import 'package:foxxhealth/features/presentation/widgets/symptoms_selection_sheet.dart';
 
 class NewAppointmentScreen extends StatefulWidget {
   const NewAppointmentScreen({super.key});
@@ -52,7 +61,8 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                     label: 'Type of Appointment',
                     readOnly: true,
                     onTap: () async {
-                      final result = await showModalBottomSheet<String>(
+                      final AppointmentTypeModel result =
+                          await showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
                         shape: RoundedRectangleBorder(
@@ -64,7 +74,6 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                           maxChildSize: 0.90,
                           minChildSize: 0.5,
                           builder: (context, scrollController) => Container(
-                            height: MediaQuery.of(context).size.height * 0.9,
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.only(
@@ -76,10 +85,10 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                           ),
                         ),
                       );
-                      
+
                       if (result != null) {
                         setState(() {
-                          _typeController.text = result;
+                          _typeController.text = result.appointmentTypeText;
                         });
                       }
                     },
@@ -121,8 +130,17 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Implement save functionality
+            onPressed: () async {
+              // Create appointment type
+              final appointmentCubit = context.read<AppointmentCubit>();
+              await appointmentCubit.createAppointmentType(
+                appointmentTypeCode:
+                    _titleController.text.toUpperCase().replaceAll(' ', '_'),
+                appointmentTypeText: _titleController.text,
+              );
+
+              // Close the screen after creation
+              Navigator.pop(context);
             },
             child: Text(
               'Save',
@@ -293,237 +311,13 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SymptomsSelectionSheet(
-        onSymptomSelected: (symptom) {
+        onSymptomSelected: (SymptomId symptom) {
+          context.read<SymptomTrackerCubit>().addSymptom(symptom);
           setState(() {
-            _selectedSymptom = symptom;
+          _selectedSymptom = symptom.symptomName;
           });
           Navigator.pop(context);
         },
-      ),
-    );
-  }
-}
-
-class CheckListSelectionSheet extends StatefulWidget {
-  final Function(String) onCheckListSelected;
-
-  const CheckListSelectionSheet({
-    Key? key,
-    required this.onCheckListSelected,
-  }) : super(key: key);
-
-  @override
-  State<CheckListSelectionSheet> createState() =>
-      _CheckListSelectionSheetState();
-}
-
-class _CheckListSelectionSheetState extends State<CheckListSelectionSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  final List<String> _checkLists = [
-    'Check List in Progress',
-    'PCP Check List',
-    'Oncologist Check List',
-    'Check List Name',
-  ];
-  List<String> _filteredCheckLists = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _filteredCheckLists = List.from(_checkLists);
-    _searchController.addListener(_filterCheckLists);
-  }
-
-  void _filterCheckLists() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredCheckLists = _checkLists
-          .where((checklist) => checklist.toLowerCase().contains(query))
-          .toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-              const Text(
-                'Check List',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Handle create action
-                },
-                child: const Text(
-                  'Create',
-                  style: TextStyle(color: AppColors.amethystViolet),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            color: AppColors.lightViolet,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Enter',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _filteredCheckLists.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: const Icon(Icons.checklist,
-                      color: AppColors.amethystViolet),
-                  title: Text(_filteredCheckLists[index]),
-                  subtitle: Text('Last Edited: Apr 20, 2025'),
-                  onTap: () =>
-                      widget.onCheckListSelected(_filteredCheckLists[index]),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SymptomsSelectionSheet extends StatefulWidget {
-  final Function(String) onSymptomSelected;
-
-  const SymptomsSelectionSheet({
-    Key? key,
-    required this.onSymptomSelected,
-  }) : super(key: key);
-
-  @override
-  State<SymptomsSelectionSheet> createState() => _SymptomsSelectionSheetState();
-}
-
-class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
-  final TextEditingController _searchController = TextEditingController();
-  final List<String> _symptoms = [
-    'Brain fog',
-    'Changes in eating habits',
-    'Difficulty completing tasks',
-    'Sharp pain - Chest & upper back',
-    'Tingling or numbness - Legs & feet',
-  ];
-  List<String> _filteredSymptoms = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _filteredSymptoms = List.from(_symptoms);
-    _searchController.addListener(_filterSymptoms);
-  }
-
-  void _filterSymptoms() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredSymptoms = _symptoms
-          .where((symptom) => symptom.toLowerCase().contains(query))
-          .toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-              const Text(
-                'Symptoms',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Handle create action
-                },
-                child: const Text(
-                  'Create',
-                  style: TextStyle(color: AppColors.amethystViolet),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            color: AppColors.lightViolet,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Enter',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.separated(
-              separatorBuilder: (context, index) => const Divider(),
-              itemCount: _filteredSymptoms.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(_filteredSymptoms[index]),
-                  onTap: () =>
-                      widget.onSymptomSelected(_filteredSymptoms[index]),
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }

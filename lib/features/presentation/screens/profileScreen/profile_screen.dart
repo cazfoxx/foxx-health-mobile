@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Future<void> _handleSignOut(BuildContext context) async {
+   Future<void> _handleSignOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
+      // Clear SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      // Clear AppStorage
+      AppStorage.clearCredentials();
+      
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => SplashScreen()),
         (route) => false,
@@ -22,6 +32,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<ProfileCubit>().fetchProfile();
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -108,48 +119,75 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProfileSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: AppColors.lightViolet,
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white,
-            child: const Icon(
-              Icons.woman,
-              size: 40,
-              color: AppColors.amethystViolet,
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        if (state is ProfileLoading) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            color: AppColors.lightViolet,
+            child: const Center(
+              child: CircularProgressIndicator(),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  FirebaseAuth.instance.currentUser!.email.toString().split('@')[0],
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Text(
-                  'She/her',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
+          );
+        }
+        
+        if (state is ProfileError) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            color: AppColors.lightViolet,
+            child: Center(
+              child: Text('Error: ${state.message}'),
             ),
+          );
+        }
+
+        final userName = state is ProfileLoaded ? state.userName : 'Loading...';
+        final pronoun = state is ProfileLoaded ? state.pronoun : '';
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          color: AppColors.lightViolet,
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.white,
+                child: const Icon(
+                  Icons.woman,
+                  size: 40,
+                  color: AppColors.amethystViolet,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      pronoun,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.edit, color: AppColors.amethystViolet),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.edit, color: AppColors.amethystViolet),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/suggested_questions_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -75,7 +78,7 @@ class _CreateChecklistScreenState extends State<CreateChecklistScreen> {
             const SizedBox(height: 24),
             InkWell(
               onTap: () async {
-                final result = await showModalBottomSheet(
+                final AppointmentTypeModel result = await showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   shape: RoundedRectangleBorder(
@@ -100,9 +103,11 @@ class _CreateChecklistScreenState extends State<CreateChecklistScreen> {
                 );
 
                 if (result != null) {
+                  final checklistCubit = context.read<ChecklistCubit>();
+                  checklistCubit.setAppointmentTypeId(result.appointmentTypeId);
                   setState(() {
-                    selectedType = result;
-                    _searchController.text = result;
+                    selectedType = result.appointmentTypeText;
+                    _searchController.text = result.appointmentTypeText;
                   });
                 }
               },

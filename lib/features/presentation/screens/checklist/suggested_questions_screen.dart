@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/add_notes_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/base_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -19,6 +21,55 @@ class SuggestedQuestionsScreen extends StatefulWidget {
 }
 
 class _SuggestedQuestionsScreenState extends State<SuggestedQuestionsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return BaseChecklistScreen(
+      title: 'Suggested Questions',
+      subtitle: 'Select questions you\'d like to add to your checklist',
+      progress: 0.2,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _suggestedQuestions.length,
+                itemBuilder: (context, index) {
+                  final question = _suggestedQuestions[index];
+                  return _buildQuestionItem(question);
+                },
+              ),
+            ),
+            OnboardingButton(
+              text: 'Next',
+              onPressed: () {
+                final selectedQuestions = _selectedQuestions.entries
+                    .where((entry) => entry.value)
+                    .map((entry) => entry.key)
+                    .toList();
+
+                // Store selected questions in ChecklistCubit
+                final checklistCubit = context.read<ChecklistCubit>();
+                checklistCubit.setSuggestedQuestion(selectedQuestions);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddNotesScreen(
+                      appointmentType: widget.appointmentType,
+                      selectedQuestions: selectedQuestions,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   final Map<String, bool> _selectedQuestions = {};
 
   List<String> get _suggestedQuestions {
@@ -55,51 +106,6 @@ class _SuggestedQuestionsScreenState extends State<SuggestedQuestionsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BaseChecklistScreen(
-      title: 'Suggested Questions',
-      subtitle: 'Select questions you\'d like to add to your checklist',
-      progress: 0.5, // Adjust based on screen position
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _suggestedQuestions.length,
-                itemBuilder: (context, index) {
-                  final question = _suggestedQuestions[index];
-                  return _buildQuestionItem(question);
-                },
-              ),
-            ),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: () {
-                final selectedQuestions = _selectedQuestions.entries
-                    .where((entry) => entry.value)
-                    .map((entry) => entry.key)
-                    .toList();
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddNotesScreen(
-                      appointmentType: widget.appointmentType,
-                      selectedQuestions: selectedQuestions,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildQuestionItem(String question) {
     final isSelected = _selectedQuestions[question] ?? false;
     return Container(
@@ -123,7 +129,7 @@ class _SuggestedQuestionsScreenState extends State<SuggestedQuestionsScreen> {
         ),
         value: isSelected,
         activeColor: AppColors.amethystViolet,
-      
+
         contentPadding: EdgeInsets.zero,
         controlAffinity: ListTileControlAffinity
             .trailing, // Changed from leading to trailing

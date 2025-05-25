@@ -1,9 +1,23 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:logger/logger.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
   late final Dio dio;
+  static final GlobalKey<ScaffoldMessengerState> scaffoldKey =
+      GlobalKey<ScaffoldMessengerState>();
+  static final logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      errorMethodCount: 5,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+  );
 
   factory ApiClient() {
     return _instance;
@@ -12,9 +26,9 @@ class ApiClient {
   ApiClient._internal() {
     dio = Dio(
       BaseOptions(
-        baseUrl: 'http://127.0.0.1:8000/api/v1/',
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 3),
+        baseUrl: 'https://fastapi-backend-v2-788993188947.us-central1.run.app',
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -22,9 +36,9 @@ class ApiClient {
       ),
     );
 
-    // Add interceptors
     dio.interceptors.add(LoggerInterceptor());
     dio.interceptors.add(AuthInterceptor());
+    dio.interceptors.add(ErrorInterceptor());
   }
 
   Future<Response> get(
@@ -62,69 +76,111 @@ class ApiClient {
       rethrow;
     }
   }
-
-  // Add other methods (put, delete, etc.) as needed
 }
 
 class LoggerInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (kDebugMode) {
-      print('REQUEST[${options.method}] => PATH: ${options.path}');
-      print('Headers:');
-      options.headers.forEach((key, value) {
-        print('$key: $value');
-      });
-      if (options.data != null) {
-        print('Request Data:');
-        print(options.data);
-      }
+    final token = options.headers['Authorization'] as String?;
+
+    ApiClient.logger
+        .i('🌐 REQUEST[${options.method}] => PATH: ${options.path}');
+    ApiClient.logger.d(
+        '📋 Headers: {Content-Type: ${options.headers['Content-Type']}, Accept: ${options.headers['Accept']}}');
+    ApiClient.logger.d('🔑 Token: ${token ?? 'No token'}');
+
+    if (options.data != null) {
+      final sanitizedData = _sanitizeData(options.data);
+      ApiClient.logger.d('📦 Request Data: $sanitizedData');
     }
     super.onRequest(options, handler);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (kDebugMode) {
-      print('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
-      print('Response Data:');
-      print(response.data);
-    }
+    ApiClient.logger.i(
+        '✅ RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+
+    final sanitizedData = _sanitizeData(response.data);
+    ApiClient.logger.d('📄 Response Data: $sanitizedData');
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (kDebugMode) {
-      print('ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}');
-      print('Error Message:');
-      print(err.message);
-      if (err.response?.data != null) {
-        print('Error Response Data:');
-        print(err.response?.data);
-      }
+    ApiClient.logger.e(
+      '❌ ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
+      error: err.error,
+      stackTrace: err.stackTrace,
+    );
+
+    if (err.response?.data != null) {
+      final sanitizedData = _sanitizeData(err.response?.data);
+      ApiClient.logger.e('🚫 Error Response Data: $sanitizedData');
     }
     super.onError(err, handler);
+  }
+
+  Map<String, dynamic> _sanitizeData(dynamic data) {
+    if (data is Map) {
+      final sanitized = Map<String, dynamic>.from(data);
+      if (sanitized.containsKey('password')) {
+        sanitized['password'] = '******';
+      }
+      return sanitized;
+    }
+    return {'data': data.toString()};
   }
 }
 
 class AuthInterceptor extends Interceptor {
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    // Get token from secure storage or wherever you store it
-    // final token = await getToken();
-    // if (token != null) {
-    //   options.headers['Authorization'] = 'Bearer $token';
-    // }
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
+    final token = AppStorage.accessToken;
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     super.onRequest(options, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      // Handle token expiration
-      // You can implement token refresh logic here
+      AppStorage.clearCredentials();
+      ApiClient.logger.w('🔑 Token expired or invalid. Clearing credentials.');
     }
+    super.onError(err, handler);
+  }
+}
+
+class ErrorInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    String errorMessage = 'An error occurred';
+
+    if (err.response?.data != null && err.response?.data is Map) {
+      errorMessage = err.response?.data['detail'] ??
+          err.response?.data['message'] ??
+          errorMessage;
+    } else if (err.type == DioExceptionType.connectionTimeout) {
+      errorMessage = 'Connection timeout';
+    } else if (err.type == DioExceptionType.receiveTimeout) {
+      errorMessage = 'Server not responding';
+    } else if (err.type == DioExceptionType.connectionError) {
+      errorMessage = 'No internet connection';
+    }
+
+    ApiClient.scaffoldKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
     super.onError(err, handler);
   }
 }

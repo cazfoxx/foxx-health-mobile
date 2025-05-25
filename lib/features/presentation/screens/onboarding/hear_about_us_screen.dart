@@ -7,13 +7,16 @@ class HearAboutUsScreen extends StatefulWidget {
   const HearAboutUsScreen({super.key});
 
   @override
-  State<HearAboutUsScreen> createState() => _HearAboutUsScreenState();
+  State<HearAboutUsScreen> createState() => HearAboutUsScreenState();
 }
 
-class _HearAboutUsScreenState extends State<HearAboutUsScreen> {
+class HearAboutUsScreenState extends State<HearAboutUsScreen> {
   String? _selectedOption;
   final TextEditingController _otherController = TextEditingController();
   bool _isOtherSelected = false;
+  String getSelectedOption() {
+    return _selectedOption ?? _otherController.text;
+  }
 
   final List<String> _options = [
     'Social Media',

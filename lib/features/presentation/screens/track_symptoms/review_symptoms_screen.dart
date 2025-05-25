@@ -1,23 +1,29 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
+    show AppointmentTypeModel;
+import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/widgets/appointment_list_bottomsheet_widget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/start_date_body_widget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class ReviewSymptomsScreen extends StatefulWidget {
-  ReviewSymptomsScreen({Key? key, required this.descriptions})
-      : super(key: key);
-  String? descriptions;
+  final String? descriptions;
+
+  const ReviewSymptomsScreen({Key? key, this.descriptions}) : super(key: key);
 
   @override
   State<ReviewSymptomsScreen> createState() => _ReviewSymptomsScreenState();
 }
 
 class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
-  DateTime selectedDate = DateTime.now();
-
   String appointment = '';
 
   Widget _buildHeaderSection() {
@@ -80,7 +86,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: PopupMenuButton<String>(
-            offset: Offset(0, 40),
+            offset: const Offset(0, 40),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -101,18 +107,35 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
               ),
             ],
             onSelected: (value) async {
-              // Handle selection
               if (value == 'existing') {
-                final result = await showModalBottomSheet(
+                final AppointmentTypeModel result = await showModalBottomSheet(
                   context: context,
-                  backgroundColor: Colors.transparent,
                   isScrollControlled: true,
-                  builder: (context) => const AppointmentListBottomSheet(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => DraggableScrollableSheet(
+                    initialChildSize: 0.90,
+                    maxChildSize: 0.90,
+                    minChildSize: 0.5,
+                    builder: (context, scrollController) => Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: const AppointmentTypeScreen(),
+                    ),
+                  ),
                 );
-
-                setState(() {
-                  appointment = result;
-                });
+                if (result != null) {
+                  setState(() {
+                    appointment = result.appointmentTypeText;
+                  });
+                }
               } else {
                 showModalBottomSheet(
                   context: context,
@@ -126,11 +149,11 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(width: 4),
-                appointment.isEmpty ? Icon(Icons.add, size: 18) : SizedBox(),
+                if (appointment.isEmpty) const Icon(Icons.add, size: 18),
                 const SizedBox(width: 4),
                 Text(
                   appointment.isEmpty ? 'Add' : appointment,
-                  style: AppTextStyles.body2OpenSans.copyWith(),
+                  style: AppTextStyles.body2OpenSans,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -141,7 +164,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
     );
   }
 
-  Widget _buildSymptomChip(String label, Color color) {
+  Widget _buildSymptomChip(String label, Color color, VoidCallback? onRemove) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -153,16 +176,11 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
         children: [
           Text(label, style: AppTextStyles.body2OpenSans),
           const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                // Remove the chip
-                // Note: You'll need to modify your data structure to properly handle removal
-                // This is just a placeholder for the removal logic
-              });
-            },
-            child: Icon(Icons.close, size: 16),
-          ),
+          if (onRemove != null)
+            GestureDetector(
+              onTap: onRemove,
+              child: const Icon(Icons.close, size: 16),
+            ),
         ],
       ),
     );
@@ -170,226 +188,208 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Track Symptoms',
-          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderSection(),
-            Expanded(
-              child: ListView(
-                children: [
-                  StartDateBodyWidget(
-                    onDateSelected: (date) {
-                      setState(() {
-                        selectedDate = date;
-                      });
-                    },
-                    selectedDate: selectedDate,
+    return BlocBuilder<SymptomTrackerCubit, SymptomTrackerState>(
+      builder: (context, state) {
+        final cubit = context.read<SymptomTrackerCubit>();
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              'Track Symptoms',
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await cubit.createSymptomTracker();
+                    SnackbarUtils.showSuccess(
+                      context: context,
+                      title: 'Success',
+                      message: 'Symptoms tracked successfully',
+                    );
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    SnackbarUtils.showError(
+                      context: context,
+                      title: 'Error',
+                      message: 'Failed to track symptoms. Please try again.',
+                    );
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: AppTextStyles.body2OpenSans.copyWith(
+                    color: AppColors.amethystViolet,
                   ),
-                  const SizedBox(height: 24),
-                  _buildSymptomsSection(),
-                  const SizedBox(height: 24),
-                  _buildDescriptionSection(
-                      widget.descriptions ?? 'blah blah blah blah blah'),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSymptomsSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Symptoms',
-            style: AppTextStyles.heading3.copyWith(),
+            ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  offset: const Offset(0, 0),
-                  blurRadius: 13.0,
-                  spreadRadius: 6.0,
-                  color: Colors.black.withOpacity(0.09),
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderSection(),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(10),
+                    children: [
+                      StartDateBodyWidget(
+                        dateRange: DateTimeRange(
+                            start: cubit.fromDate, end: cubit.toDate),
+                        onDateSelected: (date) {
+                          cubit.setFromDate(date);
+                        },
+                        selectedDate: cubit.fromDate,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSymptomsSection(cubit),
+                      const SizedBox(height: 24),
+                      _buildDescriptionSection(cubit.symptomDescription),
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                _buildSymptomCategory('Physical', [
-                  _buildSymptomChip('Chest & Upper back\nThrobbing pain – Mild',
-                      Colors.yellow.shade100),
-                  _buildSymptomChip(
-                      'Abdomen & Lower back\nSharp pain – Moderate',
-                      Colors.orange.shade100),
-                ]),
-              ],
-            ),
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  offset: const Offset(0, 0),
-                  blurRadius: 13.0,
-                  spreadRadius: 6.0,
-                  color: Colors.black.withOpacity(0.09),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                _buildSymptomCategory('Physical', [
-                  _buildSymptomChip('Chest & Upper back\nThrobbing pain – Mild',
-                      Colors.yellow.shade100),
-                  _buildSymptomChip(
-                      'Abdomen & Lower back\nSharp pain – Moderate',
-                      Colors.orange.shade100),
-                ]),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildExpandableSection(
-              'Memory & concentration', 'Description', Icons.chevron_right),
-          const SizedBox(height: 16),
-          _buildExpandableSection(
-              'Changes in behavior', 'Description', Icons.chevron_right),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildSymptomCategory(String title, List<Widget> chips) {
+  Widget _buildSymptomsSection(SymptomTrackerCubit cubit) {
+    final groupedSymptoms = <String, List<SymptomId>>{};
+    for (var symptom in cubit.symptomIds) {
+      if (!groupedSymptoms.containsKey(symptom.symptomCategory)) {
+        groupedSymptoms[symptom.symptomCategory] = [];
+      }
+      groupedSymptoms[symptom.symptomCategory]!.add(symptom);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title,
-                style: AppTextStyles.bodyOpenSans
-                    .copyWith(fontWeight: FontWeight.w600)),
-            GestureDetector(
-              onTap: () {
-                final categories = [
-                  Category(
-                    title: 'Chest & Upper Back',
-                    symptoms: [
-                      SymptomItem(name: 'Sharp Pain'),
-                      SymptomItem(name: 'Dull Pain'),
-                      SymptomItem(name: 'Throbbing Pain'),
-                      SymptomItem(name: 'Pressure'),
-                      SymptomItem(name: 'Tingling or Numbness'),
-                    ],
-                  ),
-                  Category(
-                    title: 'Abdomen & Lower Back',
-                    symptoms: [
-                      SymptomItem(name: 'Sharp Pain'),
-                      SymptomItem(name: 'Dull Pain'),
-                      SymptomItem(name: 'Throbbing Pain'),
-                      SymptomItem(name: 'Pressure'),
-                      SymptomItem(name: 'Tingling or Numbness'),
-                    ],
-                  ),
-                ];
+        Text('Symptoms', style: AppTextStyles.heading3),
+        const SizedBox(height: 16),
+        ...groupedSymptoms.entries.map((entry) {
+          // Get the symptom type from the first symptom in the group
+          final symptomType = entry.value.first.symptomType ?? 'Body';
 
-                SymptomBottomSheet.show(context, 'Body', categories);
-              },
-              child: Text(
-                'Change',
-                style: AppTextStyles.body2OpenSans
-                    .copyWith(color: AppColors.amethystViolet),
-              ),
+          return Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(0, 0),
+                  blurRadius: 13.0,
+                  spreadRadius: 6.0,
+                  color: Colors.black.withOpacity(0.09),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: chips,
-        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      entry.key,
+                      style: AppTextStyles.bodyOpenSans.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Show bottom sheet with the correct symptom type
+                        SymptomBottomSheet.show(
+                          context,
+                          symptomType, // Use the symptom type directly
+                          cubit.getSymptoms(
+                              symptomType), // Get symptoms for this type
+                        );
+                      },
+                      child: Text(
+                        'Change',
+                        style: AppTextStyles.body2OpenSans.copyWith(
+                          color: AppColors.amethystViolet,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: entry.value.map((symptom) {
+                    Color chipColor;
+                    switch (symptom.severity.toLowerCase()) {
+                      case 'mild':
+                        chipColor = Colors.yellow.shade100;
+                        break;
+                      case 'moderate':
+                        chipColor = Colors.orange.shade100;
+                        break;
+                      case 'severe':
+                        chipColor = Colors.red.shade100;
+                        break;
+                      default:
+                        chipColor = Colors.grey.shade100;
+                    }
+                    return _buildSymptomChip(
+                      '${symptom.symptomName}\n${symptom.severity}',
+                      chipColor,
+                      () {
+                        final updatedSymptoms =
+                            List<SymptomId>.from(cubit.symptomIds)
+                              ..removeWhere((s) =>
+                                  s.symptomName == symptom.symptomName &&
+                                  s.symptomCategory == symptom.symptomCategory);
+                        cubit.setSymptomIds(updatedSymptoms);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ],
     );
   }
 
-  Widget _buildExpandableSection(String title, String subtitle, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: AppTextStyles.bodyOpenSans
-                        .copyWith(fontWeight: FontWeight.w600)),
-                Text(subtitle, style: AppTextStyles.body2OpenSans),
-              ],
-            ),
+  Widget _buildDescriptionSection(String description) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Describe your symptoms', style: AppTextStyles.heading3),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-          Icon(icon, color: Colors.grey.shade600),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDescriptionSection(description) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Describe your symptoms', style: AppTextStyles.heading3),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              description ?? 'dfilsdkjflksdjfkljsdklfjsdklfjksldjfkldsj',
-              style: AppTextStyles.body2OpenSans.copyWith(color: Colors.black),
-            ),
+          child: Text(
+            description.isNotEmpty ? description : 'No description provided',
+            style: AppTextStyles.body2OpenSans.copyWith(color: Colors.black),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

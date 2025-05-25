@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/location_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -52,6 +54,22 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
     });
   }
 
+  void _setHealthAssessmentValues(BuildContext context) {
+    final healthCubit = context.read<HealthAssessmentCubit>();
+
+    // Convert feet and inches to total inches
+    final feet = int.tryParse(_feetController.text) ?? 0;
+    final inches = int.tryParse(_inchController.text) ?? 0;
+
+
+    // Set values to cubit
+    healthCubit.setHeightInInches(inches);
+    healthCubit.setHeightInInches(feet);
+
+    healthCubit.setUserWeight(int.tryParse(_weightController.text) ?? 0);
+    healthCubit.setAge(int.tryParse(_ageController.text) ?? 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
@@ -59,6 +77,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
       subtitle: 'Help us create health assessment with your physical data',
       progress: 0.2,
       onNext: () {
+        _setHealthAssessmentValues(context);
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => LocationScreen()));
       },

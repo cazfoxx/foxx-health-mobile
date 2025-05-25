@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/area_of_concern_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -21,6 +23,11 @@ class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
     '\$75,000 - \$100,000 +',
   ];
 
+   void _setIncome(BuildContext context) {
+    final healthCubit = context.read<HealthAssessmentCubit>();
+    healthCubit.setSpecificHealthConcerns(selectedIncome??'');
+  }
+
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
@@ -29,6 +36,7 @@ class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
           'This helps us consider your full situation, like asking about affordable care or risks tied to financial circumstances.',
       progress: 0.8,
       onNext: () {
+        _setIncome(context);
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const AreaOfConcernScreen(),
         ));

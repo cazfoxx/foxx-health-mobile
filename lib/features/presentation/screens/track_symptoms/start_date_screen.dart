@@ -42,13 +42,16 @@ class _StartDateScreenState extends State<StartDateScreen> {
           ),
         );
       },
-      body: StartDateBodyWidget(
-        selectedDate: selectedDate,
-        onDateSelected: (date) {
-          setState(() {
-            selectedDate = date;
-          });
-        },
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: StartDateBodyWidget(
+          selectedDate: selectedDate,
+          onDateSelected: (date) {
+            setState(() {
+              selectedDate = date;
+            });
+          },
+        ),
       ),
     );
   }

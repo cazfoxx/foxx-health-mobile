@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
+    show AppointmentTypeModel;
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/pre_existing_conditions_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -52,14 +57,19 @@ class _HealthAssessmentAppointTypeScreenState
     });
   }
 
-  void _showTypeSelector() {
-    showModalBottomSheet(
+  void _showTypeSelector() async {
+    final AppointmentTypeModel result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.90,
+        maxChildSize: 0.90,
+        minChildSize: 0.5,
+        builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -67,124 +77,18 @@ class _HealthAssessmentAppointTypeScreenState
               topRight: Radius.circular(20),
             ),
           ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(13),
-                margin: const EdgeInsets.all(13),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: Icon(CupertinoIcons.xmark),
-                        ),
-                        Text(
-                          'Type of Appointment',
-                          style: AppTextStyles.bodyOpenSans.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: 50),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                color: AppColors.lightViolet,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _filterTypes('');
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _filterTypes(value);
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredTypes.length,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        this.setState(() {
-                          selectedType = filteredTypes[index];
-                          _appointmentController.text = filteredTypes[index];
-                        });
-                        _searchController.clear();
-                        _filterTypes('');
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey[200]!),
-                          ),
-                        ),
-                        child: Text(
-                          filteredTypes[index],
-                          style: AppTextStyles.bodyOpenSans,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+          child: const AppointmentTypeScreen(),
         ),
       ),
     );
+
+    if (result != null) {
+      final healthCubit = context.read<HealthAssessmentCubit>();
+      healthCubit.setAppointmentTypeId(result.appointmentTypeId);
+      setState(() {
+        _appointmentController.text = result.appointmentTypeText;
+      });
+    }
   }
 
   @override
@@ -198,7 +102,7 @@ class _HealthAssessmentAppointTypeScreenState
         Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => PreExistingConditionsScreen()));
       },
-      isNextEnabled: selectedType != null,
+      isNextEnabled: _appointmentController.text.isNotEmpty,
       body: GestureDetector(
         onTap: _showTypeSelector,
         child: Container(

@@ -1,7 +1,9 @@
 import 'dart:ui';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_state.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/create_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/feedback/feedback_screen.dart';
@@ -17,20 +19,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
   final List<Widget> _screens = [
     const HomeContent(),
-    NewsScreen(),
+    const NewsScreen(),
     const SizedBox(),
     const Center(child: Text('Review')),
-    FeedbackScreen(),
+    const FeedbackScreen(),
   ];
   void _showAddBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -224,16 +224,32 @@ Widget _buildActionItem({
   );
 }
 
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  @override
+  void initState() {
+    super.initState();
+    _getAppointments();
+  }
+
+  _getAppointments() async {
+    context.read<AppointmentCubit>().getAppointmentTypes();
+  }
+
   String _getInitials(String? name) {
     if (name == null || name.isEmpty) return '?';
     return name[0].toUpperCase();
   }
 
   Future<String> _getUserInitial() async {
-    final email = FirebaseAuth.instance.currentUser?.email;
-
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email') ?? '';
     return _getInitials(email);
   }
 
@@ -327,8 +343,7 @@ class HomeContent extends StatelessWidget {
                     ),
                     const Divider(height: 24),
                     _buildActionItem(
-                      icon: SvgPicture.asset(
-                          'assets/svg/home/create_health_assessment.svg'),
+                      icon: SvgPicture.asset('assets/svg/home/health_icon.svg'),
                       title: 'Create Health Assessment',
                       onTap: () {
                         Navigator.push(
@@ -372,80 +387,87 @@ class HomeContent extends StatelessWidget {
                           child: TabBarView(
                             children: [
                               // Upcoming Visits Tab
-                              SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    _buildCheckListItem(
-                                      context: context,
-                                      title: 'New Visit',
-                                      subtitle: 'Appointment',
-                                      date: 'Apr 13, 2025',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const VisitDetailsScreen(
-                                              doctorName: 'Dr Smith',
-                                              specialization: 'Oncologist',
-                                              date: 'May 2026',
+                              BlocBuilder<AppointmentCubit, AppointmentState>(
+                                builder: (context, state) {
+                                  if (state is AppointmentLoading) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  } else if (state is AppointmentTypesLoaded) {
+                                    return SingleChildScrollView(
+                                      child: Column(
+                                        children: [
+                                          ...state.appointmentTypes.map(
+                                            (type) => _buildCheckListItem(
+                                              context: context,
+                                              title: type.appointmentTypeText,
+                                              subtitle:
+                                                  type.appointmentTypeCode,
+                                              date: type.createdAtTimestamp,
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        VisitDetailsScreen(
+                                                      doctorName: type
+                                                          .appointmentTypeText,
+                                                      specialization: type
+                                                          .appointmentTypeCode,
+                                                      date: type
+                                                          .createdAtTimestamp,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildCheckListItem(
-                                      context: context,
-                                      title: 'Yearly Check Up',
-                                      subtitle: 'Appointment',
-                                      date: 'Mar 2025',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const VisitDetailsScreen(
-                                              doctorName: 'Dr Smith',
-                                              specialization: 'Oncologist',
-                                              date: 'May 2026',
+                                          const SizedBox(height: 12),
+                                          InkWell(
+                                            onTap: () {
+                                              showModalBottomSheet(
+                                                context: context,
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                isScrollControlled: true,
+                                                builder: (context) =>
+                                                    const NewAppointmentScreen(),
+                                              );
+                                            },
+                                            child: Card(
+                                              color: Colors.white,
+                                              child: ListTile(
+                                                leading: const Icon(
+                                                  Icons.add_circle,
+                                                  color:
+                                                      AppColors.amethystViolet,
+                                                ),
+                                                title: Text(
+                                                  'Create an upcoming visit',
+                                                  style: AppTextStyles.body2
+                                                      .copyWith(),
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.arrow_forward_ios,
+                                                  color:
+                                                      AppColors.amethystViolet,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    InkWell(
-                                      onTap: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          backgroundColor: Colors.transparent,
-                                          isScrollControlled: true,
-                                          builder: (context) =>
-                                              const NewAppointmentScreen(),
-                                        );
-                                      },
-                                      child: Card(
-                                        color: Colors.white,
-                                        child: ListTile(
-                                          leading: const Icon(
-                                            Icons.add_circle,
-                                            color: AppColors.amethystViolet,
-                                          ),
-                                          title: Text(
-                                              'Create an upcoming visit',
-                                              style: AppTextStyles.body2
-                                                  .copyWith()),
-                                          trailing: const Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: AppColors.amethystViolet,
-                                          ),
-                                        ),
+                                          SizedBox(height: 50)
+                                        ],
                                       ),
-                                    ),
-                                    const SizedBox(height: 70),
-                                  ],
-                                ),
+                                    );
+                                  } else if (state is AppointmentError) {
+                                    return Center(
+                                      child: Text(state.message),
+                                    );
+                                  }
+                                  return const Center(
+                                    child: Text('No appointments found'),
+                                  );
+                                },
                               ),
                               // Recent Actions Tab
                               SingleChildScrollView(

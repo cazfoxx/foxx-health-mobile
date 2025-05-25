@@ -3,18 +3,20 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+  final _apiClient = ApiClient();
+
   // User registration data
   String? _fullName;
-   String? _email;
-    String? _password;
-     String? _username;
+  String? _email;
+  String? _password;
+  String? _username;
   String? _phoneNumber;
   String? _age;
   String? _referralSource;
@@ -35,14 +37,15 @@ class LoginCubit extends Cubit<LoginState> {
     String? referralSource,
     String? pronoun,
   }) {
-    _fullName = fullName;
-    _email = email;
-    _password = password;
-    _username = username;
-    _phoneNumber = phoneNumber;
-    _age = age;
-    _referralSource = referralSource;
-    _pronoun = pronoun;
+    // Only update fields that are not null
+    if (fullName != null) _fullName = fullName;
+    if (email != null) _email = email;
+    if (password != null) _password = password;
+    if (username != null) _username = username;
+    if (phoneNumber != null) _phoneNumber = phoneNumber;
+    if (age != null) _age = age;
+    if (referralSource != null) _referralSource = referralSource;
+    if (pronoun != null) _pronoun = pronoun;
 
     //log all of them
     log('Full Name: $_fullName');
@@ -53,6 +56,7 @@ class LoginCubit extends Cubit<LoginState> {
     log('Age: $_age');
     log('Referral Source: $_referralSource');
     log('Pronoun: $_pronoun');
+    log('\n');
   }
 
   void setHealthGoals(List<String> goals) {
@@ -63,39 +67,44 @@ class LoginCubit extends Cubit<LoginState> {
     _healthConcerns = concerns;
   }
 
-  Future<void> registerUser(String email, String password) async {
+  Future<void> _saveEmailToPrefs(String email, String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_email', email);
+    await prefs.setString(
+        'access_token', token); // This is wrong - saving email as token
+    log('Email saved to prefs: $email');
+    log('Token saved to prefs: $token');
+    AppStorage.setCredentials(token: token, email: email);
+  }
+
+  Future<void> registerUser() async {
     try {
       emit(LoginLoading());
-      
-      // First create Firebase auth user
-      await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
 
-      // Then register with your API
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/v1/auth/users/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'full_name': _fullName,
-          'phone_number': _phoneNumber,
-          'age': _age,
-          'referal_source': _referralSource,
-          'pronoun': _pronoun,
-          'health_goals': _healthGoals,
-          'health_concerns': _healthConcerns,
-          'password': password,
-        }),
+      // Register with your API using Dio
+      final response = await _apiClient.post(
+        '/api/v1/auth/auth/register',
+        data: {
+          'emailAddress': _email,
+          'userName': _fullName,
+          'pronounCode': _pronoun,
+          'preferPronoun': _pronoun,
+          'ageGroupCode': _age,
+          'heardFromCode': _referralSource,
+          'otherHeardFrom': '',
+          'isActive': true,
+          'password': _password,
+        },
       );
 
       if (response.statusCode == 200) {
+        if (_email != null) {
+          await signInWithEmail(_email!, _password!);
+        }
         emit(LoginSuccess());
       } else {
-        // If API registration fails, delete the Firebase user
         await _auth.currentUser?.delete();
-        emit(LoginError('Registration failed: ${response.body}'));
+        emit(LoginError('Registration failed: ${response.data}'));
       }
     } on FirebaseAuthException catch (e) {
       emit(LoginError(e.message ?? 'Firebase authentication failed'));
@@ -107,34 +116,23 @@ class LoginCubit extends Cubit<LoginState> {
   Future<void> signInWithEmail(String email, String password) async {
     try {
       emit(LoginLoading());
-      
-      // First sign in with Firebase
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
 
-      // Then get token from your API
-      final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/v1/auth/users/token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': email,
+      final response = await _apiClient.post(
+        '/api/v1/auth/auth/login',
+        queryParameters: {
+          'email': email,
           'password': password,
-        }),
+        },
       );
 
       if (response.statusCode == 200) {
-        final tokenData = jsonDecode(response.body);
-        // You might want to store the token somewhere
+        final tokenData = response.data;
+        await _saveEmailToPrefs(_email!, tokenData['access_token']);
         emit(LoginSuccess());
       } else {
-        // If API login fails, sign out from Firebase
         await _auth.signOut();
-        emit(LoginError('Login failed: ${response.body}'));
+        emit(LoginError('Login failed: ${response.data}'));
       }
-    } on FirebaseAuthException catch (e) {
-      emit(LoginError(e.message ?? 'Firebase authentication failed'));
     } catch (e) {
       emit(LoginError('Login failed: $e'));
     }

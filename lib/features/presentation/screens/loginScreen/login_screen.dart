@@ -6,7 +6,7 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
+
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _agreeToTerms = false;
   bool _isOver16 = false;
   bool _isButtonEnabled = false;
+  bool _obscurePassword = true; // Add this variable
 
   @override
   void initState() {
@@ -162,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: 'Password',
                         filled: true,
@@ -174,6 +175,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
                       ),
                     ),
@@ -299,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           } else {
-                            // If it's sign in, navigate to home
+
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -323,7 +337,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _isButtonEnabled
                                 ? () {
-                                  final loginCubit =  context.read<LoginCubit>();
+                                    final loginCubit =
+                                        context.read<LoginCubit>();
                                     loginCubit.setUserDetails(
                                       email: _emailController.text,
                                       password: _passwordController.text,
@@ -338,13 +353,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       );
                                     } else {
-                                      // If it's sign in, navigate to home
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const HomeScreen(),
-                                        ),
+                                      // If it's sign in, only call the sign in method
+                                      // Navigation will be handled in BlocListener
+                                      loginCubit.signInWithEmail(
+                                        _emailController.text,
+                                        _passwordController.text,
                                       );
                                     }
                                   }

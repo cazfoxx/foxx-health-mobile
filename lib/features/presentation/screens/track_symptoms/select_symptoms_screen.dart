@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/describe_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
@@ -61,30 +63,13 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: InkWell(
               onTap: () {
-                final categories = [
-                  Category(
-                    title: 'Chest & Upper Back',
-                    symptoms: [
-                      SymptomItem(name: 'Sharp Pain'),
-                      SymptomItem(name: 'Dull Pain'),
-                      SymptomItem(name: 'Throbbing Pain'),
-                      SymptomItem(name: 'Pressure'),
-                      SymptomItem(name: 'Tingling or Numbness'),
-                    ],
-                  ),
-                  Category(
-                    title: 'Abdomen & Lower Back',
-                    symptoms: [
-                      SymptomItem(name: 'Sharp Pain'),
-                      SymptomItem(name: 'Dull Pain'),
-                      SymptomItem(name: 'Throbbing Pain'),
-                      SymptomItem(name: 'Pressure'),
-                      SymptomItem(name: 'Tingling or Numbness'),
-                    ],
-                  ),
-                ];
+                List<Category> categories = [];
+                
 
-                SymptomBottomSheet.show(context, 'Body', categories);
+                final cubit = context.read<SymptomTrackerCubit>();
+                categories = cubit.getSymptoms(category.title);
+                
+                SymptomBottomSheet.show(context, category.title, categories);
               },
               child: Container(
                 padding: const EdgeInsets.all(16),

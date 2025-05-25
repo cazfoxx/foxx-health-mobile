@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/review_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -29,7 +31,14 @@ class _DescribeSymptomsScreenState extends State<DescribeSymptomsScreen> {
           'Take time to think this through. Accuracy will help you better represent yourself.',
       progress: 1.0,
       onSave: () {},
-      onNext: () {
+      onNext: () async {
+        final cubit = context.read<SymptomTrackerCubit>();
+        cubit.setSymptomDescription(_descriptionController.text.trim());
+        cubit.loggerall();
+
+        // Call the create symptom tracker API
+        // await cubit.createSymptomTracker();
+
         Navigator.push(
           context,
           MaterialPageRoute(

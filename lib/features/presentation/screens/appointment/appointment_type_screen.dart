@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:foxxhealth/features/presentation/screens/checklist/suggested_questions_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_state.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
+
 
 class AppointmentTypeScreen extends StatefulWidget {
   const AppointmentTypeScreen({super.key, this.isSelectionEnabled = false});
@@ -17,24 +20,16 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
   String? _selectedType;
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
-  final List<String> _appointmentTypes = [
-    'Primary Care Provider (PCP)',
-    'Cardiologist'
-        'Gastroenterologist'
-        'Dermatologist',
-    'ObGyn'
-        'Gynecological',
-    'Dermatological',
-    'Oncologist'
-        'Other',
-  ];
-  List<String> _filteredTypes = [];
+  List<AppointmentTypeModel> _appointmentTypes = [];
+  List<AppointmentTypeModel> _filteredTypes = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredTypes = List.from(_appointmentTypes);
     _textController.addListener(_filterAppointmentTypes);
+    // Fetch appointment types when screen initializes
+    context.read<AppointmentCubit>().getAppointmentTypes();
+
   }
 
   void _filterAppointmentTypes() {
@@ -44,7 +39,8 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
         _filteredTypes = List.from(_appointmentTypes);
       } else {
         _filteredTypes = _appointmentTypes
-            .where((type) => type.toLowerCase().contains(query))
+            .where((type) =>
+                type.appointmentTypeText.toLowerCase().contains(query))
             .toList();
       }
     });
@@ -124,42 +120,70 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            _filteredTypes.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'No appointment types found',
-                        style: AppTextStyles.body.copyWith(
-                          color: Colors.grey[600],
+            BlocConsumer<AppointmentCubit, AppointmentState>(
+              listener: (context, state) {
+                if (state is AppointmentTypesLoaded) {
+                  setState(() {
+                    _appointmentTypes = state.appointmentTypes;
+                    _filteredTypes = state.appointmentTypes;
+                  });
+                } else if (state is AppointmentError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state is AppointmentLoading) {
+                  return const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                return _filteredTypes.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'No appointment types found',
+                            style: AppTextStyles.body.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )
-                : Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filteredTypes.length,
-                      itemBuilder: (context, index) {
-                        final type = _filteredTypes[index];
-                        return _buildTypeItem(type);
-                      },
-                    ),
-                  ),
+                      )
+                    : Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: _filteredTypes.length,
+                          itemBuilder: (context, index) {
+                            final type = _filteredTypes[index];
+                            return _buildTypeItem(type.appointmentTypeText,type);
+                          },
+                        ),
+                      );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTypeItem(String type) {
+  Widget _buildTypeItem(String type,AppointmentTypeModel appointment) {
     final isSelected = _selectedType == type;
-    return InkWell(      onTap: () {
+    return InkWell(
+      onTap: () {
         setState(() {
           _selectedType = type;
         });
         // Return the selected value and pop back
-        Navigator.pop(context, type);
+        Navigator.pop(context, appointment);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),

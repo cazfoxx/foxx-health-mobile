@@ -7,11 +7,15 @@ class AgeSelectionScreen extends StatefulWidget {
   const AgeSelectionScreen({super.key});
 
   @override
-  State<AgeSelectionScreen> createState() => _AgeSelectionScreenState();
+  State<AgeSelectionScreen> createState() => AgeSelectionScreenState();
 }
 
-class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
+class AgeSelectionScreenState extends State<AgeSelectionScreen> {
   String? _selectedAgeRange;
+
+    String? getSelectedAgeRange() {
+    return _selectedAgeRange;
+  }
 
   final List<String> _ageRanges = [
     'Younger than 16',
@@ -73,4 +77,7 @@ class _AgeSelectionScreenState extends State<AgeSelectionScreen> {
       ),
     );
   }
+
+  // Add this method to your AgeSelectionScreenState class
+
 }

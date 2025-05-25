@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/ethnicity_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -225,6 +227,8 @@ class _LocationScreenState extends State<LocationScreen> {
           'Why we ask:\nWhere you live can impact your health. For example, people living in certain areas are more likely to experience things like vitamin D deficiency. Knowing your location helps us make our recommendations more accurate.',
       progress: 0.4,
       onNext: () {
+            final healthCubit = context.read<HealthAssessmentCubit>();
+            healthCubit.setLocation(_locationController.text);
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => EthnicityScreen()));
       },

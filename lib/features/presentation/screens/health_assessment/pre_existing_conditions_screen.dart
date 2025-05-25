@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/health_concerns_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -15,10 +17,9 @@ class _PreExistingConditionsScreenState
     extends State<PreExistingConditionsScreen> {
   final TextEditingController _conditionController = TextEditingController();
 
-  @override
-  void dispose() {
-    _conditionController.dispose();
-    super.dispose();
+  void _setPreExistingConditions(BuildContext context) {
+    final healthCubit = context.read<HealthAssessmentCubit>();
+    healthCubit.setPreExistingConditionText(_conditionController.text);
   }
 
   @override
@@ -29,6 +30,7 @@ class _PreExistingConditionsScreenState
           'Help us tailor your checklists and insights based on your full health picture',
       progress: 0.2,
       onNext: () {
+        _setPreExistingConditions(context);
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const HealthConcernsScreen(),
         ));
@@ -59,37 +61,37 @@ class _PreExistingConditionsScreenState
             Text('Enter any pre- existing conditions or diagnoses below',
                 style: AppTextStyles.body2OpenSans),
             SizedBox(height: 10),
-            Container(
-              height: 300,
-              padding: EdgeInsets.all(10),
-              child: TextField(
-                controller: _conditionController,
-                decoration: InputDecoration(
-                  hintText:
-                      'Enter "None" if you have no pre-existing condition',
-                  hintStyle: AppTextStyles.body.copyWith(color: Colors.grey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
+            TextField(
+              controller: _conditionController,
+              decoration: InputDecoration(
+                hintText: 'Enter "None" if you have no pre-existing condition',
+                hintStyle: AppTextStyles.body.copyWith(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
-                maxLines: null,
-                expands: true,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
+              maxLines: 10,
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _conditionController.dispose();
+    super.dispose();
   }
 }

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/prepping_assessment_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/symptoms_selection_sheet.dart';
 
 class SymptomTrackerHealthAssessmentScreen extends StatefulWidget {
   const SymptomTrackerHealthAssessmentScreen({Key? key}) : super(key: key);
@@ -16,8 +21,7 @@ class SymptomTrackerHealthAssessmentScreen extends StatefulWidget {
 class _SymptomTrackerHealthAssessmentScreenState
     extends State<SymptomTrackerHealthAssessmentScreen> {
   final _searchController = TextEditingController();
-  final Set<String> selectedSymptoms = {};
-  List<String> filteredSymptoms = [];
+  List<String> selectedSymptoms = [];
 
   final List<String> symptoms = [
     'Brain fog',
@@ -28,160 +32,24 @@ class _SymptomTrackerHealthAssessmentScreenState
     'Symptom'
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    filteredSymptoms = List.from(symptoms);
-  }
-
-  void _filterSymptoms(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredSymptoms = List.from(symptoms);
-      } else {
-        filteredSymptoms = symptoms
-            .where((symptom) =>
-                symptom.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-    });
-  }
-
   void _showSymptomSelector() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(CupertinoIcons.xmark),
-                        ),
-                        Text(
-                          'Symptoms',
-                          style: AppTextStyles.bodyOpenSans.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Create',
-                            style: AppTextStyles.bodyOpenSans.copyWith(
-                              color: AppColors.amethystViolet,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                color: AppColors.lightViolet,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _filterSymptoms('');
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _filterSymptoms(value);
-                      });
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredSymptoms.length,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (selectedSymptoms
-                              .contains(filteredSymptoms[index])) {
-                            selectedSymptoms.remove(filteredSymptoms[index]);
-                          } else {
-                            selectedSymptoms.add(filteredSymptoms[index]);
-                          }
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey[200]!),
-                          ),
-                        ),
-                        child: Text(
-                          filteredSymptoms[index],
-                          style: AppTextStyles.bodyOpenSans,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SymptomsSelectionSheet(
+        onSymptomSelected: (SymptomId symptom) {
+          context
+              .read<HealthAssessmentCubit>()
+              .setSymptoms(symptom.symptomName);
+          setState(() {
+            selectedSymptoms.add(symptom.symptomName);
+          });
+          Navigator.pop(context);
+        },
       ),
     );
   }

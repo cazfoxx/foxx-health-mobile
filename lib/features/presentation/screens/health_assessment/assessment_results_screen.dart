@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -93,7 +96,8 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => HomeScreen())),
         ),
         title: const Text(
           'Results',
@@ -185,27 +189,44 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoSection('Physical Information',
-                          '5 Feet 6 Inches, 128 lbs, 22 years Old'),
-                      _buildInfoSection('Location', 'n/a'),
-                      _buildInfoSection('Ethnicity',
-                          'South Asian; Black or African American'),
-                      _buildInfoSection(
-                          'Type of Appointment', 'Primary Care Provider (PCP)'),
-                      _buildInfoSection('Pre-existing conditions', 'None'),
-                      _buildInfoSection('Health Concerns',
-                          'Migraine headaches, lifestyle changes'),
-                      _buildInfoSection('Health Goals', 'Get in shape'),
-                      _buildInfoSection(
-                          'Household income', '25,000 - \$50,000'),
-                      _buildInfoSection('Symptoms', 'Head & Neck, Legs'),
-                      _buildSymptomChips(),
-                      _buildInfoSection('Prescriptions & Supplements',
-                          'Vitamin C, Montelukast, Zyrtec, Calcium'),
-                    ],
+                  child:
+                      BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
+                    builder: (context, state) {
+                      final healthCubit = context.read<HealthAssessmentCubit>();
+                      final weight = healthCubit.userWeight;
+                      final heightInches = healthCubit.heightInInches;
+                      final heightFeet = healthCubit.heightInFeet;
+                      final appointment = healthCubit.appointmentTypeId;
+                      final existingCondiontion =
+                          healthCubit.preExistingConditionText;
+                      final healthConcerns = healthCubit.specificHealthConcerns;
+                      final healthGoals = healthCubit.specificHealthGoals;
+                      final householdIncome = healthCubit.income;
+                      final location = healthCubit.location;
+                      final symptoms = healthCubit.symptoms;
+                      final ethinicietes = healthCubit.ethnicities;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInfoSection('Physical Information',
+                              '$heightFeet Feet $heightInches Inches, 128 lbs, 22 years Old'),
+                          _buildInfoSection('Location', location),
+                          _buildInfoSection('Ethnicity', '$ethinicietes'),
+                          _buildInfoSection(
+                              'Type of Appointment', '$appointment'),
+                          _buildInfoSection('Pre-existing conditions', 'None'),
+                          _buildInfoSection('Health Concerns', healthConcerns),
+                          _buildInfoSection('Health Goals', healthGoals),
+                          _buildInfoSection(
+                              'Household income', householdIncome),
+                          _buildInfoSection('Symptoms', symptoms),
+                          _buildSymptomChips(),
+                          // _buildInfoSection('Prescriptions & Supplements',
+                          //     'Vitamin C, Montelukast, Zyrtec, Calcium'),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

@@ -15,8 +15,16 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
   final _customPronounController = TextEditingController();
   String? _selectedPronoun;
   bool _isCustomPronoun = false;
-  String getUserName() => _usernameController.text;
-  String getPronoun() => _isCustomPronoun ? _customPronounController.text : _selectedPronoun ?? '';
+  String getUserName() {
+
+    return _usernameController.text;
+  }
+
+  String getPronoun() {
+    final pronoun = _isCustomPronoun ? _customPronounController.text : _selectedPronoun ?? '';
+
+    return pronoun;
+  }
   @override
   void dispose() {
     _usernameController.dispose();
