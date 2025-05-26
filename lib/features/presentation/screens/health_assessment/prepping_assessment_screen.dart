@@ -7,11 +7,11 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/assessment_results_screen.dart';
 
 class PreppingAssessmentScreen extends StatefulWidget {
-  final List<String> selectedSymptoms;
+
 
   const PreppingAssessmentScreen({
     Key? key,
-    required this.selectedSymptoms,
+
   }) : super(key: key);
 
   @override
@@ -35,7 +35,7 @@ class _PreppingAssessmentScreenState extends State<PreppingAssessmentScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => AssessmentResultsScreen(
-            selectedSymptoms: widget.selectedSymptoms,
+
           ),
         ),
       );

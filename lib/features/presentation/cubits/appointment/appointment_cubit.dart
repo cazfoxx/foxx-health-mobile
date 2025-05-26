@@ -13,13 +13,14 @@ class AppointmentCubit extends Cubit<AppointmentState> {
       emit(AppointmentLoading());
 
       final response = await _apiClient.get(
-        '/api/v1/appointment-types/appointment-type/',
+        '/api/v1/appointment-types/',  // Updated endpoint
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data as List<dynamic>;
         final appointmentTypes = data
-            .map((json) => AppointmentTypeModel.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                AppointmentTypeModel.fromJson(json as Map<String, dynamic>))
             .toList();
         emit(AppointmentTypesLoaded(appointmentTypes));
       } else {
@@ -37,20 +38,20 @@ class AppointmentCubit extends Cubit<AppointmentState> {
     try {
       emit(AppointmentLoading());
 
-      final response = await _apiClient.post(
-        '/api/v1/appointment-types/appointment-type/',
-        data: {
-          'APPOINTMENT_TYPE_CODE': appointmentTypeCode,
-          'APPOINTMENT_TYPE_TEXT': appointmentTypeText,
-        },
-      );
+      // final response = await _apiClient.post(
+      //   '/api/v1/appointment-types/appointment-type/',
+      //   data: {
+      //     'APPOINTMENT_TYPE_CODE': appointmentTypeCode,
+      //     'APPOINTMENT_TYPE_TEXT': appointmentTypeText,
+      //   },
+      // );
 
-      if (response.statusCode == 201) {
-        // After successful creation, refresh the appointment types list
-        await getAppointmentTypes();
-      } else {
-        emit(AppointmentError('Failed to create appointment type'));
-      }
+      // if (response.statusCode == 201) {
+      //   // After successful creation, refresh the appointment types list
+      //   await getAppointmentTypes();
+      // } else {
+      //   emit(AppointmentError('Failed to create appointment type'));
+      // }
     } catch (e) {
       emit(AppointmentError('Error creating appointment type: $e'));
     }

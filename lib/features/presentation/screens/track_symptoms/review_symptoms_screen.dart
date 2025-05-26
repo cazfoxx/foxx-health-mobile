@@ -133,7 +133,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                 );
                 if (result != null) {
                   setState(() {
-                    appointment = result.appointmentTypeText;
+                    appointment = result.name;
                   });
                 }
               } else {

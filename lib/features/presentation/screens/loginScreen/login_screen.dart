@@ -306,6 +306,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (state is LoginSuccess) {
                           if (!widget.isSign) {
                             // If it's sign up, navigate to onboarding
+                            
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -313,7 +314,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           } else {
-
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

@@ -45,18 +45,6 @@ class _HealthAssessmentAppointTypeScreenState
     filteredTypes = List.from(appointmentTypes);
   }
 
-  void _filterTypes(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredTypes = List.from(appointmentTypes);
-      } else {
-        filteredTypes = appointmentTypes
-            .where((type) => type.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-    });
-  }
-
   void _showTypeSelector() async {
     final AppointmentTypeModel result = await showModalBottomSheet(
       context: context,
@@ -84,9 +72,9 @@ class _HealthAssessmentAppointTypeScreenState
 
     if (result != null) {
       final healthCubit = context.read<HealthAssessmentCubit>();
-      healthCubit.setAppointmentTypeId(result.appointmentTypeId);
+      healthCubit.setAppointmentTypeId(result.id);
       setState(() {
-        _appointmentController.text = result.appointmentTypeText;
+        _appointmentController.text = result.name;
       });
     }
   }

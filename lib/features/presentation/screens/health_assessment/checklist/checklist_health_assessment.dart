@@ -12,14 +12,14 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 // import 'package:share_plus/share_plus.dart';
 
-class ChecklistDetailsScreen extends StatefulWidget {
-  const ChecklistDetailsScreen({super.key});
+class ChecklistHealthAssessment extends StatefulWidget {
+  const ChecklistHealthAssessment({super.key});
 
   @override
-  State<ChecklistDetailsScreen> createState() => _ChecklistDetailsScreenState();
+  State<ChecklistHealthAssessment> createState() => _ChecklistHealthAssessmentState();
 }
 
-class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
+class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
   bool _isEditing = false;
   String appointment = '';
 

@@ -83,7 +83,7 @@ class LoginCubit extends Cubit<LoginState> {
 
       // Register with your API using Dio
       final response = await _apiClient.post(
-        '/api/v1/auth/auth/register',
+        '/api/v1/auth/register',
         data: {
           'emailAddress': _email,
           'userName': _fullName,
@@ -118,7 +118,7 @@ class LoginCubit extends Cubit<LoginState> {
       emit(LoginLoading());
 
       final response = await _apiClient.post(
-        '/api/v1/auth/auth/login',
+        '/api/v1/auth/login',
         queryParameters: {
           'email': email,
           'password': password,

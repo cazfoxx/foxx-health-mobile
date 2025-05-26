@@ -88,7 +88,7 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
 
                       if (result != null) {
                         setState(() {
-                          _typeController.text = result.appointmentTypeText;
+                          _typeController.text = result.name;
                         });
                       }
                     },

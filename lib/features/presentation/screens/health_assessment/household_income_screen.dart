@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/models/income_range_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/area_of_concern_screen.dart';
@@ -14,18 +15,20 @@ class HouseholdIncomeScreen extends StatefulWidget {
 }
 
 class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
-  String? selectedIncome;
+  IncomeRange? selectedIncome;
 
-  final List<String> incomeRanges = [
-    'Less than \$25,000',
-    '\$25,000 - \$50,000',
-    '\$50,000 - \$75,000',
-    '\$75,000 - \$100,000 +',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Fetch income ranges when screen initializes
+    context.read<HealthAssessmentCubit>().fetchIncomeRanges();
+  }
 
-   void _setIncome(BuildContext context) {
+  void _setIncome(BuildContext context) {
     final healthCubit = context.read<HealthAssessmentCubit>();
-    healthCubit.setSpecificHealthConcerns(selectedIncome??'');
+    if (selectedIncome != null) {
+      healthCubit.setSelectedIncomeRange(selectedIncome!);
+    }
   }
 
   @override
@@ -41,41 +44,58 @@ class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
           builder: (context) => const AreaOfConcernScreen(),
         ));
       },
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        shrinkWrap: true,
-        itemCount: incomeRanges.length,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  selectedIncome = incomeRanges[index];
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: selectedIncome == incomeRanges[index]
-                        ? AppColors.amethystViolet
-                        : Colors.grey[300]!,
+      body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
+        builder: (context, state) {
+          if (state is HealthAssessmentLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (state is HealthAssessmentError) {
+            return Center(child: Text(state.message));
+          }
+
+          if (state is HealthAssessmentIncomeRangesFetched) {
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              shrinkWrap: true,
+              itemCount: state.incomeRanges.length,
+              itemBuilder: (context, index) {
+                final incomeRange = state.incomeRanges[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-                child: Text(
-                  incomeRanges[index],
-                  style: AppTextStyles.bodyOpenSans,
-                ),
-              ),
-            ),
-          );
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedIncome = incomeRange;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: selectedIncome == incomeRange
+                              ? AppColors.amethystViolet
+                              : Colors.grey[300]!,
+                        ),
+                      ),
+                      child: Text(
+                        incomeRange.incomeRange,
+                        style: AppTextStyles.bodyOpenSans,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+
+          return const Center(child: Text('No income ranges available'));
         },
       ),
     );

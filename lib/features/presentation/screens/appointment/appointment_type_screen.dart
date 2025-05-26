@@ -40,7 +40,7 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
       } else {
         _filteredTypes = _appointmentTypes
             .where((type) =>
-                type.appointmentTypeText.toLowerCase().contains(query))
+                type.name.toLowerCase().contains(query))
             .toList();
       }
     });
@@ -163,7 +163,7 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
                           itemCount: _filteredTypes.length,
                           itemBuilder: (context, index) {
                             final type = _filteredTypes[index];
-                            return _buildTypeItem(type.appointmentTypeText,type);
+                            return _buildTypeItem(type.name, type);
                           },
                         ),
                       );
@@ -175,15 +175,16 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
     );
   }
 
-  Widget _buildTypeItem(String type,AppointmentTypeModel appointment) {
+  Widget _buildTypeItem(String type, AppointmentTypeModel appointment) {
     final isSelected = _selectedType == type;
     return InkWell(
       onTap: () {
-        setState(() {
-          _selectedType = type;
-        });
-        // Return the selected value and pop back
-        Navigator.pop(context, appointment);
+        if (appointment.isActive) {  // Only allow selection of active appointment types
+          setState(() {
+            _selectedType = type;
+          });
+          Navigator.pop(context, appointment);
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -198,19 +199,16 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
         ),
         child: Row(
           children: [
-            Text(
-              type,
-              style: AppTextStyles.body.copyWith(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.amethystViolet : null,
+            Expanded(
+              child: Text(
+                type,
+                style: AppTextStyles.body.copyWith(
+                  color: appointment.isActive ? Colors.black : Colors.grey,
+                ),
               ),
             ),
-            const Spacer(),
-            if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: AppColors.amethystViolet,
-              ),
+            if (!appointment.isActive)
+              const Icon(Icons.block, color: Colors.grey, size: 16),
           ],
         ),
       ),

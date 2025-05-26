@@ -386,90 +386,99 @@ class _HomeContentState extends State<HomeContent> {
                           height: MediaQuery.of(context).size.height * 0.4,
                           child: TabBarView(
                             children: [
-                              // Upcoming Visits Tab
-                              BlocBuilder<AppointmentCubit, AppointmentState>(
-                                builder: (context, state) {
-                                  if (state is AppointmentLoading) {
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  } else if (state is AppointmentTypesLoaded) {
-                                    return SingleChildScrollView(
-                                      child: Column(
-                                        children: [
-                                          ...state.appointmentTypes.map(
-                                            (type) => _buildCheckListItem(
-                                              context: context,
-                                              title: type.appointmentTypeText,
-                                              subtitle:
-                                                  type.appointmentTypeCode,
-                                              date: type.createdAtTimestamp,
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        VisitDetailsScreen(
-                                                      doctorName: type
-                                                          .appointmentTypeText,
-                                                      specialization: type
-                                                          .appointmentTypeCode,
-                                                      date: type
-                                                          .createdAtTimestamp,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
+                              // Upcoming Visits Tab with dummy data
+                              SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    _buildCheckListItem(
+                                      context: context,
+                                      title: 'Dr. Sarah Johnson',
+                                      subtitle: 'General Physician',
+                                      date: 'Apr 25, 2024',
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VisitDetailsScreen(
+                                              doctorName: 'Dr. Sarah Johnson',
+                                              specialization: 'General Physician',
+                                              date: 'Apr 25, 2024',
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
-                                          InkWell(
-                                            onTap: () {
-                                              showModalBottomSheet(
-                                                context: context,
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                isScrollControlled: true,
-                                                builder: (context) =>
-                                                    const NewAppointmentScreen(),
-                                              );
-                                            },
-                                            child: Card(
-                                              color: Colors.white,
-                                              child: ListTile(
-                                                leading: const Icon(
-                                                  Icons.add_circle,
-                                                  color:
-                                                      AppColors.amethystViolet,
-                                                ),
-                                                title: Text(
-                                                  'Create an upcoming visit',
-                                                  style: AppTextStyles.body2
-                                                      .copyWith(),
-                                                ),
-                                                trailing: const Icon(
-                                                  Icons.arrow_forward_ios,
-                                                  color:
-                                                      AppColors.amethystViolet,
-                                                ),
-                                              ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildCheckListItem(
+                                      context: context,
+                                      title: 'Dr. Michael Chen',
+                                      subtitle: 'Cardiologist',
+                                      date: 'Apr 28, 2024',
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VisitDetailsScreen(
+                                              doctorName: 'Dr. Michael Chen',
+                                              specialization: 'Cardiologist',
+                                              date: 'Apr 28, 2024',
                                             ),
                                           ),
-                                          SizedBox(height: 50)
-                                        ],
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildCheckListItem(
+                                      context: context,
+                                      title: 'Dr. Emily Rodriguez',
+                                      subtitle: 'Dermatologist',
+                                      date: 'May 2, 2024',
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VisitDetailsScreen(
+                                              doctorName: 'Dr. Emily Rodriguez',
+                                              specialization: 'Dermatologist',
+                                              date: 'May 2, 2024',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    InkWell(
+                                      onTap: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.transparent,
+                                          isScrollControlled: true,
+                                          builder: (context) => const NewAppointmentScreen(),
+                                        );
+                                      },
+                                      child: Card(
+                                        color: Colors.white,
+                                        child: ListTile(
+                                          leading: const Icon(
+                                            Icons.add_circle,
+                                            color: AppColors.amethystViolet,
+                                          ),
+                                          title: Text(
+                                            'Create an upcoming visit',
+                                            style: AppTextStyles.body2.copyWith(),
+                                          ),
+                                          trailing: const Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: AppColors.amethystViolet,
+                                          ),
+                                        ),
                                       ),
-                                    );
-                                  } else if (state is AppointmentError) {
-                                    return Center(
-                                      child: Text(state.message),
-                                    );
-                                  }
-                                  return const Center(
-                                    child: Text('No appointments found'),
-                                  );
-                                },
+                                    ),
+                                    const SizedBox(height: 50)
+                                  ],
+                                ),
                               ),
-                              // Recent Actions Tab
+                              // Keep existing Recent Actions Tab
                               SingleChildScrollView(
                                 child: Column(
                                   children: [

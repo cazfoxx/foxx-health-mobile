@@ -44,7 +44,16 @@ class ChecklistUpdated extends ChecklistState {
   const ChecklistUpdated(this.checklist);
 
   @override
-  List<Object?> get props => [checklist];
+  List<Object> get props => [checklist];
+}
+
+class ChecklistDeleted extends ChecklistState {
+  final int checklistId;
+
+  const ChecklistDeleted(this.checklistId);
+
+  @override
+  List<Object> get props => [checklistId];
 }
 
 class ChecklistError extends ChecklistState {

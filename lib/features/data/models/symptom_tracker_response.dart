@@ -1,13 +1,13 @@
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 
 class SymptomTrackerResponse {
-  final List<SymptomId> symptomIds;
-  final DateTime fromDate;
-  final DateTime toDate;
-  final String symptomDescription;
-  final int id;
-  final int accountId;
-  final DateTime createdAt;
+  final List<SymptomId>? symptomIds;
+  final DateTime? fromDate;
+  final DateTime? toDate;
+  final String? symptomDescription;
+  final int? id;
+  final int? accountId;
+  final DateTime? createdAt;
   final DateTime updatedAt;
 
   SymptomTrackerResponse({
@@ -38,13 +38,13 @@ class SymptomTrackerResponse {
 
   Map<String, dynamic> toJson() {
     return {
-      'symptom_ids': symptomIds.map((symptom) => symptom.toJson()).toList(),
-      'from_date': fromDate.toIso8601String().split('T')[0],
-      'to_date': toDate.toIso8601String().split('T')[0],
+      'symptom_ids': symptomIds?.map((symptom) => symptom.toJson()).toList(),
+      'from_date': fromDate?.toIso8601String().split('T')[0],
+      'to_date': toDate?.toIso8601String().split('T')[0],
       'symptom_description': symptomDescription,
       'id': id,
       'account_id': accountId,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }

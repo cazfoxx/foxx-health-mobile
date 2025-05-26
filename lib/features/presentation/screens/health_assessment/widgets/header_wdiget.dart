@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 
 class HeaderWidget extends StatelessWidget {
   final String title;
@@ -14,19 +15,19 @@ class HeaderWidget extends StatelessWidget {
   final String? appbarTrailing;
   final Widget? customSubtile;
 
-  const HeaderWidget({
-    Key? key,
-    required this.title,
-    required this.subtitle,
-    required this.body,
-    required this.onNext,
-    required this.progress,
-    this.isNextEnabled = true,
-    this.onSave,
-    this.appbarTitle,
-    this.appbarTrailing,
-    this.customSubtile
-  }) : super(key: key);
+  const HeaderWidget(
+      {Key? key,
+      required this.title,
+      required this.subtitle,
+      required this.body,
+      required this.onNext,
+      required this.progress,
+      this.isNextEnabled = true,
+      this.onSave,
+      this.appbarTitle,
+      this.appbarTrailing,
+      this.customSubtile})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,10 @@ class HeaderWidget extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: onSave ?? () {},
+            onPressed: onSave ??
+                () {
+                  ReminderDialog.show(context);
+                },
             child: Text(
               appbarTrailing ?? 'Save',
               style: AppTextStyles.body.copyWith(
@@ -98,8 +102,7 @@ class HeaderWidget extends StatelessWidget {
                               color: Colors.grey[600],
                             ),
                           ),
-                          customSubtile!=null?
-                          customSubtile! : SizedBox()
+                          customSubtile != null ? customSubtile! : SizedBox()
                         ],
                       ),
                     ),

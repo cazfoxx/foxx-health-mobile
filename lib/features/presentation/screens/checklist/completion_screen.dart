@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/checklist_details_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
@@ -24,7 +23,7 @@ class CompletionScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              // Handle save action
+
             },
             child: Text(
               'Save',
@@ -73,7 +72,6 @@ class CompletionScreen extends StatelessWidget {
                   final checklistCubit = context.read<ChecklistCubit>();
                   // Log all data before API call
                   checklistCubit.logalldata();
-                  
                   // Call the API
                   checklistCubit.createChecklist();
                 },

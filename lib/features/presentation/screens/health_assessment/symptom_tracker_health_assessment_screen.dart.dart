@@ -42,9 +42,9 @@ class _SymptomTrackerHealthAssessmentScreenState
       ),
       builder: (context) => SymptomsSelectionSheet(
         onSymptomSelected: (SymptomId symptom) {
-          context
-              .read<HealthAssessmentCubit>()
-              .setSymptoms(symptom.symptomName);
+          // context
+          //     .read<HealthAssessmentCubit>()
+          //     .setSymptoms(symptom.symptomName);
           setState(() {
             selectedSymptoms.add(symptom.symptomName);
           });
@@ -65,9 +65,7 @@ class _SymptomTrackerHealthAssessmentScreenState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PreppingAssessmentScreen(
-              selectedSymptoms: selectedSymptoms.toList(),
-            ),
+            builder: (context) => PreppingAssessmentScreen(),
           ),
         );
       },

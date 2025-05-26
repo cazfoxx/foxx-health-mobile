@@ -1,35 +1,35 @@
 class AppointmentTypeModel {
-  final int appointmentTypeId;
-  final String createdAtTimestamp;
-  final String updatedAtTimestamp;
-  final String appointmentTypeCode;
-  final String appointmentTypeText;
+  final int id;
+  final String name;
+  final bool isActive;
+  final String createdAt;
+  final String updatedAt;
 
   AppointmentTypeModel({
-    required this.appointmentTypeId,
-    required this.createdAtTimestamp,
-    required this.updatedAtTimestamp,
-    required this.appointmentTypeCode,
-    required this.appointmentTypeText,
+    required this.id,
+    required this.name,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory AppointmentTypeModel.fromJson(Map<String, dynamic> json) {
     return AppointmentTypeModel(
-      appointmentTypeId: json['APPOINTMENT_TYPE_ID'] as int,
-      createdAtTimestamp: json['CREATED_AT_TIMESTAMP'] as String,
-      updatedAtTimestamp: json['UPDATED_AT_TIMESTAMP'] as String,
-      appointmentTypeCode: json['APPOINTMENT_TYPE_CODE'] as String,
-      appointmentTypeText: json['APPOINTMENT_TYPE_TEXT'] as String,
+      id: json['id'] as int,
+      name: json['name'] as String,
+      isActive: json['is_active'] as bool,
+      createdAt: json['created_at'] as String,
+      updatedAt: json['updated_at'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'APPOINTMENT_TYPE_ID': appointmentTypeId,
-      'CREATED_AT_TIMESTAMP': createdAtTimestamp,
-      'UPDATED_AT_TIMESTAMP': updatedAtTimestamp,
-      'APPOINTMENT_TYPE_CODE': appointmentTypeCode,
-      'APPOINTMENT_TYPE_TEXT': appointmentTypeText,
+      'id': id,
+      'name': name,
+      'is_active': isActive,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
     };
   }
 }

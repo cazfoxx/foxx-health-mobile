@@ -7,6 +7,7 @@ class ChecklistModel {
   final bool isActive;
   final bool isDeleted;
   final int accountId;
+  final int? id;
 
   ChecklistModel({
     required this.name,
@@ -17,6 +18,7 @@ class ChecklistModel {
     required this.isActive,
     this.isDeleted = false,
     required this.accountId,
+     this.id,
   });
 
   Map<String, dynamic> toJson() => {
@@ -31,6 +33,7 @@ class ChecklistModel {
       };
 
   factory ChecklistModel.fromJson(Map<String, dynamic> json) => ChecklistModel(
+        id: json['id'] ?? 0,
         name: json['name'] ?? '',
         appointmentTypeId: json['appointment_type_id'] ?? 0,
         curatedQuestionIds: List<int>.from(json['curated_question_ids'] ?? []),

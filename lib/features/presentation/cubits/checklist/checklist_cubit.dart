@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/data/models/checklist_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 part 'checklist_state.dart';
 
 class ChecklistCubit extends Cubit<ChecklistState> {
@@ -10,7 +11,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
 
   ChecklistCubit() : super(ChecklistInitial()) {
     // Fetch checklists when cubit is initialized
-    getChecklists();
+    // getChecklists();
   }
 
   List<String> suggestedQuestion = [];
@@ -19,6 +20,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
 
   int appointmentTypeId = 0;
   String checkListName = '';
+  int? checklistId;
   setCheckListName(String name) {
     checkListName = '$name checklist';
   }
@@ -55,6 +57,9 @@ class ChecklistCubit extends Cubit<ChecklistState> {
     try {
       emit(ChecklistLoading());
 
+      final prefs = await SharedPreferences.getInstance();
+      final accountId = prefs.getInt('accountId') ?? 0;
+
       ChecklistModel checklist = ChecklistModel(
           name: 'checklist $appointmentTypeId',
           appointmentTypeId: appointmentTypeId,
@@ -63,10 +68,10 @@ class ChecklistCubit extends Cubit<ChecklistState> {
           prescriptionAndSupplements: prescription,
           isActive: true,
           isDeleted: false,
-          accountId: 0);
+          accountId: accountId);
 
       final response = await _apiClient.post(
-        '/api/v1/checklists/checklists/',
+        '/api/v1/checklists/',
         data: checklist.toJson(),
       );
 
@@ -76,6 +81,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
             Map<String, dynamic>.from(response.data);
         // Create checklist model from actual response data
         final createdChecklist = ChecklistModel.fromJson(responseData);
+        checklistId = createdChecklist.id;
         emit(ChecklistCreated(createdChecklist));
       } else {
         emit(ChecklistError('Failed to create checklist: ${response.data}'));
@@ -91,7 +97,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       emit(ChecklistLoading());
 
       final response = await _apiClient.get(
-        '/api/v1/checklists/checklists/me',
+        '/api/v1/checklists/me',
         queryParameters: {
           'skip': 0,
           'limit': 100,
@@ -109,6 +115,62 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       }
     } catch (e) {
       emit(ChecklistError('Error fetching checklists: $e'));
+    }
+  }
+
+  // Edit an existing checklist
+  Future<void> editChecklist() async {
+    try {
+      emit(ChecklistLoading());
+
+      final prefs = await SharedPreferences.getInstance();
+      final accountId = prefs.getInt('accountId') ?? 0;
+
+      final data = {
+        'name': checkListName,
+        'appointment_type_id': appointmentTypeId,
+        'curated_question_ids': [0],
+        'custom_questions': customQuestion,
+        'prescription_and_supplements': prescription,
+        'is_active': true,
+        'is_deleted': false,
+        'account_id': accountId
+      };
+
+      final response = await _apiClient.put(
+        '/api/v1/checklists/$checklistId',
+        data: data,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData =
+            Map<String, dynamic>.from(response.data);
+        final updatedChecklist = ChecklistModel.fromJson(responseData);
+        emit(ChecklistUpdated(updatedChecklist));
+      } else {
+        emit(ChecklistError('Failed to update checklist: ${response.data}'));
+      }
+    } catch (e) {
+      emit(ChecklistError('Error updating checklist: $e'));
+    }
+  }
+
+  // Delete a checklist
+  Future<void> deleteChecklist(int checklistId) async {
+    try {
+      emit(ChecklistLoading());
+
+      final response = await _apiClient.delete(
+        '/api/v1/checklists/$checklistId',
+      );
+
+      if (response.statusCode == 200) {
+        emit(ChecklistDeleted(checklistId));
+      } else {
+        emit(ChecklistError('Failed to delete checklist: ${response.data}'));
+      }
+    } catch (e) {
+      emit(ChecklistError('Error deleting checklist: $e'));
     }
   }
 }

@@ -160,7 +160,7 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
       final newType = symptoms.first.symptomType;
       _symptomIds.removeWhere((s) => s.symptomType == newType);
     }
-    
+
     // Add new symptoms
     _symptomIds.addAll(symptoms);
     emit(SymptomTrackerInitial());
@@ -199,7 +199,7 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
       );
 
       final response = await _apiClient.post(
-        '/api/v1/symptom-trackers/symptom-trackers/',
+        '/api/v1/symptom-trackers/',
         data: request.toJson(),
       );
 
@@ -218,7 +218,7 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
       emit(SymptomTrackerLoading());
 
       final response = await _apiClient.get(
-        '/api/v1/symptom-trackers/symptom-trackers/me',
+        '/api/v1/symptom-trackers/me',
         queryParameters: {
           'skip': 0,
           'limit': 100,
