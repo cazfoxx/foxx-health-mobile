@@ -8,8 +8,10 @@ import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubi
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 // import 'package:share_plus/share_plus.dart';
 
 class ChecklistDetailsScreen extends StatefulWidget {
@@ -29,6 +31,13 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
       builder: (context, state) {
         final cubit = context.read<ChecklistCubit>();
         return Scaffold(
+          bottomNavigationBar: OnboardingButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const HomeScreen()));
+            },
+            text: 'Done',
+          ),
           backgroundColor: AppColors.background,
           appBar: _buildAppBar(),
           body: SingleChildScrollView(

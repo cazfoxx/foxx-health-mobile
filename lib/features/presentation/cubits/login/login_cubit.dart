@@ -13,7 +13,7 @@ class LoginCubit extends Cubit<LoginState> {
   final _apiClient = ApiClient();
 
   // User registration data
-  String? _fullName;
+  String? fullName;
   String? _email;
   String? _password;
   String? _username;
@@ -24,7 +24,11 @@ class LoginCubit extends Cubit<LoginState> {
   List<String> _healthGoals = [];
   List<String> _healthConcerns = [];
 
+  
+
   LoginCubit() : super(LoginInitial());
+
+
 
   // Setters for onboarding data
   void setUserDetails({
@@ -38,7 +42,7 @@ class LoginCubit extends Cubit<LoginState> {
     String? pronoun,
   }) {
     // Only update fields that are not null
-    if (fullName != null) _fullName = fullName;
+    if (fullName != null) fullName = fullName;
     if (email != null) _email = email;
     if (password != null) _password = password;
     if (username != null) _username = username;
@@ -47,16 +51,7 @@ class LoginCubit extends Cubit<LoginState> {
     if (referralSource != null) _referralSource = referralSource;
     if (pronoun != null) _pronoun = pronoun;
 
-    //log all of them
-    log('Full Name: $_fullName');
-    log('Email: $_email');
-    log('Password: $_password');
-    log('Username: $_username');
-    log('Phone Number: $_phoneNumber');
-    log('Age: $_age');
-    log('Referral Source: $_referralSource');
-    log('Pronoun: $_pronoun');
-    log('\n');
+
   }
 
   void setHealthGoals(List<String> goals) {
@@ -86,7 +81,7 @@ class LoginCubit extends Cubit<LoginState> {
         '/api/v1/auth/register',
         data: {
           'emailAddress': _email,
-          'userName': _fullName,
+          'userName': fullName,
           'pronounCode': _pronoun,
           'preferPronoun': _pronoun,
           'ageGroupCode': _age,

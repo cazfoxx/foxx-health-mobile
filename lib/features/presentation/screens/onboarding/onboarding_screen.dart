@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/health_concers_screen.dart';
@@ -127,6 +128,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       // Get the LoginCubit
       final loginCubit = context.read<LoginCubit>();
+
+      SnackbarUtils.showSuccess(
+          context: context,
+          title: 'Welcome ${loginCubit.fullName}',
+          message: 'Foxx health');
 
       // Register the user
       loginCubit.registerUser();
