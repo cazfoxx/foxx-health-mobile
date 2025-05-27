@@ -48,6 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void nextPage() {
+    FocusScope.of(context).unfocus();
     if (_currentPage == 0) {
       // Get the AboutYourselfScreen state using the key
       final aboutYourselfState = _aboutYourselfKey.currentState;

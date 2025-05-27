@@ -50,19 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDEBRHzyEgr4PgXUgZ4GvhBmnmMeAHbGR4',
-    appId: '1:1096955030885:android:a0527ee197cdb1ad66c58c',
-    messagingSenderId: '1096955030885',
-    projectId: 'foxx-c7031',
-    storageBucket: 'foxx-c7031.firebasestorage.app',
+    apiKey: 'AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA',
+    appId: '1:788993188947:android:6590d21215bdb47ef2d2a6',
+    messagingSenderId: '788993188947',
+    projectId: 'arcane-shape-449219-v0',
+    storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCzuJNfvJR4emESqfmc1e_bRDKpNFp7lRs',
-    appId: '1:1096955030885:ios:10ade79c2b80437666c58c',
-    messagingSenderId: '1096955030885',
-    projectId: 'foxx-c7031',
-    storageBucket: 'foxx-c7031.firebasestorage.app',
-    iosBundleId: 'com.example.foxxhealth',
+    apiKey: 'AIzaSyCzbtvlK84cadaNGXmTNZXBHRDdxdVjuU8',
+    appId: '1:788993188947:ios:578a99ccccd9a7c8f2d2a6',
+    messagingSenderId: '788993188947',
+    projectId: 'arcane-shape-449219-v0',
+    storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
+    iosBundleId: 'com.beta.foxxhealth',
   );
+
 }

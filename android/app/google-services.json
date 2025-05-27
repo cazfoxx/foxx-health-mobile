@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1096955030885",
-    "project_id": "foxx-c7031",
-    "storage_bucket": "foxx-c7031.firebasestorage.app"
+    "project_number": "788993188947",
+    "project_id": "arcane-shape-449219-v0",
+    "storage_bucket": "arcane-shape-449219-v0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1096955030885:android:a0527ee197cdb1ad66c58c",
+        "mobilesdk_app_id": "1:788993188947:android:6590d21215bdb47ef2d2a6",
         "android_client_info": {
           "package_name": "com.example.foxxhealth"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDEBRHzyEgr4PgXUgZ4GvhBmnmMeAHbGR4"
+          "current_key": "AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA"
         }
       ],
       "services": {

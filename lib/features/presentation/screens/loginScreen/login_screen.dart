@@ -73,13 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: Column(
-          // Remove the Expanded here
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(),
-            _buildLoginForm(),
-          ],
+        child: SingleChildScrollView(
+          // Wrap with SingleChildScrollView
+          child: SizedBox(
+            // Add SizedBox with screen height
+            height: 710,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(),
+                _buildLoginForm(),
+              ],
+            ),
+          ),
         ),
       ),
     );
