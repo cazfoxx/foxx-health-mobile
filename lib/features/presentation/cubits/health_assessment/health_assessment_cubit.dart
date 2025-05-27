@@ -5,6 +5,7 @@ import 'package:foxxhealth/features/data/models/area_of_concern_model.dart';
 import 'package:foxxhealth/features/data/models/income_range_model.dart';
 import 'package:foxxhealth/features/data/models/state_model.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 
 part 'health_assessment_state.dart';
 
@@ -25,7 +26,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   bool _isActive = true;
   bool _isDeleted = false;
   int _appointmentTypeId = 0;
-  List<Symptom> _symptoms = [];
+  List<SymptomTrackerResponse> _symptoms = [];
   List<Symptom> _seletedSymptom = [];
 
   List<State> _states = [];
@@ -34,7 +35,6 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   IncomeRange? _seletedIncomeRange;
   List<AreaOfConcern> _areasOfConcern = [];
   List<AreaOfConcern>? _selectedAreaOfConcern;
-
   int? healthAssessmentId;
 
   // Getters
@@ -51,7 +51,9 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   bool get isActive => _isActive;
   bool get isDeleted => _isDeleted;
   int get appointmentTypeId => _appointmentTypeId;
-  List<Symptom> get symptoms => _symptoms;
+  List<SymptomTrackerResponse> get symptoms => _symptoms;
+  List<Symptom> get selectedSymptom => _seletedSymptom;
+  State? get selectedState => _selectedState;
   List<State> get states => _states;
   List<IncomeRange> get incomeRanges => _incomeRanges;
   List<AreaOfConcern> get areasOfConcern => _areasOfConcern;
@@ -109,8 +111,8 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     _appointmentTypeId = id;
   }
 
-  void setSymptoms(List<Symptom> newSymptoms) {
-    _symptoms = newSymptoms;
+  void setSymptoms(SymptomTrackerResponse newSymptoms) {
+    _symptoms.add(newSymptoms);
   }
 
   void setSelectedSymptom(Symptom symptom) {
@@ -202,30 +204,30 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     }
   }
 
-  Future<void> fetchSymptoms() async {
-    try {
-      emit(HealthAssessmentLoading());
+  // Future<void> fetchSymptoms() async {
+  //   try {
+  //     emit(HealthAssessmentLoading());
 
-      final response = await _apiClient.get(
-        '/api/v1/symptom/',
-        queryParameters: {
-          'skip': 0,
-          'limit': 100,
-        },
-      );
+  //     final response = await _apiClient.get(
+  //       '/api/v1/symptom/',
+  //       queryParameters: {
+  //         'skip': 0,
+  //         'limit': 100,
+  //       },
+  //     );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> symptomsJson = response.data;
-        _symptoms = symptomsJson.map((json) => Symptom.fromJson(json)).toList();
-        emit(HealthAssessmentSymptomsFetched(_symptoms));
-      } else {
-        emit(HealthAssessmentError(
-            'Failed to fetch symptoms: ${response.statusCode}'));
-      }
-    } catch (e) {
-      emit(HealthAssessmentError('Error fetching symptoms: $e'));
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> symptomsJson = response.data;
+  //       _symptoms = symptomsJson.map((json) => Symptom.fromJson(json)).toList();
+  //       emit(HealthAssessmentSymptomsFetched(_symptoms));
+  //     } else {
+  //       emit(HealthAssessmentError(
+  //           'Failed to fetch symptoms: ${response.statusCode}'));
+  //     }
+  //   } catch (e) {
+  //     emit(HealthAssessmentError('Error fetching symptoms: $e'));
+  //   }
+  // }
 
   Future<void> submitHealthAssessment() async {
     try {
@@ -300,14 +302,15 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     }
   }
 
-  Future<void> updateHealthAssessment() async {
+  Future<void> updateHealthAssessment(
+      {int? feet, int? inches, int? age, int? weight}) async {
     try {
       emit(HealthAssessmentLoading());
 
       final data = {
-        'heightInInches': _heightInInches,
-        'userWeight': _userWeight,
-        'age': _age,
+        'heightInInches': feet ?? _heightInInches,
+        'userWeight': weight ?? _userWeight,
+        'age': age ?? _age,
         'incomeRangeId': _seletedIncomeRange?.id,
         'stateId': _selectedState?.id,
         'ethnicities': _ethnicities,

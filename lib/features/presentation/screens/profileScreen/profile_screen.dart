@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-   Future<void> _handleSignOut(BuildContext context) async {
+  Future<void> _handleSignOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
       // Clear SharedPreferences
@@ -18,7 +18,7 @@ class ProfileScreen extends StatelessWidget {
       await prefs.clear();
       // Clear AppStorage
       AppStorage.clearCredentials();
-      
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => SplashScreen()),
         (route) => false,
@@ -130,7 +130,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           );
         }
-        
+
         if (state is ProfileError) {
           return Container(
             padding: const EdgeInsets.all(16),
@@ -181,7 +181,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () => _showEditProfileBottomSheet(context, state),
                 icon: const Icon(Icons.edit, color: AppColors.amethystViolet),
               ),
             ],
@@ -346,3 +346,92 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+
+void _showEditProfileBottomSheet(BuildContext context, ProfileState state) {
+  final emailController = TextEditingController();
+  final userNameController = TextEditingController();
+  final pronounController = TextEditingController();
+  // Pre-fill the text fields if state is ProfileLoaded
+  if (state is ProfileLoaded) {
+    emailController.text = state.emailAddress;
+    userNameController.text = state.userName;
+    pronounController.text = state.pronoun;
+  }
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Edit Profile',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email Address',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: userNameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: pronounController,
+              decoration: const InputDecoration(
+                labelText: 'Preferred Pronoun',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.amethystViolet,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: () {
+                context.read<ProfileCubit>().updateProfile(
+                      emailAddress: emailController.text,
+                      userName: userNameController.text,
+                      preferPronoun: pronounController.text,
+                    );
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Save Changes',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+  // Update the IconButton in _buildProfileSection
+
+

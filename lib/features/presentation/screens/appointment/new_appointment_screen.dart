@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart'
     show SymptomTrackerCubit;
@@ -311,10 +312,10 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SymptomsSelectionSheet(
-        onSymptomSelected: (SymptomId symptom) {
-          context.read<SymptomTrackerCubit>().addSymptom(symptom);
+        onSymptomSelected: (SymptomTrackerResponse symptom) {
+          //  context.read<SymptomTrackerCubit>().addSymptom(symptom);
           setState(() {
-          _selectedSymptom = symptom.symptomName;
+            // _selectedSymptom = symptom.symptomName;
           });
           Navigator.pop(context);
         },

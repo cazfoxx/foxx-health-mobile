@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
@@ -21,7 +22,7 @@ class SymptomTrackerHealthAssessmentScreen extends StatefulWidget {
 class _SymptomTrackerHealthAssessmentScreenState
     extends State<SymptomTrackerHealthAssessmentScreen> {
   final _searchController = TextEditingController();
-  List<String> selectedSymptoms = [];
+  List<SymptomTrackerResponse> selectedSymptoms = [];
 
   final List<String> symptoms = [
     'Brain fog',
@@ -41,12 +42,10 @@ class _SymptomTrackerHealthAssessmentScreenState
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SymptomsSelectionSheet(
-        onSymptomSelected: (SymptomId symptom) {
-          // context
-          //     .read<HealthAssessmentCubit>()
-          //     .setSymptoms(symptom.symptomName);
+        onSymptomSelected: (SymptomTrackerResponse symptom) {
+          context.read<HealthAssessmentCubit>().setSymptoms(symptom);
           setState(() {
-            selectedSymptoms.add(symptom.symptomName);
+            selectedSymptoms.add(symptom);
           });
           Navigator.pop(context);
         },
@@ -103,7 +102,8 @@ class _SymptomTrackerHealthAssessmentScreenState
                   children: selectedSymptoms
                       .map(
                         (symptom) => Chip(
-                          label: Text(symptom),
+                          label:
+                              Text(symptom.symptomIds?.first.symptomName ?? ''),
                           onDeleted: () {
                             setState(() {
                               selectedSymptoms.remove(symptom);

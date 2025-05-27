@@ -84,7 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: 'Track Symptoms',
                             onTap: () {
                               Navigator.pop(context);
-                              // Add navigation for Track Symptoms
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => StartDateScreen()),
+                              );
                             },
                           ),
                         ),
@@ -120,11 +124,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: _buildActionItem(
                             icon: SvgPicture.asset(
-                                'assets/svg/home/create_health_assessment.svg'),
+                                'assets/svg/home/health_icon.svg'),
                             title: 'Create Health Assessment',
                             onTap: () {
                               Navigator.pop(context);
-                              // Add navigation for Health Assessment
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const HealthAssessmentScreen(),
+                                ),
+                              );
                             },
                           ),
                         ),
@@ -399,9 +409,11 @@ class _HomeContentState extends State<HomeContent> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => VisitDetailsScreen(
+                                            builder: (context) =>
+                                                VisitDetailsScreen(
                                               doctorName: 'Dr. Sarah Johnson',
-                                              specialization: 'General Physician',
+                                              specialization:
+                                                  'General Physician',
                                               date: 'Apr 25, 2024',
                                             ),
                                           ),
@@ -418,7 +430,8 @@ class _HomeContentState extends State<HomeContent> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => VisitDetailsScreen(
+                                            builder: (context) =>
+                                                VisitDetailsScreen(
                                               doctorName: 'Dr. Michael Chen',
                                               specialization: 'Cardiologist',
                                               date: 'Apr 28, 2024',
@@ -437,7 +450,8 @@ class _HomeContentState extends State<HomeContent> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => VisitDetailsScreen(
+                                            builder: (context) =>
+                                                VisitDetailsScreen(
                                               doctorName: 'Dr. Emily Rodriguez',
                                               specialization: 'Dermatologist',
                                               date: 'May 2, 2024',
@@ -453,7 +467,8 @@ class _HomeContentState extends State<HomeContent> {
                                           context: context,
                                           backgroundColor: Colors.transparent,
                                           isScrollControlled: true,
-                                          builder: (context) => const NewAppointmentScreen(),
+                                          builder: (context) =>
+                                              const NewAppointmentScreen(),
                                         );
                                       },
                                       child: Card(
@@ -465,7 +480,8 @@ class _HomeContentState extends State<HomeContent> {
                                           ),
                                           title: Text(
                                             'Create an upcoming visit',
-                                            style: AppTextStyles.body2.copyWith(),
+                                            style:
+                                                AppTextStyles.body2.copyWith(),
                                           ),
                                           trailing: const Icon(
                                             Icons.arrow_forward_ios,

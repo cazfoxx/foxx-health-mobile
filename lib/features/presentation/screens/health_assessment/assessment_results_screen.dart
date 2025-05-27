@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/ethnicity_selection_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/health_details_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/physical_info_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/location_bottom_sheet.dart';
 
 class AssessmentResultsScreen extends StatefulWidget {
   const AssessmentResultsScreen({
@@ -195,6 +201,7 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                             context.read<HealthAssessmentCubit>();
                         final weight = healthCubit.userWeight;
                         final heightInches = healthCubit.heightInInches;
+                        final age = healthCubit.age;
                         final heightFeet = healthCubit.heightInFeet;
                         final appointment = healthCubit.appointmentTypeId;
                         final existingCondiontion =
@@ -206,23 +213,144 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                         final location = healthCubit.location;
                         final symptoms = healthCubit.symptoms;
                         final ethinicietes = healthCubit.ethnicities;
+                        final existingCondition =
+                            healthCubit.preExistingConditionText;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildInfoSection('Physical Information',
-                                '$heightFeet Feet $heightInches Inches, 128 lbs, 22 years Old'),
-                            _buildInfoSection('Location', location),
-                            _buildInfoSection('Ethnicity', '$ethinicietes'),
-                            _buildInfoSection(
-                                'Type of Appointment', '$appointment'),
-                            _buildInfoSection(
-                                'Pre-existing conditions', 'None'),
-                            _buildInfoSection(
-                                'Health Concerns', healthConcerns),
-                            _buildInfoSection('Health Goals', healthGoals),
-                            _buildInfoSection(
-                                'Household income', householdIncome),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.white,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
+                                  ),
+                                  builder: (context) => PhysicalInfoBottomSheet(
+                                    initialFeet: heightFeet,
+                                    initialInches: heightInches,
+                                    initialWeight: weight.toDouble(),
+                                    initialAge: age,
+                                  ),
+                                );
+                              },
+                              child: _buildInfoSection('Physical Information',
+                                  '$heightFeet Feet $heightInches Inches, 128 lbs, $age years Old'),
+                            ),
+                            GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  LocationBottomSheet.show(
+                                    context: context,
+                                    states: healthCubit.states,
+                                    onStateSelected: (p0) {
+                                      healthCubit.setLocation(p0.stateName);
+                                      healthCubit.setSelectedState(p0);
+                                      healthCubit.updateHealthAssessment();
+                                    },
+                                  ).then(
+                                    (value) {
+                                      setState(() {});
+                                    },
+                                  );
+                                },
+                                child: _buildInfoSection('Location', location)),
+                            GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20)),
+                                    ),
+                                    builder: (context) =>
+                                        EthnicitySelectionSheet(
+                                      selectedEthnicities:
+                                          ethinicietes, // Pass current ethnicities list
+                                    ),
+                                  );
+                                },
+                                child: _buildInfoSection(
+                                    'Ethnicity', '$ethinicietes')),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () async {
+                                final AppointmentTypeModel result =
+                                    await showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      DraggableScrollableSheet(
+                                    initialChildSize: 0.90,
+                                    maxChildSize: 0.90,
+                                    minChildSize: 0.5,
+                                    builder: (context, scrollController) =>
+                                        Container(
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20),
+                                        ),
+                                      ),
+                                      child: const AppointmentTypeScreen(),
+                                    ),
+                                  ),
+                                );
+
+                                if (result != null) {
+                                  final healthCubit =
+                                      context.read<HealthAssessmentCubit>();
+                                  healthCubit.setAppointmentTypeId(result.id);
+                                }
+                              },
+                              child: _buildInfoSection(
+                                  'Type of Appointment', '$appointment'),
+                            ),
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.white,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
+                                  ),
+                                  builder: (context) => HealthDetailsSheet(
+                                    existingCondition:
+                                        existingCondition, // Pass current values
+                                    healthGoals: healthGoals,
+                                    healthConcerns: healthConcerns,
+                                    currentIncome: householdIncome,
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  _buildInfoSection('Pre-existing conditions',
+                                      existingCondition),
+                                  _buildInfoSection(
+                                      'Health Concerns', healthConcerns),
+                                  _buildInfoSection(
+                                      'Health Goals', healthGoals),
+                                  _buildInfoSection(
+                                      'Household income', householdIncome),
+                                ],
+                              ),
+                            ),
                             // _buildInfoSection('Symptoms', symptoms),
                             _buildSymptomChips(),
                             // _buildInfoSection('Prescriptions & Supplements',
@@ -402,16 +530,18 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
             fontSize: 14,
           ),
         ),
-        TextFormField(
-            controller: TextEditingController(text: content),
-            readOnly: true,
-            decoration: InputDecoration(
-              hintText: 'Enter $title',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.zero,
-              border: OutlineInputBorder(borderSide: BorderSide.none),
-            )),
+        IgnorePointer(
+          child: TextFormField(
+              controller: TextEditingController(text: content),
+              readOnly: true,
+              decoration: InputDecoration(
+                hintText: 'Enter $title',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.zero,
+                border: OutlineInputBorder(borderSide: BorderSide.none),
+              )),
+        ),
         Divider(
           color: Colors.grey[300],
           height: 16,

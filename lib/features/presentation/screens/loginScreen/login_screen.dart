@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -306,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (state is LoginSuccess) {
                           if (!widget.isSign) {
                             // If it's sign up, navigate to onboarding
-                            
+
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -314,6 +315,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           } else {
+                            SnackbarUtils.showSuccess(
+                                context: context,
+                                title: 'Welcome back',
+                                message: _emailController.text.split('@')[0]);
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

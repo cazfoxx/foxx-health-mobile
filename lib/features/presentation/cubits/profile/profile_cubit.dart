@@ -14,13 +14,56 @@ class ProfileCubit extends Cubit<ProfileState> {
     try {
       emit(ProfileLoading());
 
-      final response = await _apiClient.dio.get('/api/v1/accounts/accounts/me');
+      final response = await _apiClient.dio.get('/api/v1/accounts/me');
 
       final data = response.data;
 
       // Store accountId in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(SharedPrefKeys.accountId, data['accountId']);
+
+      emit(ProfileLoaded(
+        userName: data['userName'],
+        pronoun: data['preferPronoun'],
+        emailAddress: data['emailAddress'],
+        ageGroupCode: data['ageGroupCode'],
+        heardFromCode: data['heardFromCode'],
+        isActive: data['isActive'],
+        accountId: data['accountId'],
+        userUniqueId: data['userUniqueId'],
+        createdAt: data['createdAt'],
+        updatedAt: data['updatedAt'],
+      ));
+    } catch (e) {
+      emit(ProfileError(message: e.toString()));
+    }
+  }
+
+  Future<void> updateProfile({
+    required String emailAddress,
+    // required String password,
+    required String userName,
+    required String preferPronoun,
+  }) async {
+    try {
+      emit(ProfileLoading());
+
+      final response = await _apiClient.dio.put(
+        '/api/v1/accounts/me',
+        data: {
+          'emailAddress': emailAddress,
+          // 'password': password,
+          'userName': userName,
+          // 'pronounCode': pronounCode,
+          'preferPronoun': preferPronoun,
+          // 'ageGroupCode': ageGroupCode,
+          // 'heardFromCode': heardFromCode,
+          // 'otherHeardFrom': otherHeardFrom,
+          // 'isActive': isActive,
+        },
+      );
+
+      final data = response.data;
 
       emit(ProfileLoaded(
         userName: data['userName'],

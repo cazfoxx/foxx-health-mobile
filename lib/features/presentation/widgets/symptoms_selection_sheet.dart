@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+
+import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/track_symptoms/start_date_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 
 class SymptomsSelectionSheet extends StatefulWidget {
-  final Function(SymptomId) onSymptomSelected;
+  final Function(SymptomTrackerResponse) onSymptomSelected;
 
   const SymptomsSelectionSheet({
     Key? key,
@@ -18,51 +20,25 @@ class SymptomsSelectionSheet extends StatefulWidget {
 
 class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
   final TextEditingController _searchController = TextEditingController();
-  List<SymptomId> _filteredSymptoms = [];
+  List<SymptomTrackerResponse> _filteredSymptoms = [];
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_filterSymptoms);
-    
-    // Initialize symptoms list
-    _filteredSymptoms = [
-      SymptomId(
-        symptomName: 'Brain fog',
-        symptomCategory: 'Cognitive',
-        severity: 'mild',
-      ),
-      SymptomId(
-        symptomName: 'Changes in eating habits',
-        symptomCategory: 'Behavioral',
-        severity: 'mild',
-      ),
-      SymptomId(
-        symptomName: 'Difficulty completing tasks',
-        symptomCategory: 'Cognitive',
-        severity: 'moderate',
-      ),
-      SymptomId(
-        symptomName: 'Sharp Pain',
-        symptomCategory: 'Chest & Upper Back',
-        severity: 'moderate',
-      ),
-      SymptomId(
-        symptomName: 'Tingling or numbness',
-        symptomCategory: 'Legs & feet',
-        severity: 'mild',
-      ),
-    ];
+    context.read<SymptomTrackerCubit>().getSymptomTrackers();
   }
 
-  void _filterSymptoms() {
-    final query = _searchController.text.toLowerCase();
+  void _filterSymptoms(List<SymptomTrackerResponse> symptoms, String query) {
     setState(() {
-      _filteredSymptoms = _filteredSymptoms
-          .where((symptom) => 
-              symptom.symptomName.toLowerCase().contains(query) ||
-              symptom.symptomCategory.toLowerCase().contains(query))
-          .toList();
+      if (query.isEmpty) {
+        _filteredSymptoms = symptoms;
+      } else {
+        _filteredSymptoms = symptoms
+            .where((symptom) => symptom.symptomIds!.first.symptomName
+                .toLowerCase()
+                .contains(query.toLowerCase()))
+            .toList();
+      }
     });
   }
 
@@ -87,13 +63,21 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
                     'Symptoms',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // Handle create action
-                    },
-                    child: const Text(
-                      'Create',
-                      style: TextStyle(color: AppColors.amethystViolet),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => StartDateScreen()));
+                      },
+                      child: Text(
+                        'Create',
+                        style: TextStyle(
+                          color: AppColors.amethystViolet,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -101,7 +85,8 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
               const SizedBox(height: 16),
               Container(
                 color: AppColors.lightViolet,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -109,8 +94,13 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
                   ),
                   child: TextField(
                     controller: _searchController,
+                    onChanged: (query) {
+                      if (state is SymptomTrackersLoaded) {
+                        _filterSymptoms(state.symptomTrackers, query);
+                      }
+                    },
                     decoration: InputDecoration(
-                      hintText: 'Enter',
+                      hintText: 'Search symptoms',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -122,16 +112,31 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ListView.separated(
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemCount: _filteredSymptoms.length,
-                  itemBuilder: (context, index) {
-                    final symptom = _filteredSymptoms[index];
-                    return ListTile(
-                      title: Text(symptom.symptomName),
-                      subtitle: Text('${symptom.symptomCategory} - ${symptom.severity}'),
-                      onTap: () => widget.onSymptomSelected(symptom),
-                    );
+                child: Builder(
+                  builder: (context) {
+                    if (state is SymptomTrackerLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is SymptomTrackerError) {
+                      return Center(child: Text(state.message));
+                    } else if (state is SymptomTrackersLoaded) {
+                      final symptoms = _searchController.text.isEmpty
+                          ? state.symptomTrackers
+                          : _filteredSymptoms;
+
+                      return ListView.separated(
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemCount: symptoms.length,
+                        itemBuilder: (context, index) {
+                          final symptom = symptoms[index];
+                          return ListTile(
+                            title: Text(
+                                symptom.symptomIds?.first.symptomName ?? ''),
+                            onTap: () => widget.onSymptomSelected(symptom),
+                          );
+                        },
+                      );
+                    }
+                    return const Center(child: Text('No symptoms found'));
                   },
                 ),
               ),
