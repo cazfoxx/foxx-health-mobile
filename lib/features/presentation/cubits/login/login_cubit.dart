@@ -1,10 +1,12 @@
 import 'dart:developer';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 part 'login_state.dart';
 
@@ -24,11 +26,7 @@ class LoginCubit extends Cubit<LoginState> {
   List<String> _healthGoals = [];
   List<String> _healthConcerns = [];
 
-  
-
   LoginCubit() : super(LoginInitial());
-
-
 
   // Setters for onboarding data
   void setUserDetails({
@@ -50,12 +48,14 @@ class LoginCubit extends Cubit<LoginState> {
     if (age != null) _age = age;
     if (referralSource != null) _referralSource = referralSource;
     if (pronoun != null) _pronoun = pronoun;
-
-
   }
 
   void setHealthGoals(List<String> goals) {
     _healthGoals = goals;
+  }
+
+  setUsername(String username) {
+    _username = username;
   }
 
   void setHealthConcerns(List<String> concerns) {
@@ -65,27 +65,25 @@ class LoginCubit extends Cubit<LoginState> {
   Future<void> _saveEmailToPrefs(String email, String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_email', email);
-    await prefs.setString(
-        'access_token', token); // This is wrong - saving email as token
+    await prefs.setString('access_token', token);
     log('Email saved to prefs: $email');
     log('Token saved to prefs: $token');
     AppStorage.setCredentials(token: token, email: email);
   }
 
-  Future<void> registerUser() async {
+  Future<bool> registerUser(BuildContext context) async {
     try {
       emit(LoginLoading());
-
       // Register with your API using Dio
       final response = await _apiClient.post(
         '/api/v1/auth/register',
         data: {
           'emailAddress': _email,
-          'userName': fullName,
-          'pronounCode': _pronoun,
-          'preferPronoun': _pronoun,
-          'ageGroupCode': _age,
-          'heardFromCode': _referralSource,
+          'userName': _username ?? '',
+          'pronounCode': _pronoun ?? '',
+          'preferPronoun': _pronoun ?? '',
+          'ageGroupCode': _age ?? '',
+          'heardFromCode': _referralSource ?? '',
           'otherHeardFrom': '',
           'isActive': true,
           'password': _password,
@@ -95,16 +93,26 @@ class LoginCubit extends Cubit<LoginState> {
       if (response.statusCode == 200) {
         if (_email != null) {
           await signInWithEmail(_email!, _password!);
+          SnackbarUtils.showSuccess(
+              context: context,
+              title: 'Welcome $_username',
+              message: 'Foxx health');
         }
         emit(LoginSuccess());
+        return true;
       } else {
-        await _auth.currentUser?.delete();
         emit(LoginError('Registration failed: ${response.data}'));
+        SnackbarUtils.showSuccess(
+            context: context,
+            title: 'Error status code ${response.statusCode}',
+            message: response.data);
+        return false;
       }
-    } on FirebaseAuthException catch (e) {
-      emit(LoginError(e.message ?? 'Firebase authentication failed'));
     } catch (e) {
       emit(LoginError('Registration failed: $e'));
+      SnackbarUtils.showSuccess(
+          context: context, title: 'Error', message: e.toString());
+      return true;
     }
   }
 

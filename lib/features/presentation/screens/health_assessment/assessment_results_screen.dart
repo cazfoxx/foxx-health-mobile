@@ -119,147 +119,112 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                color: AppColors.lightViolet,
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'My Personal Health Guide',
-                        style: AppTextStyles.heading2.copyWith(
-                          color: AppColors.amethystViolet,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Last Edited: April 3, 2025',
-                        style: AppTextStyles.body2OpenSans.copyWith(
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ExpansionTile(
-                backgroundColor: Colors.transparent,
-                collapsedBackgroundColor: Colors.transparent,
-                shape: const Border(),
-                onExpansionChanged: (expanded) {
-                  setState(() {
-                    if (expanded) {
-                      _controller.forward();
-                    } else {
-                      _controller.reverse();
-                    }
-                  });
-                },
-                title: Text(
-                  'What I Shared About Me',
-                  style: AppTextStyles.heading3,
-                ),
-                trailing: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppColors.amethystViolet,
-                  child: RotationTransition(
-                    turns: _expandAnimation,
-                    child: const Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
-                    margin: EdgeInsets.symmetric(horizontal: 10),
+        body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
+            builder: (context, state) {
+          if (state is HealthAssessmentLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  color: AppColors.lightViolet,
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: BlocBuilder<HealthAssessmentCubit,
-                        HealthAssessmentState>(
-                      builder: (context, state) {
-                        final healthCubit =
-                            context.read<HealthAssessmentCubit>();
-                        final weight = healthCubit.userWeight;
-                        final heightInches = healthCubit.heightInInches;
-                        final age = healthCubit.age;
-                        final heightFeet = healthCubit.heightInFeet;
-                        final appointment = healthCubit.appointmentTypeId;
-                        final existingCondiontion =
-                            healthCubit.preExistingConditionText;
-                        final healthConcerns =
-                            healthCubit.specificHealthConcerns;
-                        final healthGoals = healthCubit.specificHealthGoals;
-                        final householdIncome = healthCubit.income;
-                        final location = healthCubit.location;
-                        final symptoms = healthCubit.symptoms;
-                        final ethinicietes = healthCubit.ethnicities;
-                        final existingCondition =
-                            healthCubit.preExistingConditionText;
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'My Personal Health Guide',
+                          style: AppTextStyles.heading2.copyWith(
+                            color: AppColors.amethystViolet,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Last Edited: April 3, 2025',
+                          style: AppTextStyles.body2OpenSans.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ExpansionTile(
+                  backgroundColor: Colors.transparent,
+                  collapsedBackgroundColor: Colors.transparent,
+                  shape: const Border(),
+                  onExpansionChanged: (expanded) {
+                    setState(() {
+                      if (expanded) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                    });
+                  },
+                  title: Text(
+                    'What I Shared About Me',
+                    style: AppTextStyles.heading3,
+                  ),
+                  trailing: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: AppColors.amethystViolet,
+                    child: RotationTransition(
+                      turns: _expandAnimation,
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      margin: EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: BlocBuilder<HealthAssessmentCubit,
+                          HealthAssessmentState>(
+                        builder: (context, state) {
+                          final healthCubit =
+                              context.read<HealthAssessmentCubit>();
+                          final weight = healthCubit.userWeight;
+                          final heightInches = healthCubit.heightInInches;
+                          final age = healthCubit.age;
+                          final heightFeet = healthCubit.heightInFeet;
+                          final appointment = healthCubit.appointmentTypeId;
+                          final existingCondiontion =
+                              healthCubit.preExistingConditionText;
+                          final healthConcerns =
+                              healthCubit.specificHealthConcerns;
+                          final healthGoals = healthCubit.specificHealthGoals;
+                          final householdIncome = healthCubit.income;
+                          final location = healthCubit.location;
+                          final symptoms = healthCubit.symptoms;
+                          final ethinicietes = healthCubit.ethnicities;
+                          final existingCondition =
+                              healthCubit.preExistingConditionText;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.white,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20)),
-                                  ),
-                                  builder: (context) => PhysicalInfoBottomSheet(
-                                    initialFeet: heightFeet,
-                                    initialInches: heightInches,
-                                    initialWeight: weight.toDouble(),
-                                    initialAge: age,
-                                  ),
-                                );
-                              },
-                              child: _buildInfoSection('Physical Information',
-                                  '$heightFeet Feet $heightInches Inches, 128 lbs, $age years Old'),
-                            ),
-                            GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  LocationBottomSheet.show(
-                                    context: context,
-                                    states: healthCubit.states,
-                                    onStateSelected: (p0) {
-                                      healthCubit.setLocation(p0.stateName);
-                                      healthCubit.setSelectedState(p0);
-                                      healthCubit.updateHealthAssessment();
-                                    },
-                                  ).then(
-                                    (value) {
-                                      setState(() {});
-                                    },
-                                  );
-                                },
-                                child: _buildInfoSection('Location', location)),
-                            GestureDetector(
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {
                                   showModalBottomSheet(
@@ -271,186 +236,233 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                                           top: Radius.circular(20)),
                                     ),
                                     builder: (context) =>
-                                        EthnicitySelectionSheet(
-                                      selectedEthnicities:
-                                          ethinicietes, // Pass current ethnicities list
+                                        PhysicalInfoBottomSheet(
+                                      initialFeet: heightFeet,
+                                      initialInches: heightInches,
+                                      initialWeight: weight.toDouble(),
+                                      initialAge: age,
                                     ),
                                   );
                                 },
-                                child: _buildInfoSection(
-                                    'Ethnicity', '$ethinicietes')),
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () async {
-                                final AppointmentTypeModel result =
-                                    await showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) =>
-                                      DraggableScrollableSheet(
-                                    initialChildSize: 0.90,
-                                    maxChildSize: 0.90,
-                                    minChildSize: 0.5,
-                                    builder: (context, scrollController) =>
-                                        Container(
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(20),
-                                          topRight: Radius.circular(20),
-                                        ),
-                                      ),
-                                      child: const AppointmentTypeScreen(),
-                                    ),
-                                  ),
-                                );
-
-                                if (result != null) {
-                                  final healthCubit =
-                                      context.read<HealthAssessmentCubit>();
-                                  healthCubit.setAppointmentTypeId(result.id);
-                                }
-                              },
-                              child: _buildInfoSection(
-                                  'Type of Appointment', '$appointment'),
-                            ),
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.white,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20)),
-                                  ),
-                                  builder: (context) => HealthDetailsSheet(
-                                    existingCondition:
-                                        existingCondition, // Pass current values
-                                    healthGoals: healthGoals,
-                                    healthConcerns: healthConcerns,
-                                    currentIncome: householdIncome,
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                children: [
-                                  _buildInfoSection('Pre-existing conditions',
-                                      existingCondition),
-                                  _buildInfoSection(
-                                      'Health Concerns', healthConcerns),
-                                  _buildInfoSection(
-                                      'Health Goals', healthGoals),
-                                  _buildInfoSection(
-                                      'Household income', householdIncome),
-                                ],
+                                child: _buildInfoSection('Physical Information',
+                                    '$heightFeet Feet $heightInches Inches, 128 lbs, $age years Old'),
                               ),
-                            ),
-                            // _buildInfoSection('Symptoms', symptoms),
-                            _buildSymptomChips(),
-                            // _buildInfoSection('Prescriptions & Supplements',
-                            //     'Vitamin C, Montelukast, Zyrtec, Calcium'),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'My Personal Health Guide',
-                      style: AppTextStyles.heading3.copyWith(
-                        color: AppColors.amethystViolet,
-                        fontSize: 22,
+                              GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    LocationBottomSheet.show(
+                                      context: context,
+                                      states: healthCubit.states,
+                                      onStateSelected: (p0) {
+                                        healthCubit.setLocation(p0.stateName);
+                                        healthCubit.setSelectedState(p0);
+                                        healthCubit.updateHealthAssessment();
+                                      },
+                                    ).then(
+                                      (value) {
+                                        setState(() {});
+                                      },
+                                    );
+                                  },
+                                  child:
+                                      _buildInfoSection('Location', location)),
+                              GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.white,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(20)),
+                                      ),
+                                      builder: (context) =>
+                                          EthnicitySelectionSheet(
+                                        selectedEthnicities:
+                                            ethinicietes, // Pass current ethnicities list
+                                      ),
+                                    );
+                                  },
+                                  child: _buildInfoSection(
+                                      'Ethnicity', '$ethinicietes')),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () async {
+                                  final AppointmentTypeModel result =
+                                      await showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) =>
+                                        DraggableScrollableSheet(
+                                      initialChildSize: 0.90,
+                                      maxChildSize: 0.90,
+                                      minChildSize: 0.5,
+                                      builder: (context, scrollController) =>
+                                          Container(
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(20),
+                                            topRight: Radius.circular(20),
+                                          ),
+                                        ),
+                                        child: const AppointmentTypeScreen(),
+                                      ),
+                                    ),
+                                  );
+
+                                  if (result != null) {
+                                    final healthCubit =
+                                        context.read<HealthAssessmentCubit>();
+                                    healthCubit.setAppointmentTypeId(result.id);
+                                  }
+                                },
+                                child: _buildInfoSection(
+                                    'Type of Appointment', '$appointment'),
+                              ),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20)),
+                                    ),
+                                    builder: (context) => HealthDetailsSheet(
+                                      existingCondition:
+                                          existingCondition, // Pass current values
+                                      healthGoals: healthGoals,
+                                      healthConcerns: healthConcerns,
+                                      currentIncome: householdIncome,
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  children: [
+                                    _buildInfoSection('Pre-existing conditions',
+                                        existingCondition),
+                                    _buildInfoSection(
+                                        'Health Concerns', healthConcerns),
+                                    _buildInfoSection(
+                                        'Health Goals', healthGoals),
+                                    _buildInfoSection(
+                                        'Household income', householdIncome),
+                                  ],
+                                ),
+                              ),
+                              // _buildInfoSection('Symptoms', symptoms),
+                              _buildSymptomChips(),
+                              // _buildInfoSection('Prescriptions & Supplements',
+                              //     'Vitamin C, Montelukast, Zyrtec, Calcium'),
+                            ],
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        'We understand that managing multiple health concerns can be challenging, and we are here to support you every step of the way. Your upcoming appointment is a great opportunity to address these issues comprehensively with your health care provider.',
-                        style: AppTextStyles.bodyOpenSans,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSection(
-                      'Documents to bring',
-                      _documents,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSection(
-                      'Information to prepare',
-                      _informationToPrepare,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSection(
-                      'Questions for doctor',
-                      _questionsForDoctor,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSection(
-                      'Tests to discuss',
-                      _testsToDiscuss,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSection(
-                      'Follow-up items',
-                      _followUpItems,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Emotional Support',
-                      style: AppTextStyles.heading3.copyWith(),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'We understand that managing multiple health concerns like scurvy, tooth pain, and migraines can be challenging, and we are here to support you every step of the way.Your upcoming appointment is a great opportunity to address these issues comprehensively with your health care provider.',
-                            style: AppTextStyles.bodyOpenSans,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Your Personal Life Healthcare Appointment Check List',
-                            style: AppTextStyles.heading3
-                                .copyWith(color: AppColors.amethystViolet),
-                          ),
-                          Text(
-                            'prepared especially for you.',
-                            style: AppTextStyles.bodyOpenSans,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 50),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'My Personal Health Guide',
+                        style: AppTextStyles.heading3.copyWith(
+                          color: AppColors.amethystViolet,
+                          fontSize: 22,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          'We understand that managing multiple health concerns can be challenging, and we are here to support you every step of the way. Your upcoming appointment is a great opportunity to address these issues comprehensively with your health care provider.',
+                          style: AppTextStyles.bodyOpenSans,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _documents.isEmpty
+                          ? SizedBox()
+                          : _buildSection(
+                              'Documents to bring',
+                              _documents,
+                            ),
+                      const SizedBox(height: 20),
+                      _buildSection(
+                        'Information to prepare',
+                        _informationToPrepare,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildSection(
+                        'Questions for doctor',
+                        _questionsForDoctor,
+                      ),
+                      const SizedBox(height: 20),
+                      _testsToDiscuss.isEmpty
+                          ? SizedBox()
+                          : _buildSection(
+                              'Tests to discuss',
+                              _testsToDiscuss,
+                            ),
+                      const SizedBox(height: 20),
+                      _buildSection(
+                        'Follow-up items',
+                        _followUpItems,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Emotional Support',
+                        style: AppTextStyles.heading3.copyWith(),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'We understand that managing multiple health concerns like scurvy, tooth pain, and migraines can be challenging, and we are here to support you every step of the way.Your upcoming appointment is a great opportunity to address these issues comprehensively with your health care provider.',
+                              style: AppTextStyles.bodyOpenSans,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Your Personal Life Healthcare Appointment Check List',
+                              style: AppTextStyles.heading3
+                                  .copyWith(color: AppColors.amethystViolet),
+                            ),
+                            Text(
+                              'prepared especially for you.',
+                              style: AppTextStyles.bodyOpenSans,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

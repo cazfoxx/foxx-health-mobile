@@ -16,7 +16,6 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
   String? _selectedPronoun;
   bool _isCustomPronoun = false;
   String getUserName() {
-
     return _usernameController.text;
   }
 

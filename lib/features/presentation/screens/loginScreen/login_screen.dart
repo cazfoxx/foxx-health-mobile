@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -103,28 +104,38 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: Colors.white,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/svg/foxx_logo.svg',
-            height: 65,
-            width: 65,
+    return GestureDetector(
+      onDoubleTap: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ApiLoggerScreen(),
           ),
-          Text(
-            widget.isSign ? 'Sign In' : 'Create New Account',
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.amethystViolet,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        color: Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/svg/foxx_logo.svg',
+              height: 65,
+              width: 65,
             ),
-          ),
-          const SizedBox(height: 5),
-        ],
+            Text(
+              widget.isSign ? 'Sign In' : 'Create New Account',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.amethystViolet,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+          ],
+        ),
       ),
     );
   }
@@ -201,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   widget.isSign
-                      ? SizedBox()
+                      ? const SizedBox()
                       : Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
@@ -220,25 +231,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   Expanded(
                                     child: RichText(
-                                      text: TextSpan(
-                                        style: const TextStyle(
+                                      text: const TextSpan(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.black,
                                         ),
                                         children: [
-                                          const TextSpan(text: 'I agree to '),
+                                          TextSpan(text: 'I agree to '),
                                           TextSpan(
                                             text: 'Privacy Policy',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppColors.amethystViolet,
                                               decoration:
                                                   TextDecoration.underline,
                                             ),
                                           ),
-                                          const TextSpan(text: ' and '),
+                                          TextSpan(text: ' and '),
                                           TextSpan(
                                             text: 'Terms and Conditions',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppColors.amethystViolet,
                                               decoration:
                                                   TextDecoration.underline,

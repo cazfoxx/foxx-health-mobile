@@ -67,8 +67,16 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
                     padding: const EdgeInsets.only(right: 10),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => StartDateScreen()));
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                                builder: (context) => StartDateScreen()))
+                            .then(
+                          (value) {
+                            context
+                                .read<SymptomTrackerCubit>()
+                                .getSymptomTrackers();
+                          },
+                        );
                       },
                       child: Text(
                         'Create',

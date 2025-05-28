@@ -245,7 +245,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
         'specificHealthGoals': _specificHealthGoals,
         'areaOfConcernIds':
             _selectedAreaOfConcern?.map((area) => area.id).toList() ?? [],
-        'symptomIds': _seletedSymptom.map((s) => s.id).toList(),
+        'symptomIds': _symptoms.map((s) => s.id).toList(),
         'isActive': _isActive,
         'isDeleted': _isDeleted,
         'appointmentTypeId': _appointmentTypeId,

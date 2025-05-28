@@ -1,6 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/network/api_logger_interceptor.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
+import 'package:get/get.dart' as getx;
 import 'package:logger/logger.dart';
 
 class ApiClient {
@@ -39,6 +44,7 @@ class ApiClient {
     dio.interceptors.add(LoggerInterceptor());
     dio.interceptors.add(AuthInterceptor());
     dio.interceptors.add(ErrorInterceptor());
+    dio.interceptors.add(ApiLoggerInterceptor());
   }
 
   Future<Response> get(
@@ -150,6 +156,14 @@ class LoggerInterceptor extends Interceptor {
       stackTrace: err.stackTrace,
     );
 
+    if (err.response?.statusCode == 401) {
+      Navigator.of(getx.Get.context!).pushReplacement(MaterialPageRoute(
+        builder: (context) => LoginScreen(
+          isSign: true,
+        ),
+      ));
+    }
+
     if (err.response?.data != null) {
       final sanitizedData = _sanitizeData(err.response?.data);
       ApiClient.logger.e('🚫 Error Response Data: $sanitizedData');
@@ -209,7 +223,10 @@ class ErrorInterceptor extends Interceptor {
 
     ApiClient.scaffoldKey.currentState?.showSnackBar(
       SnackBar(
-        content: Text(errorMessage),
+        content: Text(
+          errorMessage,
+          maxLines: 5,
+        ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),

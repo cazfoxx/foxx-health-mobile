@@ -16,14 +16,19 @@ import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.da
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
+import 'package:get_storage/get_storage.dart';
 
 void main() async {
+  // Initialize storage for API logs
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await GetStorage.init();
+
   const fatalError = true;
   FlutterError.onError = (errorDetails) {
     if (fatalError) {
@@ -83,7 +88,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => ProfileCubit()),
             BlocProvider(create: (context) => SymptomTrackerCubit()),
           ],
-          child: MaterialApp(
+          child: GetMaterialApp(
             scaffoldMessengerKey: ApiClient.scaffoldKey, // Add this line
             title: 'FoxxHealth',
             debugShowCheckedModeBanner: false,

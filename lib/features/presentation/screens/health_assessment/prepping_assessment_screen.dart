@@ -7,11 +7,8 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/assessment_results_screen.dart';
 
 class PreppingAssessmentScreen extends StatefulWidget {
-
-
   const PreppingAssessmentScreen({
     Key? key,
-
   }) : super(key: key);
 
   @override
@@ -29,14 +26,12 @@ class _PreppingAssessmentScreenState extends State<PreppingAssessmentScreen> {
   Future<void> _navigateToResults() async {
     final healthAssessmentCubit = context.read<HealthAssessmentCubit>();
     healthAssessmentCubit.submitHealthAssessment();
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => AssessmentResultsScreen(
-
-          ),
+          builder: (context) => AssessmentResultsScreen(),
         ),
       );
     }

@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void nextPage() {
+  void nextPage() async {
     FocusScope.of(context).unfocus();
     if (_currentPage == 0) {
       // Get the AboutYourselfScreen state using the key
@@ -129,19 +129,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // Get the LoginCubit
       final loginCubit = context.read<LoginCubit>();
 
-      SnackbarUtils.showSuccess(
-          context: context,
-          title: 'Welcome ${loginCubit.fullName}',
-          message: 'Foxx health');
-
       // Register the user
-      loginCubit.registerUser();
+      final result = await loginCubit.registerUser(context);
 
-      // Navigate to HomeScreen
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false,
-      );
+      if (result) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -208,12 +204,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Column(
               children: [
                 const SizedBox(height: 16.0),
-                OnboardingButton(
-                  text: _currentPage == _pages.length - 1 ? 'Finish' : 'Next',
-                  onPressed: () {
-                    nextPage();
-                  },
-                ),
+                BlocBuilder<LoginCubit, LoginState>(builder: (context, state) {
+                  if (state is LoginLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return OnboardingButton(
+                    text: _currentPage == _pages.length - 1 ? 'Finish' : 'Next',
+                    onPressed: () {
+                      nextPage();
+                    },
+                  );
+                }),
               ],
             ),
           ],

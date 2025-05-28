@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_state.dart';
+import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/create_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/feedback/feedback_screen.dart';
@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (_, controller) => Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: 24, horizontal: 16),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.transparent,
                     ),
                     child: Column(
@@ -87,7 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => StartDateScreen()),
+                                    builder: (context) =>
+                                        const StartDateScreen()),
                               );
                             },
                           ),
@@ -191,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             label: 'Add',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.health_and_safety),
             label: 'Health',
           ),
@@ -245,11 +246,6 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void initState() {
     super.initState();
-    _getAppointments();
-  }
-
-  _getAppointments() async {
-    context.read<AppointmentCubit>().getAppointmentTypes();
   }
 
   String _getInitials(String? name) {
@@ -273,18 +269,32 @@ class _HomeContentState extends State<HomeContent> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                SvgPicture.asset(
-                  'assets/svg/foxx_logo.svg',
-                  width: 40,
-                  height: 40,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'FoXX Health',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.amethystViolet,
+                GestureDetector(
+                  onDoubleTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ApiLoggerScreen(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/svg/foxx_logo.svg',
+                        width: 40,
+                        height: 40,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'FoXX Health',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.amethystViolet,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 65),
@@ -333,7 +343,7 @@ class _HomeContentState extends State<HomeContent> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => StartDateScreen()),
+                              builder: (context) => const StartDateScreen()),
                         );
                       },
                     ),
@@ -410,7 +420,7 @@ class _HomeContentState extends State<HomeContent> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                VisitDetailsScreen(
+                                                const VisitDetailsScreen(
                                               doctorName: 'Dr. Sarah Johnson',
                                               specialization:
                                                   'General Physician',
@@ -431,7 +441,7 @@ class _HomeContentState extends State<HomeContent> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                VisitDetailsScreen(
+                                                const VisitDetailsScreen(
                                               doctorName: 'Dr. Michael Chen',
                                               specialization: 'Cardiologist',
                                               date: 'Apr 28, 2024',
@@ -451,7 +461,7 @@ class _HomeContentState extends State<HomeContent> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                VisitDetailsScreen(
+                                                const VisitDetailsScreen(
                                               doctorName: 'Dr. Emily Rodriguez',
                                               specialization: 'Dermatologist',
                                               date: 'May 2, 2024',
