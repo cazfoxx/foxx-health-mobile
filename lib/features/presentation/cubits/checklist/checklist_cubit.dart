@@ -75,7 +75,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
         data: checklist.toJson(),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         // Cast the response data to Map<String, dynamic>
         final Map<String, dynamic> responseData =
             Map<String, dynamic>.from(response.data);
