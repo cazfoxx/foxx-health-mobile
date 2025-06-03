@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
@@ -10,10 +11,12 @@ class HeaderWidget extends StatelessWidget {
   final VoidCallback onNext;
   final double progress;
   final bool isNextEnabled;
-  final VoidCallback? onSave;
+  final VoidCallback onSave;
   final String? appbarTitle;
   final String? appbarTrailing;
   final Widget? customSubtile;
+  final VoidCallback? appbarLeadingOntap;
+  final bool? resizeToAvoidBottomInset;
 
   const HeaderWidget(
       {Key? key,
@@ -23,20 +26,24 @@ class HeaderWidget extends StatelessWidget {
       required this.onNext,
       required this.progress,
       this.isNextEnabled = true,
-      this.onSave,
+      required this.onSave,
       this.appbarTitle,
       this.appbarTrailing,
-      this.customSubtile})
+      this.customSubtile,
+      this.appbarLeadingOntap,
+      this.resizeToAvoidBottomInset = true,
+      })
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       backgroundColor: AppColors.background,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed:appbarLeadingOntap?? () => Navigator.pop(context),
         ),
         title: Text(
           appbarTitle ?? 'Create a Health Assessment',
@@ -44,10 +51,15 @@ class HeaderWidget extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: onSave ??
-                () {
-                  ReminderDialog.show(context);
-                },
+            onPressed: () {
+              if (onSave != null) {
+                ReminderDialog.show(
+                  context,
+                  onGetReminder: onSave,
+                  screen: ScreensEnum.healthAssessment,
+                );
+              }
+            },
             child: Text(
               appbarTrailing ?? 'Save',
               style: AppTextStyles.body.copyWith(
@@ -98,7 +110,7 @@ class HeaderWidget extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             subtitle,
-                            style: AppTextStyles.body2.copyWith(
+                            style: AppTextStyles.body2OpenSans.copyWith(
                               color: Colors.grey[600],
                             ),
                           ),

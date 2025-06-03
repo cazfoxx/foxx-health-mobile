@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/heath_assesment_appointment_screen.dart.dart';
@@ -35,10 +37,24 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.ethnicity);
+      },
       title: 'What is your ethnicity?',
       subtitle:
-          'Some health conditions can show up more often in certain communities. Sharing this helps us offer better, more personalized support. It\'s totally up to you, and your info stays private.',
+          'Optional - Select as many as you identify with.',
       progress: 0.4,
+      customSubtile: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 10),
+          Text('Why we ask :', style: AppTextStyles.body2OpenSans.copyWith(fontWeight: FontWeight.w700),),
+          Text(
+            'Some health conditions can show up more often in certain communities. Sharing this helps us offer better, more personalized support. It\'s totally up to you, and your info stays private.',
+            style: AppTextStyles.body2OpenSans,
+          ),
+        ],
+      ),
       onNext: () {
         _setEthnicities(context);
         Navigator.of(context).push(MaterialPageRoute(

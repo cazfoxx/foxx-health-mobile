@@ -5,7 +5,7 @@ class SnackbarUtils {
   static void showSuccess({
     required BuildContext context,
     required String title,
-    required String message,
+     String? message,
   }) {
     final snackBar = SnackBar(
       elevation: 0,
@@ -13,7 +13,7 @@ class SnackbarUtils {
       backgroundColor: Colors.transparent,
       content: AwesomeSnackbarContent(
         title: title,
-        message: message,
+        message: message??'',
         contentType: ContentType.success,
       ),
     );
@@ -26,7 +26,7 @@ class SnackbarUtils {
   static void showError({
     required BuildContext context,
     required String title,
-    required String message,
+     String? message,
   }) {
     final snackBar = SnackBar(
       elevation: 0,
@@ -34,7 +34,7 @@ class SnackbarUtils {
       backgroundColor: Colors.transparent,
       content: AwesomeSnackbarContent(
         title: title,
-        message: message,
+        message: message??'',
         contentType: ContentType.failure,
       ),
     );

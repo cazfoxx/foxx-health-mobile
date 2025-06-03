@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
-import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/area_of_concern_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/prescription_health_assessment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/prepping_assessment_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -24,14 +25,7 @@ class _SymptomTrackerHealthAssessmentScreenState
   final _searchController = TextEditingController();
   List<SymptomTrackerResponse> selectedSymptoms = [];
 
-  final List<String> symptoms = [
-    'Brain fog',
-    'Changes in eating habits',
-    'Difficulty completing tasks',
-    'Sharp pain - Chest & upper back',
-    'Tingling or numbness - Legs & feet',
-    'Symptom'
-  ];
+
 
   void _showSymptomSelector() {
     showModalBottomSheet(
@@ -56,6 +50,17 @@ class _SymptomTrackerHealthAssessmentScreenState
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.symptomTracker);
+      },
+      appbarLeadingOntap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AreaOfConcernScreen(),
+          ),
+        );
+      },
       title: 'Symptom Tracker',
       subtitle:
           'Select which symptoms you\'d like to feed into the health assessment',
@@ -64,7 +69,7 @@ class _SymptomTrackerHealthAssessmentScreenState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PreppingAssessmentScreen(),
+            builder: (context) => PrescriptionHealthAssessmentScreen(),
           ),
         );
       },

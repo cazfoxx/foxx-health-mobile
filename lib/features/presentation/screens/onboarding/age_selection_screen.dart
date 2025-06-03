@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/health_goals_screen.dart';
+import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 
@@ -42,11 +44,11 @@ class AgeSelectionScreenState extends State<AgeSelectionScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _selectedAgeRange == ageRange
-                  ? const Color(0xFF6B4EFF)
+                  ? AppColors.amethystViolet
                   : Colors.grey[300]!,
             ),
           ),
-          child: Text(ageRange),
+          child: Text(ageRange,style: AppTextStyles.bodyOpenSans.copyWith(fontWeight: FontWeight.w600),),
         ),
       ),
     );
@@ -61,7 +63,7 @@ class AgeSelectionScreenState extends State<AgeSelectionScreen> {
             OnboardingHeadingContainer(
               title: 'Choose your age',
               subtitle:
-                  'This will be used to calibrate Lorem ipsum dolor sit amet consectetur.',
+                  'This will be used to offer a more customized experience according to your age',
             ),
             Expanded(
               child: SingleChildScrollView(

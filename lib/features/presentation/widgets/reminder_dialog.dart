@@ -1,20 +1,40 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class ReminderDialog extends StatelessWidget {
   final VoidCallback? onGetReminder;
   final VoidCallback? onNoThanks;
+  final ScreensEnum screen;
+  final String screenName;
 
-  const ReminderDialog({
+  ReminderDialog({
     Key? key,
     this.onGetReminder,
     this.onNoThanks,
-  }) : super(key: key);
+    required this.screen,
+  }) : screenName = _getScreenName(screen),
+       super(key: key);
 
-  static Future<void> show(BuildContext context) {
+  static String _getScreenName(ScreensEnum screen) {
+    switch (screen) {
+      case ScreensEnum.trackSymptoms:
+        return 'Symptom Tracker';
+      case ScreensEnum.healthAssessment:
+        return 'Health Assessment';
+      case ScreensEnum.checklist:
+        return 'Checklist';
+      default:
+        return '';
+    }
+  }
+
+  static Future<void> show(BuildContext context, {
+    required VoidCallback onGetReminder,
+    required ScreensEnum screen
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -33,7 +53,10 @@ class ReminderDialog extends StatelessWidget {
               ],
             ),
           ),
-          child: ReminderDialog(),
+          child: ReminderDialog(
+            onGetReminder: onGetReminder,
+            screen: screen,
+          ),
         ),
       ),
     );
@@ -71,7 +94,7 @@ class ReminderDialog extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Want a quick reminder to finish your symptom tracker later? We\'ll save your progress in Heatlh menu so you can pick up right where you left off.',
+                'Want a quick reminder to finish your $screenName later? We\'ll save your progress in Health menu so you can pick up right where you left off.',
                 style: AppTextStyles.body2OpenSans,
                 textAlign: TextAlign.center,
               ),
@@ -79,10 +102,7 @@ class ReminderDialog extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    onGetReminder?.call();
-                  },
+                  onPressed: onGetReminder?.call,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.amethystViolet,
                     padding: const EdgeInsets.symmetric(vertical: 16),

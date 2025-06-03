@@ -84,6 +84,7 @@ class HearAboutUsScreenState extends State<HearAboutUsScreen> {
           });
         },
         child: Container(
+          padding: const EdgeInsets.only(top: 5,bottom: 5),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
@@ -152,9 +153,9 @@ class HearAboutUsScreenState extends State<HearAboutUsScreen> {
         child: Column(
           children: [
             OnboardingHeadingContainer(
-              title: 'How did you hear about us?',
-              subtitle:
-                  'This will be used to calibrate Lorem ipsum dolor sit amet consectetur.',
+                title: 'How did you hear about us?',
+                subtitle: 
+                    'This helps us tailor support and content to you. You can change these anytime.'
             ),
             Expanded(
               child: SingleChildScrollView(

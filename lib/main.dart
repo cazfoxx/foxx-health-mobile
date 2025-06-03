@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:foxxhealth/core/network/api_client.dart'; // Add this import
+import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
@@ -14,12 +14,14 @@ import 'package:foxxhealth/features/presentation/cubits/health_assessment/health
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   // Initialize storage for API logs
@@ -28,6 +30,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init();
+
+  // Initialize Stripe
+  Stripe.publishableKey = 'pk_test_51RUTddCXgPDd1SSItNfmuiSQKJbZA3pehi5kczoxJjlcxyExhyj6BQz0Sdip8Eh6w0JM4iEaeHznFNbiekBwJttD00ZCrqXAzD'; // Replace with your Stripe publishable key
+  await Stripe.instance.applySettings();
 
   const fatalError = true;
   FlutterError.onError = (errorDetails) {
@@ -87,6 +93,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => HealthAssessmentCubit()),
             BlocProvider(create: (context) => ProfileCubit()),
             BlocProvider(create: (context) => SymptomTrackerCubit()),
+            BlocProvider(create: (context) => SymptomsCubit()),
           ],
           child: GetMaterialApp(
             scaffoldMessengerKey: ApiClient.scaffoldKey, // Add this line
@@ -105,7 +112,7 @@ class MyApp extends StatelessWidget {
                 }
 
                 if (snapshot.hasData && snapshot.data == true) {
-                  return HomeScreen();
+                  return  HomeScreen();
                 }
 
                 return const SplashScreen();

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/household_income_screen.dart';
@@ -29,6 +31,9 @@ class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.healthGoals);
+      },
       title: 'Do you have any specific health goals?',
       subtitle:
           'We can personalize your experience and help you track real progress.',
@@ -58,11 +63,11 @@ class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tips: How to get better assessment',
+            Text('Tips: How to get more from your health guide',
                 style: AppTextStyles.bodyOpenSans
                     .copyWith(fontWeight: FontWeight.w600)),
             SizedBox(height: 5),
-            Text('Enter any pre- existing conditions or diagnoses below',
+            Text('Enter information such as wanting to improve cardiovascular fitness, or improve your immune system.',
                 style: AppTextStyles.body2OpenSans),
             TextField(
               decoration: InputDecoration(

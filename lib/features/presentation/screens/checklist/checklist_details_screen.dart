@@ -8,6 +8,7 @@ import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubi
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -30,20 +31,20 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
     return BlocBuilder<ChecklistCubit, ChecklistState>(
       builder: (context, state) {
         final cubit = context.read<ChecklistCubit>();
-        return Scaffold(
-          bottomNavigationBar: OnboardingButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()));
-            },
-            text: 'Done',
-          ),
-          backgroundColor: AppColors.background,
-          appBar: _buildAppBar(),
+        return BaseScaffold(
+          currentIndex: 0,
+          onTap: (p0) {
+             Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) =>  HomeScreen(selectedIndex: p0,)),
+                  (route) => false,);
+          },
+          
+        
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildAppBar(),
                 _buildHeaderSection(),
                 Padding(
                   padding: const EdgeInsets.all(14),

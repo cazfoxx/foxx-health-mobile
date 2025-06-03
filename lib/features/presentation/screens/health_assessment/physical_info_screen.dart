@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/location_screen.dart';
@@ -70,12 +73,18 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
     healthCubit.setAge(int.tryParse(_ageController.text) ?? 0);
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      resizeToAvoidBottomInset: true,
       title: 'Your Physical Information',
       subtitle: 'Help us create health assessment with your physical data',
       progress: 0.2,
+      onSave: (){
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.physicalInfo);
+      },
       onNext: () {
         _setHealthAssessmentValues(context);
         Navigator.of(context)

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/select_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/start_date_body_widget.dart';
@@ -12,11 +14,20 @@ class StartDateScreen extends StatefulWidget {
 }
 
 class _StartDateScreenState extends State<StartDateScreen> {
-  DateTime selectedDate = DateTime.now();
+
+
+  @override
+  void initState() {
+    super.initState();
+     context.read<SymptomTrackerCubit>().clear();
+  }
 
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+
+      },
       title: 'Start date',
       subtitle: 'When do you remember your symptoms first starting?',
       progress: 0.2,
@@ -45,11 +56,12 @@ class _StartDateScreenState extends State<StartDateScreen> {
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: StartDateBodyWidget(
-          selectedDate: selectedDate,
-          onDateSelected: (date) {
+          selectedDate: DateTime.now(),
+          onDateSelected: (p0) {
             setState(() {
-              selectedDate = date;
+              
             });
+            
           },
         ),
       ),

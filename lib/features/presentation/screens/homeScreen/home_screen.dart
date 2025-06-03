@@ -1,242 +1,123 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/checklist/create_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/feedback/feedback_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/health_assessment/health_assessment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/widgets/add_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/news/news_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
-import 'package:foxxhealth/features/presentation/screens/track_symptoms/start_date_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/visit/visit_details_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/screens/profileScreen/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key, this.selectedIndex});
+  int? selectedIndex;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.selectedIndex != null) {
+      _selectedIndex = widget.selectedIndex!;
+    }
+    _initializeScreens();
+  }
+
   int _selectedIndex = 0;
-  final List<Widget> _screens = [
-    const HomeContent(),
-    const NewsScreen(),
-    const SizedBox(),
-    const Center(child: Text('Review')),
-    const FeedbackScreen(),
-  ];
-  void _showAddBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return SafeArea(
-          child: Stack(
-            children: [
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                child: Container(
-                  color: AppColors.amethystViolet.withOpacity(0.8),
-                ),
-              ),
-              Positioned(
-                top: 35,
-                right: 20,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                    top: 50), // avoid close button overlap
-                child: DraggableScrollableSheet(
-                  initialChildSize: 0.5,
-                  minChildSize: 0.3,
-                  maxChildSize: 0.9,
-                  builder: (_, controller) => Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 24, horizontal: 16),
-                    decoration: const BoxDecoration(
-                      color: Colors.transparent,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _buildActionItem(
-                            icon: SvgPicture.asset(
-                                'assets/svg/home/track_symptoms.svg'),
-                            title: 'Track Symptoms',
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const StartDateScreen()),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _buildActionItem(
-                            icon: SvgPicture.asset(
-                                'assets/svg/home/create_check_list.svg'),
-                            title: 'Create Check List',
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CreateChecklistScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _buildActionItem(
-                            icon: SvgPicture.asset(
-                                'assets/svg/home/health_icon.svg'),
-                            title: 'Create Health Assessment',
-                            onTap: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const HealthAssessmentScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  late final List<Widget> _screens;
+
+  void _initializeScreens() {
+    _screens = [
+      HomeContent(onSwipe: () {
+        setState(() {
+          _selectedIndex = 1;
+        });
+      }),
+      const NewsScreen(),
+      const SizedBox(),
+      Scaffold(body: const Center(child: Text('Review (Coming Soon)'))),
+      const FeedbackScreen(),
+    ];
+  }
+
+  void _onSwipe(DragEndDetails details) {
+    if (details.primaryVelocity! > 0) {
+      // Swiping right
+      log('swiping right ${_selectedIndex}');
+      log('swiping right');
+      if (_selectedIndex > 0) {
+        if (_selectedIndex == 3) {
+          _selectedIndex = 1;
+        } else if (_selectedIndex == 4) {
+          _selectedIndex = 3;
+        } else {
+          _selectedIndex--;
+        }
+        setState(() {});
+      }
+    } else if (details.primaryVelocity! < 0) {
+      // Swiping left
+      log('swiping left ${_selectedIndex}');
+      log('swiping left');
+      if (_selectedIndex < 4) {
+        // Check against max index (4 for FeedbackScreen)
+        if (_selectedIndex == 1) {
+          _selectedIndex = 3;
+        } else if (_selectedIndex == 3) {
+          _selectedIndex = 4;
+        } else if (_selectedIndex < 1) {
+          _selectedIndex++;
+        }
+        setState(() {});
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          if (index == 2) {
-            _showAddBottomSheet(context);
-          } else {
-            setState(() {
-              _selectedIndex = index;
-            });
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.amethystViolet,
-        unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/home/home_icon.svg'),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/home/news_icon.svg'),
-            label: 'News',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              width: 70,
-              decoration: BoxDecoration(
-                color: AppColors.amethystViolet,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
-            label: 'Add',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.health_and_safety),
-            label: 'Health',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset('assets/svg/home/feedback.svg'),
-            label: 'Feedback',
-          ),
-        ],
+    return BaseScaffold(
+      currentIndex: _selectedIndex,
+      body: GestureDetector(
+        onHorizontalDragEnd: _onSwipe,
+        child: _screens[_selectedIndex],
       ),
+      onTap: (index) {
+        if (index == 2) {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) {
+              return const AddBottomSheet();
+            },
+          );
+        } else {
+          setState(() {
+            _selectedIndex = index;
+          });
+        }
+      },
     );
   }
 }
 
-Widget _buildActionItem({
-  required Widget icon,
-  required String title,
-  required VoidCallback onTap,
-}) {
-  return InkWell(
-    onTap: onTap,
-    child: Row(
-      children: [
-        icon,
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        const Icon(
-          Icons.add_circle,
-          color: AppColors.amethystViolet,
-        ),
-      ],
-    ),
-  );
-}
 
 class HomeContent extends StatefulWidget {
-  const HomeContent({super.key});
+  const HomeContent({super.key, required this.onSwipe});
+
+  final Function() onSwipe;
 
   @override
   State<HomeContent> createState() => _HomeContentState();
@@ -266,6 +147,7 @@ class _HomeContentState extends State<HomeContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -340,11 +222,9 @@ class _HomeContentState extends State<HomeContent> {
                           'assets/svg/home/track_symptoms.svg'),
                       title: 'Track Symptoms',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const StartDateScreen()),
-                        );
+                        context
+                            .read<SymptomTrackerCubit>()
+                            .checkAndNavigateToLastScreen(context);
                       },
                     ),
                     const Divider(height: 24),
@@ -353,26 +233,20 @@ class _HomeContentState extends State<HomeContent> {
                           'assets/svg/home/create_check_list.svg'),
                       title: 'Create Check List',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CreateChecklistScreen(),
-                          ),
-                        );
+                        context
+                            .read<ChecklistCubit>()
+                            .checkAndNavigateToLastScreen(context);
                       },
                     ),
                     const Divider(height: 24),
                     _buildActionItem(
-                      icon: SvgPicture.asset('assets/svg/home/health_icon.svg'),
+                      icon: SvgPicture.asset(
+                          'assets/svg/home/personal_health.svg'),
                       title: 'Create Health Assessment',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const HealthAssessmentScreen(),
-                          ),
-                        );
+                        context
+                            .read<HealthAssessmentCubit>()
+                            .checkAndNavigateToLastScreen(context);
                       },
                     ),
                   ],
@@ -397,6 +271,8 @@ class _HomeContentState extends State<HomeContent> {
                           indicatorColor: AppColors.amethystViolet,
                           labelStyle: AppTextStyles.heading3,
                           unselectedLabelStyle: AppTextStyles.heading3,
+                          isScrollable: true,
+                          tabAlignment: TabAlignment.start,
                           tabs: [
                             Tab(text: 'Upcoming Visits'),
                             Tab(text: 'Recent Actions'),
@@ -410,66 +286,27 @@ class _HomeContentState extends State<HomeContent> {
                               SingleChildScrollView(
                                 child: Column(
                                   children: [
-                                    _buildCheckListItem(
-                                      context: context,
-                                      title: 'Dr. Sarah Johnson',
-                                      subtitle: 'General Physician',
-                                      date: 'Apr 25, 2024',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const VisitDetailsScreen(
-                                              doctorName: 'Dr. Sarah Johnson',
-                                              specialization:
-                                                  'General Physician',
-                                              date: 'Apr 25, 2024',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildCheckListItem(
-                                      context: context,
-                                      title: 'Dr. Michael Chen',
-                                      subtitle: 'Cardiologist',
-                                      date: 'Apr 28, 2024',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const VisitDetailsScreen(
-                                              doctorName: 'Dr. Michael Chen',
-                                              specialization: 'Cardiologist',
-                                              date: 'Apr 28, 2024',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildCheckListItem(
-                                      context: context,
-                                      title: 'Dr. Emily Rodriguez',
-                                      subtitle: 'Dermatologist',
-                                      date: 'May 2, 2024',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const VisitDetailsScreen(
-                                              doctorName: 'Dr. Emily Rodriguez',
-                                              specialization: 'Dermatologist',
-                                              date: 'May 2, 2024',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                    // _buildCheckListItem(
+                                    //   context: context,
+                                    //   title: 'Dr. Sarah Johnson',
+                                    //   subtitle: 'General Physician',
+                                    //   date: 'Apr 25, 2024',
+                                    //   onTap: () {
+                                    //     Navigator.push(
+                                    //       context,
+                                    //       MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             const VisitDetailsScreen(
+                                    //           doctorName: 'Dr. Sarah Johnson',
+                                    //           specialization:
+                                    //               'General Physician',
+                                    //           date: 'Apr 25, 2024',
+                                    //         ),
+                                    //       ),
+                                    //     );
+                                    //   },
+                                    // ),
+
                                     const SizedBox(height: 12),
                                     InkWell(
                                       onTap: () {
@@ -505,37 +342,29 @@ class _HomeContentState extends State<HomeContent> {
                                 ),
                               ),
                               // Keep existing Recent Actions Tab
-                              SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    _buildCheckListItem(
-                                      context: context,
-                                      isRecentAction: true,
-                                      title: 'PCP Check List in Progress',
-                                      subtitle: 'In Progress',
-                                      date: 'Apr 20, 2025',
-                                      onTap: () {},
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildCheckListItem(
-                                      context: context,
-                                      isRecentAction: true,
-                                      title:
-                                          'New Health Assessment in Progress',
-                                      subtitle: 'In Progress',
-                                      date: 'Apr 13, 2025',
-                                      onTap: () {},
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildCheckListItem(
-                                      context: context,
-                                      isRecentAction: true,
-                                      title: 'New Symptom Tracker in Progress',
-                                      subtitle: 'In Progress',
-                                      date: 'Jan 13, 2025',
-                                      onTap: () {},
-                                    ),
-                                  ],
+                              GestureDetector(
+                                onHorizontalDragEnd: (details) {
+                                 if (details.primaryVelocity! < 0) {
+                                  widget.onSwipe();
+
+
+   
+      }
+    
+                                },
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      // _buildCheckListItem(
+                                      //   context: context,
+                                      //   isRecentAction: true,
+                                      //   title: 'PCP Check List in Progress',
+                                      //   subtitle: 'In Progress',
+                                      //   date: 'Apr 20, 2025',
+                                      //   onTap: () {},
+                                      // ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_checklist.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_enums.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/base_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/pescription_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
+import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 
 class AddNotesScreen extends StatefulWidget {
   final String appointmentType;
@@ -43,6 +47,16 @@ class _AddNotesScreenState extends State<AddNotesScreen> {
   @override
   Widget build(BuildContext context) {
     return BaseChecklistScreen(
+      onSave: () {
+         ReminderDialog.show(
+                  context,
+                  onGetReminder: (){
+                    SaveChecklist.saveSymptoms(context, ChecklistScreen.customQuestions);
+                  },
+                  screen: ScreensEnum.checklist,
+                );
+        
+      },
       title: 'Add Your Own Notes',
       subtitle:
           'Feel more confident and in control by jotting down what matters most to you',

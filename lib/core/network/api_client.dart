@@ -157,11 +157,11 @@ class LoggerInterceptor extends Interceptor {
     );
 
     if (err.response?.statusCode == 401) {
-      Navigator.of(getx.Get.context!).pushReplacement(MaterialPageRoute(
+      Navigator.of(getx.Get.context!).pushAndRemoveUntil(MaterialPageRoute(
         builder: (context) => LoginScreen(
           isSign: true,
         ),
-      ));
+      ), (route) => false);
     }
 
     if (err.response?.data != null) {

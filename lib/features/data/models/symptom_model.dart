@@ -22,4 +22,14 @@ class Symptom {
       updatedAt: json['updated_at'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'symptom_name': symptomName,
+      'symptom_category_name': symptomCategoryName,
+      'id': id,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
 }

@@ -58,6 +58,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         // Get user details
         final username = aboutYourselfState.getUserName();
         final pronoun = aboutYourselfState.getPronoun();
+        if (username.isEmpty || pronoun.isEmpty) {
+          SnackbarUtils.showError(context: context, title: 'Please fill in all fields', message: 'Select your pronoun and username'
+          );
+          return;
+        }
 
         // Update LoginCubit
         final loginCubit = context.read<LoginCubit>();
@@ -66,7 +71,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           username: username.trim(),
           pronoun: pronoun,
         );
-      }
+
+      } 
     } else if (_currentPage == 1) {
       // Get the AgeSelectionScreen state using the key
       final ageSelectionState = _ageSelectionKey.currentState;
@@ -134,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (result) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) =>  HomeScreen()),
           (route) => false,
         );
       }
@@ -145,6 +151,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -172,7 +179,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                MaterialPageRoute(builder: (context) =>  HomeScreen()),
                 (route) => false,
               );
             },
@@ -187,37 +194,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                children: _pages,
-              ),
-            ),
-            Column(
-              children: [
-                const SizedBox(height: 16.0),
-                BlocBuilder<LoginCubit, LoginState>(builder: (context, state) {
-                  if (state is LoginLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return OnboardingButton(
-                    text: _currentPage == _pages.length - 1 ? 'Finish' : 'Next',
-                    onPressed: () {
-                      nextPage();
-                    },
-                  );
-                }),
-              ],
-            ),
-          ],
+        child: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index;
+            });
+          },
+          children: _pages,
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom,
+          left: 16,
+          right: 16,
+          top: 8,
+        ),
+        child: BlocBuilder<LoginCubit, LoginState>(
+          builder: (context, state) {
+            if (state is LoginLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return OnboardingButton(
+              text: _currentPage == _pages.length - 1 ? 'Finish' : 'Next',
+              onPressed: () {
+                nextPage();
+              },
+            );
+          },
         ),
       ),
     );

@@ -45,7 +45,7 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -107,7 +107,7 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                     ),
                   ),
                   SizedBox(width: 10),
-                  Text('I prefer', style: AppTextStyles.body2OpenSans),
+                  Text('I prefer', style: AppTextStyles.bodyOpenSans),
                   const Spacer(),
                 ],
               ),
@@ -156,15 +156,18 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter your username',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
+                    SizedBox(
+
+                      child: TextField(
+                        controller: _usernameController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your username',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                     ),

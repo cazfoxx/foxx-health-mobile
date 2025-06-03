@@ -26,13 +26,27 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isOver16 = false;
   bool _isButtonEnabled = false;
   bool _obscurePassword = true; // Add this variable
+  bool _hasMinLength = false;
+  bool _hasLetterAndNumber = false;
+  bool _hasCapitalLetter = false;
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    // Add listeners to controllers to check form validity
     _emailController.addListener(_updateButtonState);
-    _passwordController.addListener(_updateButtonState);
+    _passwordController.addListener(_updatePasswordValidation);
+  }
+
+  void _updatePasswordValidation() {
+    final password = _passwordController.text;
+    setState(() {
+      _hasMinLength = password.length >= 8;
+      _hasLetterAndNumber = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
+      _hasCapitalLetter = RegExp(r'[A-Z]').hasMatch(password);
+      _updateButtonState();
+    });
   }
 
   @override
@@ -54,12 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void _updateButtonState() {
     setState(() {
       if (widget.isSign) {
-        // For sign in, only check email and password
-        _isButtonEnabled = _emailController.text.trim().isNotEmpty &&
+        // For sign in, check email validation and password
+        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
+            _emailController.text.trim().isNotEmpty &&
             _passwordController.text.trim().isNotEmpty;
       } else {
-        // For sign up, check all conditions including terms and age
-        _isButtonEnabled = _emailController.text.trim().isNotEmpty &&
+        // For sign up, check all conditions including email validation
+        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
+            _emailController.text.trim().isNotEmpty &&
             _passwordController.text.trim().isNotEmpty &&
             validatePassword(_passwordController.text) &&
             _agreeToTerms &&
@@ -157,60 +173,104 @@ class _LoginScreenState extends State<LoginScreen> {
                         'We prioritize your privacy and security, which is why we only require your email to sign up. No social media logins necessary',
                   ),
                   const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email Address',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: Colors.grey,
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email cannot be empty';
+                              }
+                              // Regular expression for email validation
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(value)) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              _formKey.currentState?.validate();
+                              _updateButtonState();
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Email Address',
+                              filled: true,
+                              fillColor: Colors.white,
+                              errorStyle: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                            ),
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Password cannot be empty';
+                              if (value.length < 8) return 'Must be at least 8 characters';
+                              if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
+                              if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
+                                return 'Must contain letters and numbers';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              _updatePasswordValidation();
+                              _formKey.currentState?.validate();
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              filled: true,
+                              fillColor: Colors.white,
+                              errorStyle: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 10),
                   widget.isSign
                       ? const SizedBox()
                       : Padding(
@@ -295,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           widget.isSign
-                              ? "Don’t have an account?"
+                              ? "Don't have an account?"
                               : 'Already have an account?',
                           style: const TextStyle(
                             fontSize: 14,
@@ -339,7 +399,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
+                                builder: (context) =>  HomeScreen(),
                               ),
                             );
                           }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
@@ -82,6 +84,9 @@ class _HealthAssessmentAppointTypeScreenState
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.appointmentType);
+      },
       title: 'Which doctor you will be meeting with?',
       subtitle:
           'Type of appointment help us tailored our assessment to your need. If you have one, click next if not applicable.',

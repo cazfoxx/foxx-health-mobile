@@ -4,12 +4,25 @@ abstract class ChecklistState extends Equatable {
   const ChecklistState();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class ChecklistInitial extends ChecklistState {}
 
 class ChecklistLoading extends ChecklistState {}
+
+class ChecklistError extends ChecklistState {
+  final String message;
+
+  const ChecklistError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+class ChecklistDataSaved extends ChecklistState {}
+
+class ChecklistDataLoaded extends ChecklistState {}
 
 class ChecklistCreated extends ChecklistState {
   final ChecklistModel checklist;
@@ -17,7 +30,7 @@ class ChecklistCreated extends ChecklistState {
   const ChecklistCreated(this.checklist);
 
   @override
-  List<Object?> get props => [checklist];
+  List<Object> get props => [checklist];
 }
 
 class ChecklistsLoaded extends ChecklistState {
@@ -26,7 +39,7 @@ class ChecklistsLoaded extends ChecklistState {
   const ChecklistsLoaded(this.checklists);
 
   @override
-  List<Object?> get props => [checklists];
+  List<Object> get props => [checklists];
 }
 
 class ChecklistLoaded extends ChecklistState {
@@ -35,7 +48,7 @@ class ChecklistLoaded extends ChecklistState {
   const ChecklistLoaded(this.checklist);
 
   @override
-  List<Object?> get props => [checklist];
+  List<Object> get props => [checklist];
 }
 
 class ChecklistUpdated extends ChecklistState {
@@ -54,13 +67,4 @@ class ChecklistDeleted extends ChecklistState {
 
   @override
   List<Object> get props => [checklistId];
-}
-
-class ChecklistError extends ChecklistState {
-  final String message;
-
-  const ChecklistError(this.message);
-
-  @override
-  List<Object?> get props => [message];
 }

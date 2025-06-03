@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/area_of_concern_model.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/symptom_tracker_health_assessment_screen.dart.dart';
@@ -26,6 +28,9 @@ class _AreaOfConcernScreenState extends State<AreaOfConcernScreen> {
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.areaOfConcern);
+      },
       title: 'Area of concern',
       subtitle:
           'Choose the body part, system, or area you want to focus on so we can personalize your health assessment.',

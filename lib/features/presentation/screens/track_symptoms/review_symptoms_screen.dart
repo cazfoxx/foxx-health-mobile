@@ -7,12 +7,16 @@ import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_state.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/start_date_body_widget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+
 
 class ReviewSymptomsScreen extends StatefulWidget {
   final String? descriptions;
@@ -213,10 +217,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                       title: 'Success',
                       message: 'Symptoms tracked successfully',
                     );
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                   Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
                   } catch (e) {
                     SnackbarUtils.showError(
                       context: context,
@@ -246,8 +247,10 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                       StartDateBodyWidget(
                         dateRange: DateTimeRange(
                             start: cubit.fromDate, end: cubit.toDate),
-                        onDateSelected: (date) {
-                          cubit.setFromDate(date);
+                        onDateSelected: (p0) {
+                          setState(() {
+                            
+                          });
                         },
                         selectedDate: cubit.fromDate,
                       ),
@@ -313,12 +316,100 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Show bottom sheet with the correct symptom type
-                        SymptomBottomSheet.show(
-                          context,
-                          symptomType, // Use the symptom type directly
-                          cubit.getSymptoms(
-                              symptomType), // Get symptoms for this type
+                        final symptomsCubit = context.read<SymptomsCubit>();
+                        symptomsCubit.fetchSymptomsByCategory(symptomType);
+                        
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => BlocBuilder<SymptomsCubit, SymptomsState>(
+                            builder: (context, state) {
+                              if (state is SymptomsLoading) {
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                  ),
+                                  child: const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20.0),
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.amethystViolet,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              
+                              if (state is SymptomsError) {
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                  ),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Error: ${state.message}',
+                                            style: AppTextStyles.body.copyWith(color: Colors.red),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              symptomsCubit.fetchSymptomsByCategory(symptomType);
+                                            },
+                                            child: const Text('Retry'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              
+                              if (state is SymptomsLoaded) {
+                                final symptoms = state.symptoms.map((symptom) => SymptomItem(
+                                  name: symptom.symptomName,
+                                  isSelected: entry.value.any((s) => s.symptomName == symptom.symptomName),
+                                  severity: entry.value
+                                      .firstWhere(
+                                        (s) => s.symptomName == symptom.symptomName,
+                                        orElse: () => SymptomId(
+                                          symptomName: '',
+                                          symptomType: '',
+                                          symptomCategory: '',
+                                          severity: '',
+                                        ),
+                                      )
+                                      .severity,
+                                )).toList();
+                                
+                                final categoryData = Category(
+                                  title: entry.key,
+                                  symptoms: symptoms,
+                                );
+                                
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                  ),
+                                  height: MediaQuery.of(context).size.height * 0.9,
+                                  child: SymptomBottomSheet(
+                                    title: symptomType,
+                                    categories: [categoryData],
+                                  ),
+                                );
+                              }
+                              
+                              return const SizedBox();
+                            },
+                          ),
                         );
                       },
                       child: Text(

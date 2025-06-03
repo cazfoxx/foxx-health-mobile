@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_checklist.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_enums.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/base_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/completion_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
+import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 
 class PrescriptionScreen extends StatefulWidget {
   const PrescriptionScreen({
@@ -38,6 +42,16 @@ class _PrescriptionScreenState extends State<PrescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return BaseChecklistScreen(
+      onSave: () {
+          ReminderDialog.show(
+                  context,
+                  onGetReminder: (){
+                    SaveChecklist.saveSymptoms(context, ChecklistScreen.prescriptionSupplements);
+                  },
+                  screen: ScreensEnum.checklist,
+                );
+        
+      },
       title: 'Prescriptions & Supplements',
       subtitle: "List any prescriptions or supplements you're currently taking",
       progress: 0.9,

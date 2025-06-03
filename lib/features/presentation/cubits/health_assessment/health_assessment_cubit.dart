@@ -1,16 +1,34 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/data/models/area_of_concern_model.dart';
 import 'package:foxxhealth/features/data/models/income_range_model.dart';
-import 'package:foxxhealth/features/data/models/state_model.dart';
+import 'package:foxxhealth/features/data/models/state_model.dart' as state_model;
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
-
+import 'package:get_storage/get_storage.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/prepping_assessment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/health_assessment_screen.dart' as health_assessment_screen;
+import 'package:foxxhealth/features/presentation/screens/health_assessment/privacy_and_security_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/physical_info_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/ethnicity_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/heath_assesment_appointment_screen.dart.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/pre_existing_conditions_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/health_concerns_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/health_goals_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/area_of_concern_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/symptom_tracker_health_assessment_screen.dart.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/prescription_health_assessment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/location_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/household_income_screen.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 part 'health_assessment_state.dart';
 
 class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   final _apiClient = ApiClient();
+  final _storage = GetStorage();
+  static const String _storageKey = 'health_assessment_data';
 
   // Variables for health assessment
   int _heightInFeet = 0;
@@ -29,8 +47,8 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   List<SymptomTrackerResponse> _symptoms = [];
   List<Symptom> _seletedSymptom = [];
 
-  List<State> _states = [];
-  State? _selectedState;
+  List<state_model.State> _states = [];
+  state_model.State? _selectedState;
   List<IncomeRange> _incomeRanges = [];
   IncomeRange? _seletedIncomeRange;
   List<AreaOfConcern> _areasOfConcern = [];
@@ -53,10 +71,13 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   int get appointmentTypeId => _appointmentTypeId;
   List<SymptomTrackerResponse> get symptoms => _symptoms;
   List<Symptom> get selectedSymptom => _seletedSymptom;
-  State? get selectedState => _selectedState;
-  List<State> get states => _states;
+  state_model.State? get selectedState => _selectedState;
+  List<state_model.State> get states => _states;
   List<IncomeRange> get incomeRanges => _incomeRanges;
   List<AreaOfConcern> get areasOfConcern => _areasOfConcern;
+
+
+  HealthAssessmentScreen lastScreen = HealthAssessmentScreen.initial;
 
   // Setters
   void setHeightInInches(int height) {
@@ -119,7 +140,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     _seletedSymptom.add(symptom);
   }
 
-  void setSelectedState(State state) {
+  void setSelectedState(state_model.State state) {
     _selectedState = state;
     _location = state.stateName;
   }
@@ -133,7 +154,129 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     _selectedAreaOfConcern = areasOfConcern;
   }
 
-  HealthAssessmentCubit() : super(HealthAssessmentInitial());
+  HealthAssessmentCubit() : super(HealthAssessmentInitial()) {
+    if (hasStoredData()) {
+      loadSavedData();
+    }
+  }
+
+  // Save all health assessment data
+  Future<void> saveData({required HealthAssessmentScreen screen}) async {
+    try{
+        final data = {
+      'screen': screen,
+      'heightInFeet': _heightInFeet,
+      'heightInInches': _heightInInches,
+      'userWeight': _userWeight,
+      'age': _age,
+      'ethnicities': _ethnicities,
+      'preExistingConditionText': _preExistingConditionText,
+      'location': _location,
+      'specificHealthConcerns': _specificHealthConcerns,
+      'specificHealthGoals': _specificHealthGoals,
+      'incomeRange': _incomeRange,
+      'isActive': _isActive,
+      'isDeleted': _isDeleted,
+      'appointmentTypeId': _appointmentTypeId,
+      'symptoms': _symptoms.map((s) => s.toJson()).toList(),
+      'selectedSymptom': _seletedSymptom.map((s) => s.toJson()).toList(),
+      'selectedState': _selectedState?.toJson(),
+      'selectedIncomeRange': _seletedIncomeRange?.toJson(),
+      'selectedAreaOfConcern': _selectedAreaOfConcern?.map((a) => a.toJson()).toList(),
+      'healthAssessmentId': healthAssessmentId,
+    };
+
+    await _storage.write(_storageKey, data);
+      
+    }catch(e){
+      print('Error saving data: $e');
+      
+    }
+  
+  }
+
+  // Load saved health assessment data
+  Future<void> loadSavedData() async {
+    try {
+      final data = _storage.read(_storageKey);
+      if (data != null) {
+        lastScreen = data['screen'] ?? HealthAssessmentScreen.initial;
+        _heightInFeet = data['heightInFeet'] ?? 0;
+        _heightInInches = data['heightInInches'] ?? 0;
+        _userWeight = data['userWeight'] ?? 0;
+        _age = data['age'] ?? 0;
+        _ethnicities = List<String>.from(data['ethnicities'] ?? []);
+        _preExistingConditionText = data['preExistingConditionText'] ?? '';
+        _location = data['location'] ?? '';
+        _specificHealthConcerns = data['specificHealthConcerns'] ?? '';
+        _specificHealthGoals = data['specificHealthGoals'] ?? '';
+        _incomeRange = data['incomeRange'] ?? '';
+        _isActive = data['isActive'] ?? true;
+        _isDeleted = data['isDeleted'] ?? false;
+        _appointmentTypeId = data['appointmentTypeId'] ?? 0;
+        
+        if (data['symptoms'] != null) {
+          _symptoms = List<SymptomTrackerResponse>.from(
+            data['symptoms'].map((x) => SymptomTrackerResponse.fromJson(x))
+          );
+        }
+        
+        if (data['selectedSymptom'] != null) {
+          _seletedSymptom = List<Symptom>.from(
+            data['selectedSymptom'].map((x) => Symptom.fromJson(x))
+          );
+        }
+        
+        if (data['selectedState'] != null) {
+          _selectedState = state_model.State.fromJson(data['selectedState']);
+        }
+        
+        if (data['selectedIncomeRange'] != null) {
+          _seletedIncomeRange = IncomeRange.fromJson(data['selectedIncomeRange']);
+        }
+        
+        if (data['selectedAreaOfConcern'] != null) {
+          _selectedAreaOfConcern = List<AreaOfConcern>.from(
+            data['selectedAreaOfConcern'].map((x) => AreaOfConcern.fromJson(x))
+          );
+        }
+        
+        healthAssessmentId = data['healthAssessmentId'];
+        
+        // Emit state to notify UI of loaded data
+        emit(HealthAssessmentDataLoaded());
+      }
+    } catch (e) {
+      emit(HealthAssessmentError('Error loading saved data: $e'));
+    }
+  }
+
+  // Clear saved data
+  Future<void> clearSavedData() async {
+    await _storage.remove(_storageKey);
+    // Reset all variables to default values
+    _heightInFeet = 0;
+    _heightInInches = 0;
+    _userWeight = 0;
+    _age = 0;
+    _ethnicities = [];
+    _preExistingConditionText = '';
+    _location = '';
+    _specificHealthConcerns = '';
+    _specificHealthGoals = '';
+    _incomeRange = '';
+    _isActive = true;
+    _isDeleted = false;
+    _appointmentTypeId = 0;
+    _symptoms = [];
+    _seletedSymptom = [];
+    _selectedState = null;
+    _seletedIncomeRange = null;
+    _selectedAreaOfConcern = null;
+    healthAssessmentId = null;
+    
+    emit(HealthAssessmentInitial());
+  }
 
   Future<void> fetchAreasOfConcern() async {
     try {
@@ -193,8 +336,8 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
 
       if (response.statusCode == 200) {
         final List<dynamic> statesJson = response.data;
-        _states = statesJson.map((json) => State.fromJson(json)).toList();
-        emit(HealthAssessmentStatesFetched(_states));
+        _states = statesJson.map((json) => state_model.State.fromJson(json)).toList();
+        emit(HealthAssessmentStatesFetched(_states.cast<state_model.State>()));
       } else {
         emit(HealthAssessmentError(
             'Failed to fetch states: ${response.statusCode}'));
@@ -292,6 +435,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> guideView = response.data;
+        clearSavedData();
         emit(HealthAssessmentGuideViewFetched(guideView));
       } else {
         emit(HealthAssessmentError(
@@ -346,4 +490,85 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
       emit(HealthAssessmentError('Error updating health assessment: $e'));
     }
   }
+
+  // Navigate to specific screen based on enum
+  void navigateToScreen(BuildContext context, HealthAssessmentScreen screen) {
+    late final Widget targetScreen;
+    
+    switch (screen) {
+      case HealthAssessmentScreen.initial:
+        targetScreen = const health_assessment_screen.HealthAssessmentScreen();
+        break;
+
+      case HealthAssessmentScreen.location:
+        targetScreen = const LocationScreen();
+        break;
+      case HealthAssessmentScreen.income:
+        targetScreen = const HouseholdIncomeScreen();
+        break;
+      case HealthAssessmentScreen.privacyAndSecurity:
+        targetScreen = const PrivacyAndSecurityScreen();
+        break;
+      case HealthAssessmentScreen.physicalInfo:
+        targetScreen = const PhysicalInfoScreen();
+        break;
+      case HealthAssessmentScreen.ethnicity:
+        targetScreen = const EthnicityScreen();
+        break;
+      case HealthAssessmentScreen.appointmentType:
+        targetScreen = const HealthAssessmentAppointTypeScreen();
+        break;
+      case HealthAssessmentScreen.preExistingConditions:
+        targetScreen = const PreExistingConditionsScreen();
+        break;
+      case HealthAssessmentScreen.healthConcerns:
+        targetScreen = const HealthConcernsScreen();
+        break;
+      case HealthAssessmentScreen.healthGoals:
+        targetScreen = const HealthGoalsScreen();
+        break;
+      case HealthAssessmentScreen.areaOfConcern:
+        targetScreen = const AreaOfConcernScreen();
+        break;
+      case HealthAssessmentScreen.symptomTracker:
+        targetScreen = const SymptomTrackerHealthAssessmentScreen();
+        break;
+      case HealthAssessmentScreen.prescriptionAndSupplements:
+        targetScreen = const PrescriptionHealthAssessmentScreen();
+        break;
+      case HealthAssessmentScreen.preppingAssessment:
+        targetScreen = const PreppingAssessmentScreen();
+        break;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => targetScreen),
+    );
+  }
+
+  // Check if health assessment data exists in storage
+  bool hasStoredData() {
+    final data = _storage.read(_storageKey);
+    return data != null;
+  }
+
+  // Check stored data and navigate to last screen if exists
+  void checkAndNavigateToLastScreen(BuildContext context) {
+
+      final data = _storage.read(_storageKey);
+      if (data != null && data['screen'] != null) {
+        final screenEnum = HealthAssessmentScreen.values.firstWhere(
+          (e) => e.toString() == data['screen'].toString(),
+          orElse: () => HealthAssessmentScreen.initial,
+        );
+        navigateToScreen(context, screenEnum);
+      }else{
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) =>  const health_assessment_screen.HealthAssessmentScreen()),
+        );
+      }
+    }
+
 }

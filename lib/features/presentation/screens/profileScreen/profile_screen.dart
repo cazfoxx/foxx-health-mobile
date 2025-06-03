@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,8 +35,18 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<ProfileCubit>().fetchProfile();
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return BaseScaffold(
+      currentIndex: 0,
+      onTap: (index) {
+                Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+          (route) => false, // This removes all previous routes from stack
+        );
+
+      },
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

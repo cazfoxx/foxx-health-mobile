@@ -7,6 +7,7 @@ class BaseChecklistScreen extends StatelessWidget {
   final String subtitle;
   final double progress;
   final Widget body;
+  final Function()? onSave;
 
   const BaseChecklistScreen({
     super.key,
@@ -14,6 +15,7 @@ class BaseChecklistScreen extends StatelessWidget {
     required this.subtitle,
     required this.progress,
     required this.body,
+     this.onSave,
   });
 
   @override
@@ -26,6 +28,13 @@ class BaseChecklistScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
+        actions: [
+          if (onSave != null)
+          TextButton(
+            onPressed: onSave,
+            child: Text('Save',style: AppTextStyles.body2.copyWith(color: AppColors.amethystViolet),),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

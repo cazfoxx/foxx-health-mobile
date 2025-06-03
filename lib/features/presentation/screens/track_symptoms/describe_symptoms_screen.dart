@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_track_symptoms.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_enums.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/review_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 
 class DescribeSymptomsScreen extends StatefulWidget {
   const DescribeSymptomsScreen({Key? key}) : super(key: key);
@@ -30,14 +34,24 @@ class _DescribeSymptomsScreenState extends State<DescribeSymptomsScreen> {
       subtitle:
           'Take time to think this through. Accuracy will help you better represent yourself.',
       progress: 1.0,
-      onSave: () {},
+      onSave: () {
+
+          ReminderDialog.show(
+                  context,
+                  onGetReminder: (){
+                      SaveTrackSymptoms.saveSymptoms(context, SymptomScreen.description);
+                  },
+                  screen: ScreensEnum.trackSymptoms,
+                );
+        
+       
+      },
       onNext: () async {
         final cubit = context.read<SymptomTrackerCubit>();
         cubit.setSymptomDescription(_descriptionController.text.trim());
         cubit.loggerall();
 
-        // Call the create symptom tracker API
-        // await cubit.createSymptomTracker();
+     
 
         Navigator.push(
           context,

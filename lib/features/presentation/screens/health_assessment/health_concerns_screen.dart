@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_health_assessment.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/health_goals_screen.dart';
@@ -23,6 +25,9 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
   @override
   Widget build(BuildContext context) {
     return HeaderWidget(
+      onSave: () {
+        SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.healthConcerns);
+      },
       title: 'Do you have any specific health concerns?',
       subtitle:
           'Knowing your family history helps us suggest the right preventive steps for you.',
@@ -52,11 +57,11 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tips: How to get better assessment',
+            Text('Tips: How to get more from your health guide',
                 style: AppTextStyles.bodyOpenSans
                     .copyWith(fontWeight: FontWeight.w600)),
             SizedBox(height: 10),
-            Text('Enter any pre- existing conditions or diagnoses below',
+            Text('Enter information such as family history of glaucoma, or concerns about approaching perimenopause for example',
                 style: AppTextStyles.body2OpenSans),
             SizedBox(height: 10),
             TextField(

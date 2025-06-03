@@ -7,6 +7,7 @@ import 'package:foxxhealth/features/presentation/screens/appointment/appointment
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/ethnicity_selection_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/health_details_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/physical_info_bottom_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -70,55 +71,50 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
             _followUpItems.clear();
 
             // Populate documents
-            for (var doc in state.guideData['documents_to_bring_details']) {
+            for (var doc in state.guideView['documents_to_bring_details']) {
               _documents[doc['document_name']] = false;
             }
 
             // Populate information to prepare
             for (var info
-                in state.guideData['information_to_prepare_details']) {
+                in state.guideView['information_to_prepare_details']) {
               _informationToPrepare[info['information']] = false;
             }
 
             // Populate questions for doctor
             for (var question
-                in state.guideData['questions_for_doctor_details']) {
+                in state.guideView['questions_for_doctor_details']) {
               _questionsForDoctor[question['question_text']] = false;
             }
 
             // Populate tests to discuss
-            for (var test in state.guideData['medical_test_details']) {
+            for (var test in state.guideView['medical_test_details']) {
               _testsToDiscuss[test['test_name']] = false;
             }
 
             // Populate follow-up items
             for (var item
-                in state.guideData['appointment_followup_items_details']) {
+                in state.guideView['appointment_followup_items_details']) {
               _followUpItems[item['follow_up_item_text']] = false;
             }
 
             // Update last edited date
-            _lastEdited = state.guideData['updated_at'];
+            _lastEdited = state.guideView['updated_at'];
           });
         }
       },
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios),
-            onPressed: () {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()));
-            },
-          ),
-          title: const Text(
-            'Results',
-            style: AppTextStyles.heading3,
-          ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
+      child:
+      
+      
+     BaseScaffold(
+        currentIndex: 0,
+        onTap: (index) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen(selectedIndex: index)),
+            (route) => false,
+          );
+        },
         body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
             builder: (context, state) {
           if (state is HealthAssessmentLoading) {
@@ -128,6 +124,21 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                AppBar(
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                        (route) => false,
+                      );
+                    },
+                    icon: Icon(Icons.arrow_back),
+                  ),
+                  title: Text('Results', style: AppTextStyles.heading3,),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                ),
                 Container(
                   color: AppColors.lightViolet,
                   width: double.infinity,

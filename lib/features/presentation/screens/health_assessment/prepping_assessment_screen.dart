@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/assessment_results_screen.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 
 class PreppingAssessmentScreen extends StatefulWidget {
   const PreppingAssessmentScreen({
@@ -37,6 +39,28 @@ class _PreppingAssessmentScreenState extends State<PreppingAssessmentScreen> {
     }
   }
 
+  Future<void> _saveAssessment() async {
+    try {
+      final healthAssessmentCubit = context.read<HealthAssessmentCubit>();
+      await healthAssessmentCubit.saveData(screen: HealthAssessmentScreen.preppingAssessment);
+      if (mounted) {
+        SnackbarUtils.showSuccess(
+          context: context,
+          title: 'Success',
+          message: 'Health assessment data saved successfully',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackbarUtils.showError(
+          context: context,
+          title: 'Error',
+          message: 'Failed to save health assessment data',
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +75,7 @@ class _PreppingAssessmentScreenState extends State<PreppingAssessmentScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: _saveAssessment,
             child: Text(
               'Save',
               style: AppTextStyles.body.copyWith(

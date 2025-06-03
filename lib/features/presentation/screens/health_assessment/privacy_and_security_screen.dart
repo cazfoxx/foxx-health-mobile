@@ -74,12 +74,12 @@ class PrivacyAndSecurityScreen extends StatelessWidget {
               OnboardingButton(
                 text: 'Accept',
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PhysicalInfoScreen(),
                     ),
-                    (route) => false,
+
                   );
                 },
               ),

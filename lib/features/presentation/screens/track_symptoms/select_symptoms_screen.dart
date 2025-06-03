@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/save_track_symptoms.dart';
+import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_enums.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_state.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/describe_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
@@ -45,8 +50,15 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
           'Tap any category to pick what you want to track — you can choose more than one!',
       progress: 0.5,
       appbarTitle: 'Track Symptoms',
-      onSave: () {
-        ReminderDialog.show(context);
+      onSave: () async {
+        ReminderDialog.show(
+          context,
+          onGetReminder: () {
+            SaveTrackSymptoms.saveSymptoms(
+                context, SymptomScreen.selectSymptoms);
+          },
+          screen: ScreensEnum.trackSymptoms,
+        );
       },
       onNext: () {
         Navigator.of(context).push(
@@ -62,14 +74,54 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: InkWell(
-              onTap: () {
-                List<Category> categories = [];
-                
+              onTap: () async {
+                final cubit = context.read<SymptomsCubit>();
 
-                final cubit = context.read<SymptomTrackerCubit>();
-                categories = cubit.getSymptoms(category.title);
-                
-                SymptomBottomSheet.show(context, category.title, categories);
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.amethystViolet,
+                    ),
+                  ),
+                );
+
+                await cubit.fetchSymptomsByCategory(category.title);
+
+                if (!mounted) return;
+                Navigator.pop(context); // Dismiss loading indicator
+
+                if (cubit.state is SymptomsError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text((cubit.state as SymptomsError).message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                if (cubit.state is SymptomsLoaded) {
+                  final symptoms = (cubit.state as SymptomsLoaded).symptoms;
+                  final categoryData = Category(
+                    title: category.title,
+                    symptoms: symptoms
+                        .map((symptom) => SymptomItem(
+                              name: symptom.symptomName,
+                              isSelected: false,
+                            ))
+                        .toList(),
+                  );
+
+                  if (!mounted) return;
+                  SymptomBottomSheet.show(
+                    context,
+                    category.title,
+                    [categoryData],
+                  );
+                }
               },
               child: Container(
                 padding: const EdgeInsets.all(16),

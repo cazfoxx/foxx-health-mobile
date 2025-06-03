@@ -46,7 +46,7 @@ class HealthConcersScreenState extends State<HealthConcersScreen> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 10,top: 5,bottom: 5),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
@@ -55,6 +55,7 @@ class HealthConcersScreenState extends State<HealthConcersScreen> {
             children: [
               Expanded(child: Text(goal, style: AppTextStyles.bodyOpenSans)),
               Checkbox(
+              
                 value: _selectedConcers.contains(goal),
                 onChanged: (bool? value) {
                   setState(() {
@@ -96,8 +97,7 @@ class HealthConcersScreenState extends State<HealthConcersScreen> {
           child: Column(
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.only(left: 10,top: 5,bottom: 5),
                 child: Row(
                   children: [
                     Text('Other', style: AppTextStyles.bodyOpenSans),
@@ -166,7 +166,7 @@ class HealthConcersScreenState extends State<HealthConcersScreen> {
             OnboardingHeadingContainer(
               title: 'Choose your health concerns',
               subtitle:
-                  'This will be used to calibrate Lorem ipsum dolor sit amet consectetur.',
+                  'This helps us tailor support and content to you. You can change these anytime.'
             ),
             Expanded(
               child: SingleChildScrollView(
