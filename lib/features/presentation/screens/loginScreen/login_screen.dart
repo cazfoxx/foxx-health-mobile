@@ -10,6 +10,7 @@ import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_cont
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/forgotPassword/forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key, required this.isSign});
@@ -43,7 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
     setState(() {
       _hasMinLength = password.length >= 8;
-      _hasLetterAndNumber = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
+      _hasLetterAndNumber =
+          RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
       _hasCapitalLetter = RegExp(r'[A-Z]').hasMatch(password);
       _updateButtonState();
     });
@@ -69,17 +71,19 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       if (widget.isSign) {
         // For sign in, check email validation and password
-        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
-            _emailController.text.trim().isNotEmpty &&
-            _passwordController.text.trim().isNotEmpty;
+        _isButtonEnabled = _formKey.currentState?.validate() ??
+            false &&
+                _emailController.text.trim().isNotEmpty &&
+                _passwordController.text.trim().isNotEmpty;
       } else {
         // For sign up, check all conditions including email validation
-        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
-            _emailController.text.trim().isNotEmpty &&
-            _passwordController.text.trim().isNotEmpty &&
-            validatePassword(_passwordController.text) &&
-            _agreeToTerms &&
-            _isOver16;
+        _isButtonEnabled = _formKey.currentState?.validate() ??
+            false &&
+                _emailController.text.trim().isNotEmpty &&
+                _passwordController.text.trim().isNotEmpty &&
+                validatePassword(_passwordController.text) &&
+                _agreeToTerms &&
+                _isOver16;
       }
     });
   }
@@ -90,19 +94,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          // Wrap with SingleChildScrollView
-          child: SizedBox(
-            // Add SizedBox with screen height
-            height: 710,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(),
-                _buildLoginForm(),
-              ],
-            ),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(),
+            _buildLoginForm(),
+          ],
         ),
       ),
     );
@@ -160,7 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Expanded(
       child: Column(
         children: [
-          const SizedBox(height: 32),
           Expanded(
             // This will take the remaining space
             child: Container(
@@ -183,13 +179,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email cannot be empty';
-                              }
-                              // Regular expression for email validation
-                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                              if (!emailRegex.hasMatch(value)) {
-                                return 'Please enter a valid email address';
+                              if (value!.length > 05) {
+                                // Regular expression for email validation
+                                final emailRegex =
+                                    RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(value ?? '')) {
+                                  return 'Please enter a valid email address';
+                                }
                               }
                               return null;
                             },
@@ -207,11 +203,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                             ),
                           ),
@@ -222,15 +220,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) return 'Password cannot be empty';
-                              if (value.length < 8) return 'Must be at least 8 characters';
-                              if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
-                              if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
-                                return 'Must contain letters and numbers';
-                              }
-                              return null;
-                            },
+                            // validator: (value) {
+                            //   if (value == null || value.isEmpty) return 'Must be at least 8 characters';
+                            //   if (value.length < 8) return 'Must be at least 8 characters';
+                            //   if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
+                            //   if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
+                            //     return 'Must contain letters and numbers';
+                            //   }
+                            //   return null;
+                            // },
                             onChanged: (value) {
                               _updatePasswordValidation();
                               _formKey.currentState?.validate();
@@ -245,11 +243,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                                borderSide:
+                                    BorderSide(color: Colors.grey[300]!),
                               ),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -267,6 +267,61 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+                        if (!widget.isSign
+                            ) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Password must be:',
+                                  style: AppTextStyles.captionOpenSans
+                                      .copyWith(color: Colors.black),
+                                ),
+                                _buildPasswordRule(
+                                  'Length: at least 8 characters',
+                                  _hasMinLength,
+                                ),
+                                _buildPasswordRule(
+                                  'Must include at least one letter and one number',
+                                  _hasLetterAndNumber,
+                                ),
+                                _buildPasswordRule(
+                                  'Must include capital letters',
+                                  _hasCapitalLetter,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (widget.isSign) ...[
+                          Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 16, top: 8),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ForgotPasswordScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    color: AppColors.amethystViolet,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -274,8 +329,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   widget.isSign
                       ? const SizedBox()
                       : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Column(
                             children: [
                               Row(
                                 children: [
@@ -289,39 +344,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                                     activeColor: AppColors.amethystViolet,
                                   ),
-                                  Expanded(
-                                    child: RichText(
-                                      text: const TextSpan(
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black,
+                                  RichText(
+                                    text: TextSpan(
+                                      style: AppTextStyles.captionOpenSans
+                                          .copyWith(color: Colors.black),
+                                      children: [
+                                        TextSpan(text: 'I agree to '),
+                                        TextSpan(
+                                          text: 'Privacy Policy',
+                                          style: AppTextStyles.captionOpenSans
+                                              .copyWith(color: Colors.black,
+                                              decoration: TextDecoration.underline),
                                         ),
-                                        children: [
-                                          TextSpan(text: 'I agree to '),
-                                          TextSpan(
-                                            text: 'Privacy Policy',
-                                            style: TextStyle(
-                                              color: AppColors.amethystViolet,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                          TextSpan(text: ' and '),
-                                          TextSpan(
-                                            text: 'Terms and Conditions',
-                                            style: TextStyle(
-                                              color: AppColors.amethystViolet,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        TextSpan(text: ' and '),
+                                        TextSpan(
+                                          text: 'Terms and Conditions',
+                                          style: AppTextStyles.captionOpenSans
+                                              .copyWith(color: Colors.black,decoration: TextDecoration.underline),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
                               Row(
                                 children: [
                                   Checkbox(
@@ -334,15 +379,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                                     activeColor: AppColors.amethystViolet,
                                   ),
-                                  const Text(
+                                  Text(
                                     'I am 16 years or older',
-                                    style: TextStyle(fontSize: 14),
+                                    style: AppTextStyles.captionOpenSans
+                                        .copyWith(color: Colors.black),
                                   ),
                                 ],
                               ),
                             ],
                           ),
-                        ),
+                      ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
@@ -399,7 +445,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>  HomeScreen(),
+                                builder: (context) => HomeScreen(),
                               ),
                             );
                           }
@@ -476,6 +522,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Add bottom padding
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordRule(String rule, bool isMet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 0),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.circle_outlined,
+            color: isMet ? Colors.green : Colors.black,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            rule,
+            style: AppTextStyles.captionOpenSans.copyWith(
+              color: isMet ? Colors.green : Colors.black,
             ),
           ),
         ],

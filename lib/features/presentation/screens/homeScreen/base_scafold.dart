@@ -66,7 +66,7 @@ class BaseScaffold extends StatelessWidget {
             activeIcon:
                 SvgPicture.asset('assets/svg/home/health_icon_navigation.svg'),
             icon: SvgPicture.asset('assets/svg/home/health_icon.svg'),
-            label: 'Health',
+            label: 'Symptom',
           ),
           BottomNavigationBarItem(
             activeIcon:

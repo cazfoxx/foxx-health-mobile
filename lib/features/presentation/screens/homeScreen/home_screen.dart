@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,6 +16,7 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/screens/profileScreen/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:foxxhealth/features/presentation/screens/symptoms/symptoms_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key, this.selectedIndex});
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }),
       const NewsScreen(),
       const SizedBox(),
-      Scaffold(body: const Center(child: Text('Review (Coming Soon)'))),
+      const SymptomsListScreen(),
       const FeedbackScreen(),
     ];
   }
@@ -113,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key, required this.onSwipe});
 
@@ -164,8 +163,8 @@ class _HomeContentState extends State<HomeContent> {
                     children: [
                       SvgPicture.asset(
                         'assets/svg/foxx_logo.svg',
-                        width: 40,
-                        height: 40,
+                        width: 25,
+                        height: 25,
                       ),
                       const SizedBox(width: 8),
                       const Text(
@@ -344,13 +343,9 @@ class _HomeContentState extends State<HomeContent> {
                               // Keep existing Recent Actions Tab
                               GestureDetector(
                                 onHorizontalDragEnd: (details) {
-                                 if (details.primaryVelocity! < 0) {
-                                  widget.onSwipe();
-
-
-   
-      }
-    
+                                  if (details.primaryVelocity! < 0) {
+                                    widget.onSwipe();
+                                  }
                                 },
                                 child: SingleChildScrollView(
                                   child: Column(

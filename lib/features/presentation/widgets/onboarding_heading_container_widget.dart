@@ -32,7 +32,9 @@ class OnboardingHeadingContainer extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(color: Colors.black54),
+              style: AppTextStyles.body2OpenSans.copyWith(
+                color: AppColors.davysGray,
+              ),
             ),
           ],
         ),

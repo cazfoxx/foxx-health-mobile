@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 
 class AppTextStyles {
   static const _fontFamily = 'Merriweather';
@@ -54,6 +55,8 @@ class AppTextStyles {
     fontFamily: _fontFamilyOpenSans,
     fontSize: 12,
     fontWeight: FontWeight.w400,
+   
+
   );
 
   static const TextStyle buttonOpenSans = TextStyle(

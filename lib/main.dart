@@ -10,6 +10,7 @@ import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/forgot_password/forgot_password_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
@@ -94,6 +95,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => ProfileCubit()),
             BlocProvider(create: (context) => SymptomTrackerCubit()),
             BlocProvider(create: (context) => SymptomsCubit()),
+            BlocProvider(create: (context) => ForgotPasswordCubit()),
           ],
           child: GetMaterialApp(
             scaffoldMessengerKey: ApiClient.scaffoldKey, // Add this line
