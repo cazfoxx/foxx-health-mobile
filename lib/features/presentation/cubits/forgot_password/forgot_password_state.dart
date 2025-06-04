@@ -13,8 +13,6 @@ class ForgotPasswordLoading extends ForgotPasswordState {}
 
 class EmailSent extends ForgotPasswordState {}
 
-class OTPVerified extends ForgotPasswordState {}
-
 class PasswordReset extends ForgotPasswordState {}
 
 class ForgotPasswordError extends ForgotPasswordState {

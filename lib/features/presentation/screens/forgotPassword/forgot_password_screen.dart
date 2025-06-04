@@ -6,7 +6,6 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/core/network/api_client.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -22,7 +21,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   
-  int _currentStep = 0; // 0: Email, 1: OTP, 2: New Password
+  int _currentStep = 0; 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isButtonEnabled = false;
@@ -89,13 +88,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             context: context,
             title: 'Email Sent',
             message: 'Please check your email for the OTP code',
-          );
-        } else if (state is OTPVerified) {
-          setState(() => _currentStep = 2);
-          SnackbarUtils.showSuccess(
-            context: context,
-            title: 'OTP Verified',
-            message: 'Please set your new password',
           );
         } else if (state is PasswordReset) {
           SnackbarUtils.showSuccess(
@@ -329,7 +321,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     'Verify OTP',
                     () {
                       if (_otpController.text.length == 6) {
-                        context.read<ForgotPasswordCubit>().verifyOTP(_otpController.text);
+                        setState(() => _currentStep = 2);
                       } else {
                         SnackbarUtils.showError(
                           context: context,
@@ -359,8 +351,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 children: [
                   OnboardingHeadingContainer(
-                    title: 'Create New Password',
-                    subtitle: 'Please enter your new password below.',
+                    title: 'Enter your new password',
+                    subtitle: 'Create a strong password that you haven\'t used before.',
                   ),
                   const SizedBox(height: 24),
                   Form(
@@ -455,15 +447,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          Text(
                             'Password Rules',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            style: AppTextStyles.body2OpenSans.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildPasswordRule('Length at least 8 characters', _hasMinLength),
+                          _buildPasswordRule('Length: at least 8 characters', _hasMinLength),
                           _buildPasswordRule('Must include at least one letter and one number', _hasLetterAndNumber),
                           _buildPasswordRule('Must include capital letters', _hasCapitalLetter),
                         ],
@@ -472,7 +464,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   const Spacer(),
                   _buildActionButton(
-                    'Submit',
+                    'Reset Password',
                     () {
                       if (_formKey.currentState!.validate()) {
                         context.read<ForgotPasswordCubit>().resetPassword(
@@ -498,15 +490,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         children: [
           Icon(
             isMet ? Icons.check_circle : Icons.circle_outlined,
-            color: isMet ? Colors.green : Colors.grey,
+            color: isMet ? Colors.green : Colors.grey[400],
             size: 16,
           ),
           const SizedBox(width: 8),
-          Text(
-            rule,
-            style: TextStyle(
-              color: isMet ? Colors.green : Colors.grey,
-              fontSize: 14,
+          Expanded(
+            child: Text(
+              rule,
+              style: AppTextStyles.body2OpenSans.copyWith(
+                color: isMet ? Colors.green : Colors.grey[600],
+                fontSize: 14,
+              ),
             ),
           ),
         ],

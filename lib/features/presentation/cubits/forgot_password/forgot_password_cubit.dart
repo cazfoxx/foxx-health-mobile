@@ -26,26 +26,6 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     }
   }
 
-  Future<void> verifyOTP(String otp) async {
-    try {
-      emit(ForgotPasswordLoading());
-      if (_email == null) {
-        throw Exception('Email not found. Please try again.');
-      }
-      
-      final response = await _apiClient.post(
-        '/api/v1/auth/verify-otp',
-        data: {
-          'email': _email,
-          'otp': otp,
-        },
-      );
-      emit(OTPVerified());
-    } catch (e) {
-      emit(ForgotPasswordError(e.toString()));
-    }
-  }
-
   Future<void> resetPassword({
     required String otp,
     required String newPassword,
