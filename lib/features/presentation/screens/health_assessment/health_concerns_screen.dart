@@ -84,7 +84,7 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
                 filled: true,
                 fillColor: Colors.white,
               ),
-              maxLines: 10,
+              maxLines: 9,
             ),
           ],
         ),

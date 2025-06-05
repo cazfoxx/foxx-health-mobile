@@ -159,6 +159,7 @@ class LoggerInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       Navigator.of(getx.Get.context!).pushAndRemoveUntil(MaterialPageRoute(
         builder: (context) => LoginScreen(
+          showBackButton: false,
           isSign: true,
         ),
       ), (route) => false);

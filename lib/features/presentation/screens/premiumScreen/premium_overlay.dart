@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -46,8 +45,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       //   ),
       // );
 
-      // 3. Present payment sheet
-      await Stripe.instance.presentPaymentSheet();
+
 
       // 4. Handle success
       ScaffoldMessenger.of(context).showSnackBar(

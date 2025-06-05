@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     show FirebaseCrashlytics;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,19 +23,25 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+
 
 void main() async {
   // Initialize storage for API logs
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Lock orientation to portrait
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Lock typography scaling
+  MediaQueryData.fromView(WidgetsBinding.instance.platformDispatcher.views.first).textScaler;
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init();
-
-  // Initialize Stripe
-  Stripe.publishableKey = 'pk_test_51RUTddCXgPDd1SSItNfmuiSQKJbZA3pehi5kczoxJjlcxyExhyj6BQz0Sdip8Eh6w0JM4iEaeHznFNbiekBwJttD00ZCrqXAzD'; // Replace with your Stripe publishable key
-  await Stripe.instance.applySettings();
 
   const fatalError = true;
   FlutterError.onError = (errorDetails) {
@@ -98,7 +105,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => ForgotPasswordCubit()),
           ],
           child: GetMaterialApp(
-            scaffoldMessengerKey: ApiClient.scaffoldKey, // Add this line
+            scaffoldMessengerKey: ApiClient.scaffoldKey,
             title: 'FoxxHealth',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
@@ -106,6 +113,13 @@ class MyApp extends StatelessWidget {
                   ColorScheme.fromSeed(seedColor: const Color(0xFF6B4EFF)),
               useMaterial3: true,
             ),
+            builder: (context, child) {
+              // Lock typography scaling
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+                child: child!,
+              );
+            },
             home: FutureBuilder<bool>(
               future: _checkAuthToken(),
               builder: (context, snapshot) {

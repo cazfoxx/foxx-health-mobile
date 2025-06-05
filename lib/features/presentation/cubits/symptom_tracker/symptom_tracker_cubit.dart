@@ -238,15 +238,26 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
     }
   }
 
-  Future<void> getSymptomTrackers() async {
+  Future<void> getSymptomTrackers({
+    String? selectedDate,
+    int skip = 0,
+    int limit = 100,
+  }) async {
     try {
       emit(SymptomTrackerLoading());
 
       final response = await _apiClient.get(
         '/api/v1/symptom-trackers/me',
-        queryParameters: {
-          'skip': 0,
-          'limit': 100,
+        queryParameters:
+        selectedDate == null?
+        {
+          'skip': skip,
+          'limit': limit,
+        }:
+         {
+          'selected_date': selectedDate,
+          'skip': skip,
+          'limit': limit,
         },
       );
 
@@ -259,6 +270,42 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
         emit(SymptomTrackersLoaded(symptomTrackers));
       } else {
         emit(SymptomTrackerError('Failed to fetch symptom trackers'));
+      }
+    } catch (e) {
+      emit(SymptomTrackerError(e.toString()));
+    }
+  }
+
+  Future<void> updateSymptomTracker({
+    required int trackerId,
+    required List<SymptomId> updatedSymptoms,
+    required String description,
+  }) async {
+    try {
+      emit(SymptomTrackerLoading());
+
+      final prefs = await SharedPreferences.getInstance();
+      final accountId = prefs.getInt('accountId') ?? 0;
+
+      final request = SymptomTrackerRequest(
+        symptomIds: updatedSymptoms,
+        fromDate: fromDate,
+        toDate: toDate,
+        symptomDescription: description,
+        accountId: accountId,
+      );
+
+      final response = await _apiClient.put(
+        '/api/v1/symptom-trackers/$trackerId',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        // After successful update, refresh the symptoms list
+        final selectedDate = '${fromDate.year}-${fromDate.month.toString().padLeft(2, '0')}-${fromDate.day.toString().padLeft(2, '0')}';
+        await getSymptomTrackers(selectedDate: selectedDate);
+      } else {
+        emit(SymptomTrackerError('Failed to update symptom tracker'));
       }
     } catch (e) {
       emit(SymptomTrackerError(e.toString()));

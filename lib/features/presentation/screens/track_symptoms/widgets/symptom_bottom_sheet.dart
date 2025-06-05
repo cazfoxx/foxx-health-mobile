@@ -8,6 +8,12 @@ import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
+class SymptomUpdateNotification extends Notification {
+  final List<SymptomId> updatedSymptoms;
+
+  SymptomUpdateNotification(this.updatedSymptoms);
+}
+
 class SymptomBottomSheet extends StatefulWidget {
   final String title;
   final List<Category> categories;
@@ -57,17 +63,31 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
         return SymptomId(
           symptomName: symptom.name,
           symptomType: widget.title,
-          symptomCategory:
-              category.title, // Now we have access to category.title
+          symptomCategory: category.title,
           severity: symptom.severity!.toLowerCase(),
         );
       });
     }).toList();
 
     if (selectedSymptoms.isNotEmpty) {
+      // Try to dispatch notification for list screen
+      SymptomUpdateNotification(selectedSymptoms).dispatch(context);
+      
+      // Also update the cubit for review screen
       final cubit = context.read<SymptomTrackerCubit>();
-      cubit.setSymptomIds(selectedSymptoms);
+      final existingSymptoms = List<SymptomId>.from(cubit.symptomIds);
+      
+      // Remove symptoms of the same type (category) that we're updating
+      final otherSymptoms = existingSymptoms
+          .where((s) => s.symptomType != widget.title)
+          .toList();
+      
+      // Add the newly selected symptoms
+      final updatedSymptoms = [...otherSymptoms, ...selectedSymptoms];
+      cubit.setSymptomIds(updatedSymptoms);
     }
+    
+    Navigator.pop(context);
   }
 
   @override
@@ -269,7 +289,6 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
     );
   }
 }
-
 class Category {
   final String title;
   final List<SymptomItem> symptoms;
@@ -291,3 +310,4 @@ class SymptomItem {
     this.severity,
   });
 }
+

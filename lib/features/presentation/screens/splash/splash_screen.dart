@@ -69,8 +69,8 @@ class SplashScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     _buildFeatureItem(
-                      'Second opinion guidance',
-                      'Get expert advice and resources on where and how to seek a second opinion',
+                      'Personal Health Guide',
+                      'A guided assessment to personalize your journey and get you the support you actually need',
                     ),
                   ],
                 ),

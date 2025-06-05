@@ -38,8 +38,6 @@ class _SuggestedQuestionsScreenState extends State<SuggestedQuestionsScreen> {
                   screen: ScreensEnum.checklist,
                 );
 
-
-
       },
     
       subtitle: 'Select questions you\'d like to add to your checklist',

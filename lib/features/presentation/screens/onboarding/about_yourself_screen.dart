@@ -15,15 +15,8 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
   final _customPronounController = TextEditingController();
   String? _selectedPronoun;
   bool _isCustomPronoun = false;
-  String getUserName() {
-    return _usernameController.text;
-  }
+  bool _hasError = false;
 
-  String getPronoun() {
-    final pronoun = _isCustomPronoun ? _customPronounController.text : _selectedPronoun ?? '';
-
-    return pronoun;
-  }
   @override
   void dispose() {
     _usernameController.dispose();
@@ -31,7 +24,20 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
     super.dispose();
   }
 
-  
+  String getUserName() {
+    return _usernameController.text;
+  }
+
+  String getPronoun() {
+    final pronoun = _isCustomPronoun ? _customPronounController.text : _selectedPronoun ?? '';
+    return pronoun;
+  }
+
+  void showError() {
+    setState(() {
+      _hasError = true;
+    });
+  }
 
   Widget _buildPronounOption(String pronoun) {
     final isSelected = _selectedPronoun == pronoun && !_isCustomPronoun;
@@ -56,8 +62,7 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                 backgroundColor: AppColors.amethystViolet,
                 radius: 10,
                 child: CircleAvatar(
-                  backgroundColor:
-                      isSelected ? AppColors.amethystViolet : Colors.white,
+                  backgroundColor: isSelected ? AppColors.amethystViolet : Colors.white,
                   radius: 9,
                 ),
               ),
@@ -100,9 +105,8 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                     backgroundColor: AppColors.amethystViolet,
                     radius: 10,
                     child: CircleAvatar(
-                      backgroundColor: _isCustomPronoun
-                          ? AppColors.amethystViolet
-                          : Colors.white,
+                      backgroundColor:
+                          _isCustomPronoun ? AppColors.amethystViolet : Colors.white,
                       radius: 9,
                     ),
                   ),
@@ -142,6 +146,7 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -157,7 +162,6 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-
                       child: TextField(
                         controller: _usernameController,
                         decoration: InputDecoration(
@@ -166,9 +170,31 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: _hasError ? Colors.red : Colors.grey[300]!,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: _hasError ? Colors.red : Colors.grey[300]!,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: _hasError ? Colors.red : AppColors.amethystViolet,
+                              width: 2,
+                            ),
                           ),
                         ),
+                        onChanged: (value) {
+                          if (_hasError && value.isNotEmpty) {
+                            setState(() {
+                              _hasError = false;
+                            });
+                          }
+                        },
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -180,7 +206,7 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
                           fontWeight: FontWeight.w400),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       "What's your pronoun?",
                       style: TextStyle(
                         fontSize: 18,

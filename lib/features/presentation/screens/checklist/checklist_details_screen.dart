@@ -12,7 +12,7 @@ import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
+
 // import 'package:share_plus/share_plus.dart';
 
 class ChecklistDetailsScreen extends StatefulWidget {
@@ -51,31 +51,61 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 24),
-                      _buildReorderableSection(
-                        'Suggested Questions',
-                        cubit.suggestedQuestion,
-                        (oldIndex, newIndex) {
-                          setState(() {
-                            if (newIndex > oldIndex) newIndex -= 1;
-                            final item =
-                                cubit.suggestedQuestion.removeAt(oldIndex);
-                            cubit.suggestedQuestion.insert(newIndex, item);
-                          });
+                      GestureDetector(
+                        onTap: (){
+                          showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => FractionallySizedBox(
+                      heightFactor: 0.9,
+                      child: SeeFullListScreen(
+                        selectedQuestions: cubit.suggestedQuestion,
+                        onUpdate: (updatedQuestions) {
+                          // Handle updated questions
                         },
-                        showSeeAll: true,
+                      ),
+                    ),
+                  ).then(
+                    (value) {
+                      setState(() {});
+                    },
+                  );
+                        },
+                        child: _buildReorderableSection(
+                          'Suggested Questions',
+                          cubit.suggestedQuestion,
+                          (oldIndex, newIndex) {
+                            setState(() {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final item =
+                                  cubit.suggestedQuestion.removeAt(oldIndex);
+                              cubit.suggestedQuestion.insert(newIndex, item);
+                            });
+                          },
+                          showSeeAll: true,
+                        ),
                       ),
                       const SizedBox(height: 24),
-                      _buildReorderableSection(
-                        'Personal Questions',
-                        cubit.customQuestion,
-                        (oldIndex, newIndex) {
-                          setState(() {
-                            if (newIndex > oldIndex) newIndex -= 1;
-                            final item =
-                                cubit.customQuestion.removeAt(oldIndex);
-                            cubit.customQuestion.insert(newIndex, item);
-                          });
+                      InkWell(
+                        onTap: (){
+
+                _showAddItemSheet('Personal Questions', (text) {
+                  final cubit = context.read<ChecklistCubit>();
+                  cubit.addCustomQuestion(text);
+                });
                         },
+                        child: _buildReorderableSection(
+                          'Personal Questions',
+                          cubit.customQuestion,
+                          (oldIndex, newIndex) {
+                            setState(() {
+                              if (newIndex > oldIndex) newIndex -= 1;
+                              final item =
+                                  cubit.customQuestion.removeAt(oldIndex);
+                              cubit.customQuestion.insert(newIndex, item);
+                            });
+                          },
+                        ),
                       ),
                       const SizedBox(height: 24),
                       _buildSection(
@@ -501,29 +531,41 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
         ),
         const SizedBox(height: 16),
         if (items.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(17),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  color: AppColors.amethystViolet,
+          InkWell(
+            onTap: () {
+         
+           
+             if (title == 'Prescriptions & Supplements') {
+                _showAddItemSheet(title, (text) {
+                  final cubit = context.read<ChecklistCubit>();
+                  cubit.addPrescription(text);
+                });
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(17),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.lightViolet.withOpacity(0.2),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Add $title',
-                  style: AppTextStyles.body2.copyWith(
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
                     color: AppColors.amethystViolet,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Text(
+                    'Add $title',
+                    style: AppTextStyles.body2.copyWith(
+                      color: AppColors.amethystViolet,
+                    ),
+                  ),
+                ],
+              ),
             ),
           )
         else
@@ -566,5 +608,86 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
           ),
       ],
     );
+  }
+
+  void _showAddItemSheet(String title, Function(String) onSave) {
+    final textController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Add ${title.split('&').first.trim()}',
+                    style: AppTextStyles.heading3,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (textController.text.isNotEmpty) {
+                        onSave(textController.text);
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Text(
+                      'Save',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.amethystViolet,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: textController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Enter ${title.split('&').first.trim().toLowerCase()}',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.lightViolet.withOpacity(0.2),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.lightViolet.withOpacity(0.2),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.amethystViolet,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    ).then((_) {
+      setState(() {});
+    });
   }
 }

@@ -117,7 +117,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
     switch (screen) {
       case ChecklistScreen.initial:
       case ChecklistScreen.appointmentType:
-        targetScreen = const AppointmentTypeScreen();
+        targetScreen = const CreateChecklistScreen();
         break;
       case ChecklistScreen.suggestedQuestions:
         targetScreen = const SuggestedQuestionsScreen(appointmentType: '',);
@@ -194,6 +194,18 @@ class ChecklistCubit extends Cubit<ChecklistState> {
     prescription = prescriptions;
     saveData(screen: lastScreen);
     log('prescription: $prescription');
+  }
+
+  void addCustomQuestion(String question) {
+    customQuestion.add(question);
+    saveData(screen: lastScreen);
+    emit(state);
+  }
+
+  void addPrescription(String item) {
+    prescription.add(item);
+    saveData(screen: lastScreen);
+    emit(state);
   }
 
   // API Methods

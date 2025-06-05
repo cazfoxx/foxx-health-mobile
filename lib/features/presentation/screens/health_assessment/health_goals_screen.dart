@@ -88,7 +88,7 @@ class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
                 filled: true,
                 fillColor: Colors.white,
               ),
-              maxLines: 12,
+              maxLines: 9,
             ),
           ],
         ),

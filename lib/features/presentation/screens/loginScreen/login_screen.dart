@@ -13,8 +13,9 @@ import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.
 import 'package:foxxhealth/features/presentation/screens/forgotPassword/forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  LoginScreen({super.key, required this.isSign});
+  LoginScreen({super.key, required this.isSign, this.showBackButton = true});
   bool isSign;
+  bool showBackButton;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(widget.showBackButton),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,9 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(bool showBackButton) {
     return AppBar(
-      leading: IconButton(
+      leading: !showBackButton?
+      SizedBox():
+      IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Navigator.pop(context),
       ),

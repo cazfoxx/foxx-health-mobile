@@ -48,6 +48,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  Future<void> _handleSkip() async {
+    final loginCubit = context.read<LoginCubit>();
+    
+    // If we're on the first screen and username is not set, show error
+    if (_currentPage == 0) {
+      final aboutYourselfState = _aboutYourselfKey.currentState;
+      if (aboutYourselfState != null) {
+        final username = aboutYourselfState.getUserName();
+        if (username.isEmpty) {
+          aboutYourselfState.showError();
+          return;
+        }
+      }
+    }
+
+    // Register the user
+    final result = await loginCubit.registerUser(context);
+
+    if (result && mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   void nextPage() async {
     FocusScope.of(context).unfocus();
     if (_currentPage == 0) {
@@ -59,7 +85,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         final username = aboutYourselfState.getUserName();
         final pronoun = aboutYourselfState.getPronoun();
         if (username.isEmpty || pronoun.isEmpty) {
-          SnackbarUtils.showError(context: context, title: 'Please fill in all fields', message: 'Select your pronoun and username'
+          if (username.isEmpty) {
+            aboutYourselfState.showError();
+          }
+          SnackbarUtils.showError(
+            context: context, 
+            title: 'Please fill in all fields', 
+            message: 'Select your pronoun and username'
           );
           return;
         }
@@ -71,7 +103,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           username: username.trim(),
           pronoun: pronoun,
         );
-
       } 
     } else if (_currentPage == 1) {
       // Get the AgeSelectionScreen state using the key
@@ -138,9 +169,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // Register the user
       final result = await loginCubit.registerUser(context);
 
-      if (result) {
+      if (result && mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) =>  HomeScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
           (route) => false,
         );
       }
@@ -176,21 +207,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         titleSpacing: 0,
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) =>  HomeScreen()),
-                (route) => false,
-              );
-            },
-            child: const Text(
-              'Skip',
-              style: TextStyle(
-                color: Color(0xFF6B4EFF),
-                fontSize: 16,
+          if (_currentPage == 0)
+         const  SizedBox(width: 50),
+          if (_currentPage > 0) // Only show skip button after first screen
+            TextButton(
+              onPressed: _handleSkip,
+              child: const Text(
+                'Skip',
+                style: TextStyle(
+                  color: Color(0xFF6B4EFF),
+                  fontSize: 16,
+                ),
               ),
             ),
-          ),
         ],
       ),
       body: SafeArea(
