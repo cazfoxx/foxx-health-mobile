@@ -36,6 +36,7 @@ class _SymptomTrackerHealthAssessmentScreenState
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SymptomsSelectionSheet(
+        
         onSymptomSelected: (SymptomTrackerResponse symptom) {
           context.read<HealthAssessmentCubit>().setSymptoms(symptom);
           setState(() {
@@ -54,12 +55,7 @@ class _SymptomTrackerHealthAssessmentScreenState
         SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.symptomTracker);
       },
       appbarLeadingOntap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AreaOfConcernScreen(),
-          ),
-        );
+        Navigator.of(context).pop();
       },
       title: 'Symptom Tracker',
       subtitle:

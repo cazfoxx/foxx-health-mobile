@@ -7,8 +7,8 @@ import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class StartDateScreen extends StatefulWidget {
-  const StartDateScreen({Key? key}) : super(key: key);
-
+  const StartDateScreen({Key? key, this.isFromSymptoms = false}) : super(key: key);
+ final bool isFromSymptoms;
   @override
   State<StartDateScreen> createState() => _StartDateScreenState();
 }
@@ -49,7 +49,7 @@ class _StartDateScreenState extends State<StartDateScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const SelectSymptomsScreen(),
+            builder: (context) =>  SelectSymptomsScreen(isFromSymptoms: widget.isFromSymptoms,),
           ),
         );
       },

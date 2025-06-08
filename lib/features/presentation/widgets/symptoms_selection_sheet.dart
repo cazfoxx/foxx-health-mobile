@@ -9,6 +9,7 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 class SymptomsSelectionSheet extends StatefulWidget {
   final Function(SymptomTrackerResponse) onSymptomSelected;
 
+
   const SymptomsSelectionSheet({
     Key? key,
     required this.onSymptomSelected,
@@ -69,7 +70,7 @@ class _SymptomsSelectionSheetState extends State<SymptomsSelectionSheet> {
                       onTap: () {
                         Navigator.of(context)
                             .push(MaterialPageRoute(
-                                builder: (context) => StartDateScreen()))
+                                builder: (context) => StartDateScreen(isFromSymptoms: true,)))
                             .then(
                           (value) {
                             context

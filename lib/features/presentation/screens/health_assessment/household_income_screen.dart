@@ -47,7 +47,9 @@ class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
         _setIncome(context);
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => const AreaOfConcernScreen(),
-        ));
+        )).then((value) {
+          context.read<HealthAssessmentCubit>().fetchIncomeRanges();
+        },);
       },
       body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
         builder: (context, state) {

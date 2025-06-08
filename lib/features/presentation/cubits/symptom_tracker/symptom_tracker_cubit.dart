@@ -115,10 +115,10 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
         targetScreen = const StartDateScreen();
         break;
       case SymptomScreen.selectSymptoms:
-        targetScreen = const SelectSymptomsScreen();
+        targetScreen =  SelectSymptomsScreen();
         break;
       case SymptomScreen.description:
-        targetScreen = const DescribeSymptomsScreen();
+        targetScreen =  DescribeSymptomsScreen();
         break;
       case SymptomScreen.review:
         targetScreen = ReviewSymptomsScreen(descriptions: _symptomDescription);

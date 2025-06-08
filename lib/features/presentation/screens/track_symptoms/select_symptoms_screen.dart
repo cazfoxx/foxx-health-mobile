@@ -15,8 +15,8 @@ import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 
 class SelectSymptomsScreen extends StatefulWidget {
-  const SelectSymptomsScreen({Key? key}) : super(key: key);
-
+   SelectSymptomsScreen({Key? key, this.isFromSymptoms = false}) : super(key: key);
+   bool isFromSymptoms;
   @override
   State<SelectSymptomsScreen> createState() => _SelectSymptomsScreenState();
 }
@@ -63,7 +63,7 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
       },
       onNext: () {
         Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => DescribeSymptomsScreen()));
+            MaterialPageRoute(builder: (context) => DescribeSymptomsScreen(isFromSymptoms: widget.isFromSymptoms,)));
       },
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -116,11 +116,11 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
                               name: symptom.symptomName,
                               isSelected: existingSymptoms.any((s) => 
                                 s.symptomName == symptom.symptomName && 
-                                s.symptomCategory == category.title
+                                s.symptomType == category.title
                               ),
                               severity: existingSymptoms
                                 .firstWhere(
-                                  (s) => s.symptomName == symptom.symptomName && s.symptomCategory == category.title,
+                                  (s) => s.symptomName == symptom.symptomName && s.symptomType == category.title,
                                   orElse: () => SymptomId(
                                     symptomName: '',
                                     symptomType: '',

@@ -37,11 +37,11 @@ class _AreaOfConcernScreenState extends State<AreaOfConcernScreen> {
       onNext: () {
         final healthCubit = context.read<HealthAssessmentCubit>();
         healthCubit.setSelectedAreaOfConcern(selectedAreas);
-        Navigator.of(context).pushAndRemoveUntil(
+        Navigator.of(context).push(
           MaterialPageRoute(
               builder: (context) =>
                   const SymptomTrackerHealthAssessmentScreen()),
-          (route) => false,
+          
         );
       },
       body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(

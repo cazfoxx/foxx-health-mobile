@@ -627,7 +627,7 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const SelectSymptomsScreen(),
+                                             SelectSymptomsScreen(),
                                       ),
                                     );
                                   },

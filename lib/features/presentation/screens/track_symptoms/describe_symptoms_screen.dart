@@ -11,8 +11,8 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
 
 class DescribeSymptomsScreen extends StatefulWidget {
-  const DescribeSymptomsScreen({Key? key}) : super(key: key);
-
+   DescribeSymptomsScreen({Key? key, this.isFromSymptoms = false}) : super(key: key);
+ bool isFromSymptoms;
   @override
   State<DescribeSymptomsScreen> createState() => _DescribeSymptomsScreenState();
 }
@@ -57,7 +57,9 @@ class _DescribeSymptomsScreenState extends State<DescribeSymptomsScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => ReviewSymptomsScreen(
-                descriptions: _descriptionController.text.trim()),
+                descriptions: _descriptionController.text.trim(),
+                isFromSymptoms: widget.isFromSymptoms,
+                ),
           ),
         );
       },

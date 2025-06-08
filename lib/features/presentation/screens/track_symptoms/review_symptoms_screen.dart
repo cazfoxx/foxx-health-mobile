@@ -22,8 +22,8 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 class ReviewSymptomsScreen extends StatefulWidget {
   final String? descriptions;
 
-  const ReviewSymptomsScreen({Key? key, this.descriptions}) : super(key: key);
-
+   ReviewSymptomsScreen({Key? key, this.descriptions, this.isFromSymptoms = false}) : super(key: key);
+ bool isFromSymptoms;
   @override
   State<ReviewSymptomsScreen> createState() => _ReviewSymptomsScreenState();
 }
@@ -217,10 +217,18 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                         title: 'Success',
                         message: 'Symptoms tracked successfully',
                       );
+                      if(widget.isFromSymptoms){
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      }else{
+
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(builder: (context) => HomeScreen()),
                         (route) => false,
                       );
+                      }
                     } catch (e) {
                       if (!mounted) return;
                       SnackbarUtils.showError(
