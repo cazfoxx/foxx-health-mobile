@@ -52,7 +52,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.0.5
   flutter_svg: ^2.0.17
-  # share_plus: ^11.0.0
+  share_plus: ^11.0.0
   flutter_screenutil: ^5.9.3
   shared_preferences: ^2.2.2
   firebase_crashlytics: ^4.3.6

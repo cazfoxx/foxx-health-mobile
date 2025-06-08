@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +15,7 @@ import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
-// import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ChecklistDetailsScreen extends StatefulWidget {
   const ChecklistDetailsScreen({super.key});
@@ -34,12 +36,14 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
         return BaseScaffold(
           currentIndex: 0,
           onTap: (p0) {
-             Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) =>  HomeScreen(selectedIndex: p0,)),
-                  (route) => false,);
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) => HomeScreen(
+                        selectedIndex: p0,
+                      )),
+              (route) => false,
+            );
           },
-          
-        
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,24 +56,24 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                     children: [
                       const SizedBox(height: 24),
                       GestureDetector(
-                        onTap: (){
+                        onTap: () {
                           showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => FractionallySizedBox(
-                      heightFactor: 0.9,
-                      child: SeeFullListScreen(
-                        selectedQuestions: cubit.suggestedQuestion,
-                        onUpdate: (updatedQuestions) {
-                          // Handle updated questions
-                        },
-                      ),
-                    ),
-                  ).then(
-                    (value) {
-                      setState(() {});
-                    },
-                  );
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => FractionallySizedBox(
+                              heightFactor: 0.9,
+                              child: SeeFullListScreen(
+                                selectedQuestions: cubit.suggestedQuestion,
+                                onUpdate: (updatedQuestions) {
+                                  // Handle updated questions
+                                },
+                              ),
+                            ),
+                          ).then(
+                            (value) {
+                              setState(() {});
+                            },
+                          );
                         },
                         child: _buildReorderableSection(
                           'Suggested Questions',
@@ -87,12 +91,11 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                       ),
                       const SizedBox(height: 24),
                       InkWell(
-                        onTap: (){
-
-                _showAddItemSheet('Personal Questions', (text) {
-                  final cubit = context.read<ChecklistCubit>();
-                  cubit.addCustomQuestion(text);
-                });
+                        onTap: () {
+                          _showAddItemSheet('Personal Questions', (text) {
+                            final cubit = context.read<ChecklistCubit>();
+                            cubit.addCustomQuestion(text);
+                          });
                         },
                         child: _buildReorderableSection(
                           'Personal Questions',
@@ -112,8 +115,8 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                         'Prescriptions & Supplements',
                         cubit.prescription,
                       ),
-                      const SizedBox(height: 24),
-                      _buildSection('Medical Term Explainer', []),
+                      // const SizedBox(height: 24),
+                      // _buildSection('Medical Term Explainer', []),
                     ],
                   ),
                 )
@@ -127,9 +130,11 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: Text(
-        'Check List',
-        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+      title: GestureDetector(
+        child: Text(
+          'Check List',
+          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+        ),
       ),
       leadingWidth: 100,
       leading: TextButton(
@@ -170,8 +175,30 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
     );
   }
 
-  void _shareChecklist() {
-    // Share functionality to be implemented
+  void _shareChecklist() async {
+    final checklistCubit = context.read<ChecklistCubit>();
+    final message = '''
+Check out my checklist "${checklistCubit.checkListName}" on FoXX Health!
+
+Download FoXX Health to track your health, prep for appointments, and get taken seriously.
+
+Visit: https://foxxhealth.com/
+''';
+
+    try {
+      await Share.share(
+        message,
+        subject: 'FoXX Health Checklist',
+      );
+    } catch (e) {
+      log('Failed to share. Please try again. $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to share. Please try again. $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildHeaderSection() {
@@ -251,106 +278,113 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
   }
 
   Widget _buildAppointmentRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          'Appointment',
-          style: AppTextStyles.body2,
-        ),
-        SizedBox(
-          height: 50,
-          child: VerticalDivider(
-            color: Colors.grey.withOpacity(0.3),
-            thickness: 1,
-          ),
-        ),
-        Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: PopupMenuButton<String>(
-            offset: const Offset(0, 40),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+    return BlocBuilder<ChecklistCubit, ChecklistState>(
+      buildWhen: (previous, current) => true, // Rebuild on every state change
+      builder: (context, state) {
+        final checklistCubit = context.read<ChecklistCubit>();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              'Appointment',
+              style: AppTextStyles.body2,
             ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'existing',
-                child: Text(
-                  'Add to Existing Visit',
-                  style: AppTextStyles.body2OpenSans,
-                ),
+            SizedBox(
+              height: 50,
+              child: VerticalDivider(
+                color: Colors.grey.withOpacity(0.3),
+                thickness: 1,
               ),
-              PopupMenuItem(
-                value: 'new',
-                child: Text(
-                  'Create New Visit',
-                  style: AppTextStyles.body2OpenSans,
-                ),
+            ),
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
               ),
-            ],
-            onSelected: (value) async {
-              if (value == 'existing') {
-                final AppointmentTypeModel result = await showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => DraggableScrollableSheet(
-                    initialChildSize: 0.90,
-                    maxChildSize: 0.90,
-                    minChildSize: 0.5,
-                    builder: (context, scrollController) => Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                      ),
-                      child: const AppointmentTypeScreen(),
+              child: PopupMenuButton<String>(
+                offset: const Offset(0, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'existing',
+                    child: Text(
+                      'Add to Existing Visit',
+                      style: AppTextStyles.body2OpenSans,
                     ),
                   ),
-                );
-
-                if (result != null) {
-                  final checklistCubit = context.read<ChecklistCubit>();
-                  checklistCubit.setAppointmentTypeId(result.id);
-                  checklistCubit.setCheckListName(result.name);
-                  setState(() {
-                    appointment = result.name;
-                  });
-                }
-              } else {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  isScrollControlled: true,
-                  builder: (context) => const NewAppointmentScreen(),
-                );
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    appointment.isEmpty ? 'Add to Visit' : appointment,
-                    style: AppTextStyles.body2OpenSans,
+                  PopupMenuItem(
+                    value: 'new',
+                    child: Text(
+                      'Create New Visit',
+                      style: AppTextStyles.body2OpenSans,
+                    ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down, size: 16),
                 ],
+                onSelected: (value) async {
+                  if (value == 'existing') {
+                    final AppointmentTypeModel result =
+                        await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => DraggableScrollableSheet(
+                        initialChildSize: 0.90,
+                        maxChildSize: 0.90,
+                        minChildSize: 0.5,
+                        builder: (context, scrollController) => Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                          ),
+                          child: const AppointmentTypeScreen(),
+                        ),
+                      ),
+                    );
+
+                    if (result != null) {
+                      checklistCubit.setAppointmentType(result.name);
+                      checklistCubit.setAppointmentTypeId(result.id);
+                      if (mounted)
+                        setState(() {}); // Force rebuild if still mounted
+                    }
+                  } else {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (context) => const NewAppointmentScreen(),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        checklistCubit.appointmentType.isEmpty
+                            ? 'Add to Visit'
+                            : checklistCubit.appointmentType,
+                        style: AppTextStyles.body2OpenSans,
+                      ),
+                      const Icon(Icons.keyboard_arrow_down, size: 16),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -533,9 +567,7 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
         if (items.isEmpty)
           InkWell(
             onTap: () {
-         
-           
-             if (title == 'Prescriptions & Supplements') {
+              if (title == 'Prescriptions & Supplements') {
                 _showAddItemSheet(title, (text) {
                   final cubit = context.read<ChecklistCubit>();
                   cubit.addPrescription(text);
@@ -660,7 +692,8 @@ class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
                 controller: textController,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Enter ${title.split('&').first.trim().toLowerCase()}',
+                  hintText:
+                      'Enter ${title.split('&').first.trim().toLowerCase()}',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(

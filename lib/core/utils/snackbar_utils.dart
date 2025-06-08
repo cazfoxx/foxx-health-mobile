@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 class SnackbarUtils {
   static void showSuccess({
     required BuildContext context,
+  
     required String title,
      String? message,
   }) {
     final snackBar = SnackBar(
       elevation: 0,
-      behavior: SnackBarBehavior.floating,
+      behavior: SnackBarBehavior.fixed,
       backgroundColor: Colors.transparent,
       content: AwesomeSnackbarContent(
         title: title,

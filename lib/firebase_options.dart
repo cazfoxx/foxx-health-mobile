@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA',
-    appId: '1:788993188947:android:6590d21215bdb47ef2d2a6',
+    appId: '1:788993188947:android:66fd3ae16b69c6f6f2d2a6',
     messagingSenderId: '788993188947',
     projectId: 'arcane-shape-449219-v0',
     storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',

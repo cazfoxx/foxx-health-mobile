@@ -105,6 +105,7 @@ class _CreateChecklistScreenState extends State<CreateChecklistScreen> {
                 if (result != null) {
                   final checklistCubit = context.read<ChecklistCubit>();
                   checklistCubit.setAppointmentTypeId(result.id);
+                  checklistCubit.setAppointmentType(result.name);
                   setState(() {
                     selectedType = result.name;
                     _searchController.text = result.name;

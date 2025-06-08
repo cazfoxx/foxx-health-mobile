@@ -20,19 +20,23 @@ class SeeFullListScreen extends StatefulWidget {
 
 class _SeeFullListScreenState extends State<SeeFullListScreen> {
   late List<String> _selectedQuestions;
-  final List<String> _allQuestions = [
-    'How often should I schedule checkups?',
-    'What screenings should I be getting based on my age and family history?',
-    'Am I up-to-date on my immunizations?',
-    'Should I be taking supplements?',
-    'Do I need any vaccinations?',
-    'Are there any specific lifestyle changes I should make?',
-  ];
+  List<Map<String, dynamic>> _curatedQuestions = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _selectedQuestions = List.from(widget.selectedQuestions);
+    _fetchCuratedQuestions();
+  }
+
+  Future<void> _fetchCuratedQuestions() async {
+    final checklistCubit = context.read<ChecklistCubit>();
+    final questions = await checklistCubit.getCuratedQuestions();
+    setState(() {
+      _curatedQuestions = questions;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -55,72 +59,71 @@ class _SeeFullListScreenState extends State<SeeFullListScreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _allQuestions.length,
-                itemBuilder: (context, index) {
-                  final question = _allQuestions[index];
-                  final isSelected = _selectedQuestions.contains(question);
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(12), // Rounded borders
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            question,
-                            style: AppTextStyles.body,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _curatedQuestions.length,
+                      itemBuilder: (context, index) {
+                        final question = _curatedQuestions[index];
+                        final questionText = question['text'] as String;
+                        final isSelected = _selectedQuestions.contains(questionText);
+                        
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedQuestions.remove(question);
-                              } else {
-                                _selectedQuestions.add(question);
-                              }
-                            });
-                            // Update the cubit
-                            context
-                                .read<ChecklistCubit>()
-                                .setSuggestedQuestion(_selectedQuestions);
-                          },
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.amethystViolet
-                                    : Colors.grey,
-                                width: 2,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  questionText,
+                                  style: AppTextStyles.body,
+                                ),
                               ),
-                              color: isSelected
-                                  ? AppColors.amethystViolet
-                                  : Colors.white,
-                            ),
-                            child: isSelected
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: Colors.white,
-                                  )
-                                : null,
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selectedQuestions.remove(questionText);
+                                    } else {
+                                      _selectedQuestions.add(questionText);
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.amethystViolet
+                                          : Colors.grey,
+                                      width: 2,
+                                    ),
+                                    color: isSelected
+                                        ? AppColors.amethystViolet
+                                        : Colors.white,
+                                  ),
+                                  child: isSelected
+                                      ? const Icon(
+                                          Icons.check,
+                                          size: 16,
+                                          color: Colors.white,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -129,6 +132,18 @@ class _SeeFullListScreenState extends State<SeeFullListScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    // Get the IDs of selected questions
+                    final selectedIds = _curatedQuestions
+                        .where((q) => _selectedQuestions.contains(q['text']))
+                        .map((q) => q['id'] as int)
+                        .toList();
+
+                    // Update both texts and IDs in the cubit
+                    context.read<ChecklistCubit>().updateCuratedQuestions(
+                          _selectedQuestions,
+                          selectedIds,
+                        );
+
                     widget.onUpdate(_selectedQuestions);
                     Navigator.pop(context);
                   },

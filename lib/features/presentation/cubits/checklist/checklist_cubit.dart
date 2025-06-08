@@ -28,9 +28,11 @@ class ChecklistCubit extends Cubit<ChecklistState> {
   }
 
   List<String> suggestedQuestion = [];
+  List<int> curatedQuestionIds = [];
   List<String> customQuestion = [];
   List<String> prescription = [];
   int appointmentTypeId = 0;
+  String appointmentType = '';
   String checkListName = '';
   int? checklistId;
 
@@ -40,6 +42,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       final data = {
         'screen': screen.toString(),
         'suggestedQuestion': suggestedQuestion,
+        'curatedQuestionIds': curatedQuestionIds,
         'customQuestion': customQuestion,
         'prescription': prescription,
         'appointmentTypeId': appointmentTypeId,
@@ -67,6 +70,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
         );
         
         suggestedQuestion = List<String>.from(data['suggestedQuestion'] ?? []);
+        curatedQuestionIds = List<int>.from(data['curatedQuestionIds'] ?? []);
         customQuestion = List<String>.from(data['customQuestion'] ?? []);
         prescription = List<String>.from(data['prescription'] ?? []);
         appointmentTypeId = data['appointmentTypeId'] ?? 0;
@@ -86,6 +90,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
     try {
       await _storage.remove(_storageKey);
       suggestedQuestion = [];
+      curatedQuestionIds = [];
       customQuestion = [];
       prescription = [];
       appointmentTypeId = 0;
@@ -178,6 +183,13 @@ class ChecklistCubit extends Cubit<ChecklistState> {
     log('appointmentTypeId: $appointmentTypeId');
   }
 
+  void setAppointmentType(String appointment) {
+    appointmentType = appointment;
+    saveData(screen: lastScreen);
+    emit(ChecklistDataSaved());
+    log('appointmentType: $appointmentType');
+  }
+
   void setSuggestedQuestion(List<String> questions) {
     suggestedQuestion = questions;
     saveData(screen: lastScreen);
@@ -219,7 +231,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       ChecklistModel checklist = ChecklistModel(
         name: checkListName,
         appointmentTypeId: appointmentTypeId,
-        curatedQuestionIds: [0],
+        curatedQuestionIds: curatedQuestionIds,
         customQuestions: customQuestion,
         prescriptionAndSupplements: prescription,
         isActive: true,
@@ -236,7 +248,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
         final Map<String, dynamic> responseData = Map<String, dynamic>.from(response.data);
         final createdChecklist = ChecklistModel.fromJson(responseData);
         checklistId = createdChecklist.id;
-        await clearSavedData(); // Clear saved data after successful creation
+
         emit(ChecklistCreated(createdChecklist));
       } else {
         emit(ChecklistError('Failed to create checklist: ${response.data}'));
@@ -284,7 +296,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       final data = {
         'name': checkListName,
         'appointment_type_id': appointmentTypeId,
-        'curated_question_ids': [0],
+        'curated_question_ids': curatedQuestionIds,
         'custom_questions': customQuestion,
         'prescription_and_supplements': prescription,
         'is_active': true,
@@ -331,7 +343,43 @@ class ChecklistCubit extends Cubit<ChecklistState> {
 
   void logalldata() {
     log('suggestedQuestion: $suggestedQuestion');
+    log('curatedQuestionIds: $curatedQuestionIds');
     log('customQuestion: $customQuestion');
     log('prescription: $prescription');
+  }
+
+  // Fetch curated questions by appointment type
+  Future<List<Map<String, dynamic>>> getCuratedQuestions() async {
+    try {
+      emit(ChecklistLoading());
+
+      final response = await _apiClient.get(
+        '/api/v1/curated-questions/$appointmentTypeId',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = response.data;
+        final List<dynamic> curatedQuestionsData = data['curated_questions'];
+        final questions = curatedQuestionsData.map((question) => {
+          'id': question['id'] as int,
+          'text': question['text'] as String,
+        }).toList();
+        
+        emit(ChecklistDataLoaded());
+        return questions;
+      } else {
+        emit(ChecklistError('Failed to fetch curated questions: ${response.data}'));
+        return [];
+      }
+    } catch (e) {
+      emit(ChecklistError('Error fetching curated questions: $e'));
+      return [];
+    }
+  }
+
+  void updateCuratedQuestions(List<String> questions, List<int> ids) {
+    suggestedQuestion = questions;
+    curatedQuestionIds = ids;
+    saveData(screen: lastScreen);
   }
 }
