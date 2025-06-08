@@ -8,8 +8,7 @@ import 'package:foxxhealth/features/presentation/screens/health_assessment/widge
 import 'package:foxxhealth/features/presentation/screens/health_assessment/ethnicity_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/data/models/state_model.dart'
-    as state_model;
+
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({Key? key}) : super(key: key);
@@ -158,6 +157,8 @@ class _LocationScreenState extends State<LocationScreen> {
                           selectedState = state;
                           _locationController.text = state;
                         });
+                        // Save to cubit
+                        context.read<HealthAssessmentCubit>().setLocation(state);
                         _searchController.clear();
                         _filterStates('');
                         Navigator.pop(context);

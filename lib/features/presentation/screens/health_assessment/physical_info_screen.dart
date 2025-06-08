@@ -67,7 +67,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
 
     // Set values to cubit
     healthCubit.setHeightInInches(inches);
-    healthCubit.setHeightInInches(feet);
+    healthCubit.setHeightInFeet(feet);
 
     healthCubit.setUserWeight(int.tryParse(_weightController.text) ?? 0);
     healthCubit.setAge(int.tryParse(_ageController.text) ?? 0);

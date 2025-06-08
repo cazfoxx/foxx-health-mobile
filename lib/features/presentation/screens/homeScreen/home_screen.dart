@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
@@ -87,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+     context.read<ProfileCubit>().fetchProfile();
     return BaseScaffold(
       currentIndex: _selectedIndex,
       body: GestureDetector(

@@ -54,40 +54,43 @@ class SymptomBottomSheet extends StatefulWidget {
 class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
   int? expandedSymptomIndex;
   Set<String> expandedCategories = {};
+  Map<String, String?> tempSeverities = {}; // Store temporary severity values
 
   void _updateSymptomTracker() {
     final selectedSymptoms = widget.categories.expand((category) {
       return category.symptoms
-          .where((symptom) => symptom.isSelected && symptom.severity != null)
+          .where((symptom) => symptom.isSelected && tempSeverities[symptom.name] != null)
           .map((symptom) {
         return SymptomId(
           symptomName: symptom.name,
           symptomType: widget.title,
           symptomCategory: category.title,
-          severity: symptom.severity!.toLowerCase(),
+          severity: tempSeverities[symptom.name]!.toLowerCase(),
         );
       });
     }).toList();
 
-    if (selectedSymptoms.isNotEmpty) {
-      // Try to dispatch notification for list screen
-      SymptomUpdateNotification(selectedSymptoms).dispatch(context);
-      
-      // Also update the cubit for review screen
-      final cubit = context.read<SymptomTrackerCubit>();
-      final existingSymptoms = List<SymptomId>.from(cubit.symptomIds);
-      
-      // Remove symptoms of the same type (category) that we're updating
-      final otherSymptoms = existingSymptoms
-          .where((s) => s.symptomType != widget.title)
-          .toList();
-      
-      // Add the newly selected symptoms
-      final updatedSymptoms = [...otherSymptoms, ...selectedSymptoms];
-      cubit.setSymptomIds(updatedSymptoms);
-    }
+    // Update the cubit with the new symptoms for this category
+    final cubit = context.read<SymptomTrackerCubit>();
+    cubit.setSymptomIds(selectedSymptoms);
     
-    Navigator.pop(context);
+    // Also dispatch notification for list screen if needed
+    SymptomUpdateNotification(selectedSymptoms).dispatch(context);
+    
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize temporary severities from existing values
+    for (var category in widget.categories) {
+      for (var symptom in category.symptoms) {
+        if (symptom.severity != null) {
+          tempSeverities[symptom.name] = symptom.severity;
+        }
+      }
+    }
   }
 
   @override
@@ -119,7 +122,6 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
               TextButton(
                   onPressed: () {
                     _updateSymptomTracker();
-                    Navigator.of(context).pop();
                   },
                   child: Text(
                     'Save',
@@ -243,18 +245,18 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
 
   Widget _buildSeverityOption(
       String label, bool? isleft, SymptomItem symptom, Color color) {
+    final bool isSelected = tempSeverities[symptom.name]?.toLowerCase() == label.toLowerCase();
     return Expanded(
       child: InkWell(
         onTap: () {
           setState(() {
-            symptom.severity = label;
-            _updateSymptomTracker();
+            tempSeverities[symptom.name] = label;
           });
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: isSelected ? color.withOpacity(0.1) : Colors.grey.shade100,
               borderRadius: isleft == null
                   ? null
                   : isleft!
@@ -271,14 +273,17 @@ class _SymptomBottomSheetState extends State<SymptomBottomSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   label,
-                  style: AppTextStyles.body2OpenSans,
+                  style: AppTextStyles.body2OpenSans.copyWith(
+                    color: isSelected ? color : Colors.black,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 height: 4,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(symptom.severity == label ? 1 : 0.3),
+                  color: color.withOpacity(isSelected ? 1 : 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

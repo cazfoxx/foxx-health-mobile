@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment_type/appointment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/appointment_type/appointment_state.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -27,7 +27,7 @@ class _AppointmentTypeScreenState extends State<AppointmentTypeScreen> {
   void initState() {
     super.initState();
     _textController.addListener(_filterAppointmentTypes);
-    // Fetch appointment types when screen initializes
+
     context.read<AppointmentCubit>().getAppointmentTypes();
 
   }

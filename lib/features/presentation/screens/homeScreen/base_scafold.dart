@@ -7,17 +7,20 @@ class BaseScaffold extends StatelessWidget {
   final int currentIndex;
   final Widget body;
   final Function(int) onTap;
+  final PreferredSizeWidget? appBar;
 
   const BaseScaffold({
     Key? key,
     required this.currentIndex,
     required this.body,
     required this.onTap,
+    this.appBar,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appBar,
       body: body,
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,

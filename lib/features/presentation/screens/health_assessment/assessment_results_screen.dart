@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/check_list/health_assesment_checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/health_assessment/checklist/checklist_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/ethnicity_selection_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/health_details_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/physical_info_bottom_sheet.dart';
@@ -106,15 +108,65 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
       child:
       
       
-     BaseScaffold(
-        currentIndex: 0,
-        onTap: (index) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen(selectedIndex: index)),
-            (route) => false,
-          );
-        },
+     Scaffold(
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        width: double.infinity,
+        height: 90,
+        color: Colors.white,
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: (){
+                final healthCubit = context.read<HealthAssessmentCubit>();
+                if (healthCubit.state is HealthAssessmentGuideViewFetched) {
+                  final state = healthCubit.state as HealthAssessmentGuideViewFetched;
+                  final checklistCubit = context.read<HealthAssessmentChecklistCubit>();
+                  
+                  // Create filtered guide view with only selected items
+                  final filteredGuideView = Map<String, dynamic>.from(state.guideView);
+                  
+                  // Filter information to prepare
+                  filteredGuideView['information_to_prepare_details'] = state.guideView['information_to_prepare_details']
+                      .where((info) => _informationToPrepare[info['information']] == true)
+                      .toList();
+                  
+                  // Filter questions for doctor
+                  filteredGuideView['questions_for_doctor_details'] = state.guideView['questions_for_doctor_details']
+                      .where((question) => _questionsForDoctor[question['question_text']] == true)
+                      .toList();
+                  
+                  // Filter tests to discuss
+                  filteredGuideView['medical_test_details'] = state.guideView['medical_test_details']
+                      .where((test) => _testsToDiscuss[test['test_name']] == true)
+                      .toList();
+                  
+                  checklistCubit.populateFromAssessmentResults(filteredGuideView);
+                  
+                  checklistCubit.setChecklistTitle(healthCubit.appointmentType);
+                  checklistCubit.setAppointmentTypeId(healthCubit.appointmentTypeId);
+                  
+                }
+
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ChecklistHealthAssessment()));
+              },
+              child: Container(
+                width: double.infinity,
+                height: 50,
+               decoration: BoxDecoration(
+                color: AppColors.amethystViolet,
+                borderRadius: BorderRadius.circular(30)
+               ),
+               child: Center(
+                child: Text('Create a Check List', style: AppTextStyles.bodyOpenSans.copyWith(color: Colors.white),),
+               )
+              ),
+            )
+          ],
+        )
+
+      ),
+        
         body: BlocBuilder<HealthAssessmentCubit, HealthAssessmentState>(
             builder: (context, state) {
           if (state is HealthAssessmentLoading) {
@@ -217,9 +269,11 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                               context.read<HealthAssessmentCubit>();
                           final weight = healthCubit.userWeight;
                           final heightInches = healthCubit.heightInInches;
+
+
                           final age = healthCubit.age;
                           final heightFeet = healthCubit.heightInFeet;
-                          final appointment = healthCubit.appointmentTypeId;
+                          final appointment = healthCubit.appointmentType;
                           final existingCondiontion =
                               healthCubit.preExistingConditionText;
                           final healthConcerns =
@@ -231,6 +285,8 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                           final ethinicietes = healthCubit.ethnicities;
                           final existingCondition =
                               healthCubit.preExistingConditionText;
+                              
+                          
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,6 +387,8 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                                     final healthCubit =
                                         context.read<HealthAssessmentCubit>();
                                     healthCubit.setAppointmentTypeId(result.id);
+                                    healthCubit.setAppointmentType(result.name); 
+                                    setState(() {});
                                   }
                                 },
                                 child: _buildInfoSection(

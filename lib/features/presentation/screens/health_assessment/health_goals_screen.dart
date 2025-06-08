@@ -70,6 +70,7 @@ class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
             Text('Enter information such as wanting to improve cardiovascular fitness, or improve your immune system.',
                 style: AppTextStyles.body2OpenSans),
             TextField(
+              controller: _goalsController,
               decoration: InputDecoration(
                 hintText: 'Type here',
                 hintStyle: AppTextStyles.body.copyWith(color: Colors.grey),

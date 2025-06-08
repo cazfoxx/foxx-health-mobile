@@ -210,7 +210,9 @@ class ErrorInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     String errorMessage = 'An error occurred';
 
-    if (err.response?.data != null && err.response?.data is Map) {
+    if (err.response?.statusCode == 401) {
+      errorMessage = 'Session has expired please login again';
+    } else if (err.response?.data != null && err.response?.data is Map) {
       errorMessage = err.response?.data['detail'] ??
           err.response?.data['message'] ??
           errorMessage;
@@ -226,7 +228,7 @@ class ErrorInterceptor extends Interceptor {
       SnackBar(
         content: Text(
           errorMessage,
-          maxLines: 5,
+          maxLines: 1,
         ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
@@ -11,12 +12,12 @@ import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.
 import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_state.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment_info/appointment_info_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/start_date_body_widget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-
 
 class ReviewSymptomsScreen extends StatefulWidget {
   final String? descriptions;
@@ -112,7 +113,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
             ],
             onSelected: (value) async {
               if (value == 'existing') {
-                final AppointmentTypeModel result = await showModalBottomSheet(
+                final AppointmentInfoModel result = await showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   shape: RoundedRectangleBorder(
@@ -131,13 +132,13 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                           topRight: Radius.circular(20),
                         ),
                       ),
-                      child: const AppointmentTypeScreen(),
+                      child: const AppointmentInfoScreen(),
                     ),
                   ),
                 );
                 if (result != null) {
                   setState(() {
-                    appointment = result.name;
+                    appointment = result.titleText;
                   });
                 }
               } else {
@@ -192,11 +193,62 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SymptomTrackerCubit, SymptomTrackerState>(
+    return BlocConsumer<SymptomTrackerCubit, SymptomTrackerState>(
+      listener: (context, state) {
+        // Handle any state-specific side effects if needed
+      },
       builder: (context, state) {
         final cubit = context.read<SymptomTrackerCubit>();
 
         return Scaffold(
+          bottomNavigationBar: Container(
+            height: 90,
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Column(
+              children: [
+                InkWell(
+                  onTap: () async {
+                    try {
+                      await cubit.createSymptomTracker();
+                      if (!mounted) return;
+                      SnackbarUtils.showSuccess(
+                        context: context,
+                        title: 'Success',
+                        message: 'Symptoms tracked successfully',
+                      );
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                        (route) => false,
+                      );
+                    } catch (e) {
+                      if (!mounted) return;
+                      SnackbarUtils.showError(
+                        context: context,
+                        title: 'Error',
+                        message: 'Failed to track symptoms. Please try again.',
+                      );
+                    }
+                  },
+                  child: Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.amethystViolet,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Save',
+                        style: AppTextStyles.bodyOpenSans.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
           backgroundColor: AppColors.background,
           appBar: AppBar(
             leading: IconButton(
@@ -207,33 +259,6 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
               'Track Symptoms',
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
             ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  try {
-                    await cubit.createSymptomTracker();
-                    SnackbarUtils.showSuccess(
-                      context: context,
-                      title: 'Success',
-                      message: 'Symptoms tracked successfully',
-                    );
-                   Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
-                  } catch (e) {
-                    SnackbarUtils.showError(
-                      context: context,
-                      title: 'Error',
-                      message: 'Failed to track symptoms. Please try again.',
-                    );
-                  }
-                },
-                child: Text(
-                  'Save',
-                  style: AppTextStyles.body2OpenSans.copyWith(
-                    color: AppColors.amethystViolet,
-                  ),
-                ),
-              ),
-            ],
           ),
           body: SafeArea(
             child: Column(
@@ -248,9 +273,7 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                         dateRange: DateTimeRange(
                             start: cubit.fromDate, end: cubit.toDate),
                         onDateSelected: (p0) {
-                          setState(() {
-                            
-                          });
+                          setState(() {});
                         },
                         selectedDate: cubit.fromDate,
                       ),
@@ -278,15 +301,21 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
       groupedSymptoms[symptom.symptomCategory]!.add(symptom);
     }
 
+    // Define the desired order
+    final categoryOrder = ['Body', 'Mood', 'Mind', 'Habits'];
+    
+    // Sort the entries based on the defined order
+    final orderedEntries = categoryOrder
+        .where((category) => groupedSymptoms.containsKey(category))
+        .map((category) => MapEntry(category, groupedSymptoms[category]!))
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Symptoms', style: AppTextStyles.heading3),
         const SizedBox(height: 16),
-        ...groupedSymptoms.entries.map((entry) {
-          // Get the symptom type from the first symptom in the group
-          final symptomType = entry.value.first.symptomType ?? 'Body';
-
+        ...orderedEntries.map((entry) {
           return Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 16),
@@ -317,19 +346,21 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                     GestureDetector(
                       onTap: () {
                         final symptomsCubit = context.read<SymptomsCubit>();
-                        symptomsCubit.fetchSymptomsByCategory(symptomType);
-                        
+                        symptomsCubit.fetchSymptomsByCategory(entry.key);
+
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (context) => BlocBuilder<SymptomsCubit, SymptomsState>(
+                          builder: (context) =>
+                              BlocBuilder<SymptomsCubit, SymptomsState>(
                             builder: (context, state) {
                               if (state is SymptomsLoading) {
                                 return Container(
                                   decoration: const BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
                                   ),
                                   child: const Center(
                                     child: Padding(
@@ -341,12 +372,13 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                                   ),
                                 );
                               }
-                              
+
                               if (state is SymptomsError) {
                                 return Container(
                                   decoration: const BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
                                   ),
                                   child: Center(
                                     child: Padding(
@@ -356,12 +388,15 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                                         children: [
                                           Text(
                                             'Error: ${state.message}',
-                                            style: AppTextStyles.body.copyWith(color: Colors.red),
+                                            style: AppTextStyles.body
+                                                .copyWith(color: Colors.red),
                                           ),
                                           const SizedBox(height: 16),
                                           ElevatedButton(
                                             onPressed: () {
-                                              symptomsCubit.fetchSymptomsByCategory(symptomType);
+                                              symptomsCubit
+                                                  .fetchSymptomsByCategory(
+                                                      entry.key);
                                             },
                                             child: const Text('Retry'),
                                           ),
@@ -371,46 +406,56 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                                   ),
                                 );
                               }
-                              
+
                               if (state is SymptomsLoaded) {
-                                final symptoms = state.symptoms.map((symptom) => SymptomItem(
-                                  name: symptom.symptomName,
-                                  isSelected: entry.value.any((s) => s.symptomName == symptom.symptomName),
-                                  severity: entry.value
-                                      .firstWhere(
-                                        (s) => s.symptomName == symptom.symptomName,
-                                        orElse: () => SymptomId(
-                                          symptomName: '',
-                                          symptomType: '',
-                                          symptomCategory: '',
-                                          severity: '',
-                                        ),
-                                      )
-                                      .severity,
-                                )).toList();
-                                
+                                final symptoms = state.symptoms
+                                    .map((symptom) => SymptomItem(
+                                          name: symptom.symptomName,
+                                          isSelected: entry.value.any((s) =>
+                                              s.symptomName == symptom.symptomName &&
+                                              s.symptomCategory == entry.key),
+                                          severity: entry.value
+                                              .firstWhere(
+                                                (s) =>
+                                                    s.symptomName == symptom.symptomName &&
+                                                    s.symptomCategory == entry.key,
+                                                orElse: () => SymptomId(
+                                                  symptomName: '',
+                                                  symptomType: entry.key,
+                                                  symptomCategory: entry.key,
+                                                  severity: '',
+                                                ),
+                                              )
+                                              .severity,
+                                        ))
+                                    .toList();
+
                                 final categoryData = Category(
                                   title: entry.key,
                                   symptoms: symptoms,
                                 );
-                                
+
                                 return Container(
                                   decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
                                   ),
-                                  height: MediaQuery.of(context).size.height * 0.9,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.9,
                                   child: SymptomBottomSheet(
-                                    title: symptomType,
+                                    title: entry.key,
                                     categories: [categoryData],
                                   ),
                                 );
                               }
-                              
+
                               return const SizedBox();
                             },
                           ),
-                        );
+                        ).then((value) {
+                          setState(() {});
+                        },);
                       },
                       child: Text(
                         'Change',
@@ -444,12 +489,15 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
                       '${symptom.symptomName}\n${symptom.severity}',
                       chipColor,
                       () {
-                        final updatedSymptoms =
-                            List<SymptomId>.from(cubit.symptomIds)
-                              ..removeWhere((s) =>
-                                  s.symptomName == symptom.symptomName &&
-                                  s.symptomCategory == symptom.symptomCategory);
+                        // Get all symptoms except the one we're removing
+                        final updatedSymptoms = cubit.symptomIds
+                            .where((s) => !(s.symptomName == symptom.symptomName &&
+                                s.symptomCategory == symptom.symptomCategory))
+                            .toList();
+                        
+                        // Update the cubit with the new list
                         cubit.setSymptomIds(updatedSymptoms);
+                        setState(() {});
                       },
                     );
                   }).toList(),

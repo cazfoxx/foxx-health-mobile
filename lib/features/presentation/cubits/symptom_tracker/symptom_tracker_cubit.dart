@@ -93,8 +93,8 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
   Future<void> clearSavedData() async {
     try {
       await _storage.remove(_storageKey);
-      _fromDate = DateTime.now();
-      _toDate = DateTime.now();
+      // _fromDate = DateTime.now();
+      // _toDate = DateTime.now();
       _symptomDescription = '';
       _symptomIds = [];
       lastScreen = SymptomScreen.initial;
@@ -181,11 +181,20 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
   }
 
   void setSymptomIds(List<SymptomId> symptoms) {
-    if (symptoms.isNotEmpty) {
-      final newType = symptoms.first.symptomType;
-      _symptomIds.removeWhere((s) => s.symptomType == newType);
+    if (symptoms.isEmpty) {
+      _symptomIds = [];
+    } else {
+      // Get the category of the new symptoms
+      final category = symptoms.first.symptomCategory;
+      
+      // Keep all symptoms from other categories
+      final otherCategorySymptoms = _symptomIds
+          .where((s) => s.symptomCategory != category)
+          .toList();
+      
+      // Add the new symptoms for the current category
+      _symptomIds = [...otherCategorySymptoms, ...symptoms];
     }
-    _symptomIds.addAll(symptoms);
     saveData(screen: lastScreen);
   }
 
@@ -280,6 +289,8 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
     required int trackerId,
     required List<SymptomId> updatedSymptoms,
     required String description,
+    required DateTime fromDate,
+    required DateTime toDate,
   }) async {
     try {
       emit(SymptomTrackerLoading());
@@ -301,9 +312,10 @@ class SymptomTrackerCubit extends Cubit<SymptomTrackerState> {
       );
 
       if (response.statusCode == 200) {
-        // After successful update, refresh the symptoms list
+        // Format date using the provided fromDate
         final selectedDate = '${fromDate.year}-${fromDate.month.toString().padLeft(2, '0')}-${fromDate.day.toString().padLeft(2, '0')}';
         await getSymptomTrackers(selectedDate: selectedDate);
+        emit(SymptomTrackerSuccess('Symptom tracker updated successfully'));
       } else {
         emit(SymptomTrackerError('Failed to update symptom tracker'));
       }

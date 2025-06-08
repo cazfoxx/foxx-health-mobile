@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
-import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
+import 'package:foxxhealth/features/data/models/checklist_model.dart';
+
 import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment/appointment_cubit.dart';
-import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart'
-    show SymptomTrackerCubit;
+import 'package:foxxhealth/features/presentation/cubits/appointment_info/appointment_info_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/widgets/checklist_selection_sheet.dart';
@@ -22,14 +21,41 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
   final _titleController = TextEditingController();
   final _typeController = TextEditingController();
   DateTime? _selectedDate;
-  String? _selectedChecklist;
-  String? _selectedSymptom;
+  List<ChecklistModel> _selectedChecklists = [];
+  List<SymptomTrackerResponse> _selectedSymptoms = [];
+  AppointmentTypeModel? _selectedType;
 
   @override
   void dispose() {
     _titleController.dispose();
     _typeController.dispose();
     super.dispose();
+  }
+
+
+  void _saveAppointment() {
+    if (_titleController.text.isEmpty ||
+        _selectedType == null ||
+        _selectedDate == null ||
+        _selectedChecklists.isEmpty ||
+        _selectedSymptoms.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    final appointmentCubit = context.read<AppointmentInfoCubit>();
+    appointmentCubit.setTitleText(_titleController.text);
+    appointmentCubit.setVisitDate(_selectedDate!);
+    appointmentCubit.setAppointmentTypeId(_selectedType!.id);
+    appointmentCubit
+        .setChecklistIds(_selectedChecklists.map((c) => c.id ?? 0).toList());
+    appointmentCubit
+        .setSymptomIds(_selectedSymptoms.map((s) => s.id ?? 0).toList());
+    appointmentCubit.createAppointmentInfo().then((_) {
+      Navigator.pop(context);
+    });
   }
 
   @override
@@ -62,8 +88,8 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                     label: 'Type of Appointment',
                     readOnly: true,
                     onTap: () async {
-                      final AppointmentTypeModel result =
-                          await showModalBottomSheet(
+                      final result =
+                          await showModalBottomSheet<AppointmentTypeModel>(
                         context: context,
                         isScrollControlled: true,
                         shape: RoundedRectangleBorder(
@@ -86,9 +112,9 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                           ),
                         ),
                       );
-
                       if (result != null) {
                         setState(() {
+                          _selectedType = result;
                           _typeController.text = result.name;
                         });
                       }
@@ -98,8 +124,92 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
                   const SizedBox(height: 16),
                   _buildDateField(),
                   const SizedBox(height: 16),
+                  if (_selectedChecklists.isNotEmpty) ...[
+                    SizedBox(
+                      height: 50,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(0),
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        itemCount: _selectedChecklists.length,
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemBuilder: (context, index) {
+                          return Container(
+                            padding: const EdgeInsets.all(5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Icon(Icons.checklist, color: AppColors.amethystViolet),
+                                const SizedBox(width: 12),
+                                Text(_selectedChecklists[index].name ?? '',
+                                  style: const TextStyle(color: Colors.black),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedChecklists.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  Divider(),
+                  const SizedBox(height: 10),
                   _buildAddCheckList(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+                   Divider(),
+                  if (_selectedSymptoms.isNotEmpty) ...[
+                    SizedBox(
+                      height: 50,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _selectedSymptoms.length,
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemBuilder: (context, index) {
+                          return Container(
+                            padding: const EdgeInsets.all(5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.healing, color: AppColors.amethystViolet),
+                                const SizedBox(width: 12),
+                                Text(_selectedSymptoms[index]
+                                          .symptomIds
+                                          ?.map((s) => s.symptomName)
+                                          .join(', ') ??
+                                      '',
+                                  style: const TextStyle(color: Colors.black),
+                                  maxLines: 1,
+                                  textAlign: TextAlign.start,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedSymptoms.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                   Divider(),
+
                   _buildAddSymptom(),
                 ],
               ),
@@ -131,19 +241,8 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
             ),
           ),
           TextButton(
-            onPressed: () async {
-              // Create appointment type
-              final appointmentCubit = context.read<AppointmentCubit>();
-              await appointmentCubit.createAppointmentType(
-                appointmentTypeCode:
-                    _titleController.text.toUpperCase().replaceAll(' ', '_'),
-                appointmentTypeText: _titleController.text,
-              );
-
-              // Close the screen after creation
-              Navigator.pop(context);
-            },
-            child: Text(
+            onPressed: _saveAppointment,
+            child: const Text(
               'Save',
               style: TextStyle(
                 color: AppColors.amethystViolet,
@@ -223,30 +322,20 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
       onTap: () {
         _showCheckListBottomSheet(context);
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.checklist, color: AppColors.amethystViolet),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _selectedChecklist ?? 'Add Check List',
-                style: TextStyle(
-                  color: _selectedChecklist != null
-                      ? Colors.black
-                      : Colors.grey[600],
-                ),
-              ),
+      child: Row(
+        children: [
+          const Icon(Icons.add, color: AppColors.davysGray),
+          const SizedBox(width: 12),
+          Text(
+            'Add Check Lists',
+            style: TextStyle(
+              color: 
+                   AppColors.davysGray
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16),
-          ],
-        ),
+        
+          ),
+      
+        ],
       ),
     );
   }
@@ -256,30 +345,17 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
       onTap: () {
         _showSymptomsBottomSheet(context);
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.healing, color: AppColors.amethystViolet),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _selectedSymptom ?? 'Add Symptoms',
-                style: TextStyle(
-                  color: _selectedSymptom != null
-                      ? Colors.black
-                      : Colors.grey[600],
-                ),
-              ),
+      child: Row(
+        children: [
+          const Icon(Icons.add, color: AppColors.davysGray),
+          const SizedBox(width: 12),
+          Text(
+            'Add Symptoms',
+            style: TextStyle(
+              color: AppColors.davysGray
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -295,9 +371,11 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
       builder: (context) => CheckListSelectionSheet(
         onCheckListSelected: (checklist) {
           setState(() {
-            _selectedChecklist = checklist;
+            if (!_selectedChecklists.contains(checklist)) {
+              _selectedChecklists.add(checklist);
+              Navigator.pop(context);
+            }
           });
-          Navigator.pop(context);
         },
       ),
     );
@@ -312,12 +390,13 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => SymptomsSelectionSheet(
-        onSymptomSelected: (SymptomTrackerResponse symptom) {
-          //  context.read<SymptomTrackerCubit>().addSymptom(symptom);
+        onSymptomSelected: (symptom) {
           setState(() {
-            // _selectedSymptom = symptom.symptomName;
+            if (!_selectedSymptoms.contains(symptom)) {
+              _selectedSymptoms.add(symptom);
+              Navigator.pop(context);
+            }
           });
-          Navigator.pop(context);
         },
       ),
     );

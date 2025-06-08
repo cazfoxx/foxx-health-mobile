@@ -26,25 +26,12 @@ class _HealthAssessmentAppointTypeScreenState
   final _searchController = TextEditingController();
   String? selectedType;
   List<String> filteredTypes = [];
-  final List<String> appointmentTypes = [
-    'Primary Care',
-    'Cardiology',
-    'Dermatology',
-    'Endocrinology',
-    'Gastroenterology',
-    'Neurology',
-    'Oncology',
-    'Orthopedics',
-    'Pediatrics',
-    'Psychiatry',
-    'Rheumatology',
-    'Not Applicable'
-  ];
+
 
   @override
   void initState() {
     super.initState();
-    filteredTypes = List.from(appointmentTypes);
+
   }
 
   void _showTypeSelector() async {
@@ -75,6 +62,7 @@ class _HealthAssessmentAppointTypeScreenState
     if (result != null) {
       final healthCubit = context.read<HealthAssessmentCubit>();
       healthCubit.setAppointmentTypeId(result.id);
+      healthCubit.setAppointmentType(result.name);
       setState(() {
         _appointmentController.text = result.name;
       });

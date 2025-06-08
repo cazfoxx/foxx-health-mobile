@@ -5,9 +5,11 @@ import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_state.dart';
+import 'package:foxxhealth/features/presentation/screens/track_symptoms/select_symptoms_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/symptom_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class SymptomsListScreen extends StatefulWidget {
@@ -152,14 +154,25 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
       }
     }
 
+    // Define the desired order of categories
+    final categoryOrder = ['Body', 'Mood', 'Mind', 'Habits'];
+    
+    // Sort the entries based on the category order
+    final sortedEntries = groupedSymptoms.entries.toList()
+      ..sort((a, b) {
+        final indexA = categoryOrder.indexOf(a.key);
+        final indexB = categoryOrder.indexOf(b.key);
+        return indexA.compareTo(indexB);
+      });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Symptoms', style: AppTextStyles.heading3),
         const SizedBox(height: 16),
-        ...groupedSymptoms.entries.map((entry) {
-          // Get the symptom type from the first symptom in the group
-          final symptomType = entry.value.first.symptomType ?? 'Body';
+        ...sortedEntries.map((entry) {
+          // Get the symptom type from the category name
+          final symptomType = entry.key;
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -193,7 +206,7 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                         final symptomsCubit = context.read<SymptomsCubit>();
                         final trackerCubit =
                             context.read<SymptomTrackerCubit>();
-                        symptomsCubit.fetchSymptomsByCategory(symptomType);
+                        symptomsCubit.fetchSymptomsByCategory(entry.key);
 
                         showModalBottomSheet(
                           context: context,
@@ -243,7 +256,7 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                                             onPressed: () {
                                               symptomsCubit
                                                   .fetchSymptomsByCategory(
-                                                      symptomType);
+                                                      entry.key);
                                             },
                                             child: const Text('Retry'),
                                           ),
@@ -259,17 +272,17 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                                     .map((symptom) => SymptomItem(
                                           name: symptom.symptomName,
                                           isSelected: entry.value.any((s) =>
-                                              s.symptomName ==
-                                              symptom.symptomName),
+                                              s.symptomName == symptom.symptomName &&
+                                              s.symptomCategory == entry.key),
                                           severity: entry.value
                                               .firstWhere(
                                                 (s) =>
-                                                    s.symptomName ==
-                                                    symptom.symptomName,
+                                                    s.symptomName == symptom.symptomName &&
+                                                    s.symptomCategory == entry.key,
                                                 orElse: () => SymptomId(
                                                   symptomName: '',
-                                                  symptomType: '',
-                                                  symptomCategory: '',
+                                                  symptomType: entry.key,
+                                                  symptomCategory: entry.key,
                                                   severity: '',
                                                 ),
                                               )
@@ -282,52 +295,47 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                                   symptoms: symptoms,
                                 );
 
-                                return DraggableScrollableSheet(
-                                  initialChildSize: 0.9,
-                                  maxChildSize: 0.9,
-                                  minChildSize: 0.5,
-                                  builder: (context, scrollController) =>
-                                      Container(
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(20)),
-                                    ),
-                                    child: NotificationListener<
-                                        SymptomUpdateNotification>(
-                                      onNotification: (notification) {
-                                        // Get all symptoms except the ones from current category
-                                        final otherSymptoms = symptomResponse
-                                                .symptomIds
-                                                ?.where((s) =>
-                                                    s.symptomCategory !=
-                                                    entry.key)
-                                                .toList() ??
-                                            [];
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
+                                  ),
+                                  height: MediaQuery.of(context).size.height * 0.9,
+                                  child: NotificationListener<SymptomUpdateNotification>(
+                                    onNotification: (notification) {
+                                      // Get all symptoms except the ones from current category
+                                      final otherSymptoms = symptomResponse.symptomIds
+                                              ?.where((s) => s.symptomCategory != entry.key)
+                                              .toList() ??
+                                          [];
 
-                                        // Add the newly selected symptoms
-                                        final updatedSymptoms = [
-                                          ...otherSymptoms,
-                                          ...notification.updatedSymptoms,
-                                        ];
+                                      // Add the newly selected symptoms
+                                      final updatedSymptoms = [
+                                        ...otherSymptoms,
+                                        ...notification.updatedSymptoms,
+                                      ];
 
-                                        // Update the symptom tracker
-                                        trackerCubit.updateSymptomTracker(
-                                          trackerId: symptomResponse.id ?? 0,
-                                          updatedSymptoms: List<SymptomId>.from(
-                                              updatedSymptoms),
-                                          description: symptomResponse
-                                                  .symptomDescription ??
-                                              '',
-                                        );
+                                      // Update the symptom tracker with correct dates
+                                      trackerCubit.updateSymptomTracker(
+                                        trackerId: symptomResponse.id ?? 0,
+                                        updatedSymptoms: List<SymptomId>.from(updatedSymptoms),
+                                        description: symptomResponse.symptomDescription ?? '',
+                                        fromDate: symptomResponse.fromDate ?? _selectedDate,
+                                        toDate: symptomResponse.toDate ?? _selectedDate,
+                                      ).then((_) {
+                                        if (mounted) {  // Check if widget is still mounted
+                                          Get.back();
+                                          // Refresh the symptoms list
+                                          _fetchSymptoms();
+                                        }
+                                      });
 
-                                        Navigator.pop(context);
-                                        return true;
-                                      },
-                                      child: SymptomBottomSheet(
-                                        title: symptomType,
-                                        categories: [categoryData],
-                                      ),
+                                      return true;
+                                    },
+                                    child: SymptomBottomSheet(
+                                      title: entry.key,
+                                      categories: [categoryData],
                                     ),
                                   ),
                                 );
@@ -610,7 +618,18 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
                                 width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    // TODO: Implement add symptom functionality
+                                    final cubit =
+                                        context.read<SymptomTrackerCubit>();
+                                        cubit.clear();
+                                    cubit.setFromDate(_selectedDate);
+                                    cubit.setToDate(_selectedDate);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SelectSymptomsScreen(),
+                                      ),
+                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,

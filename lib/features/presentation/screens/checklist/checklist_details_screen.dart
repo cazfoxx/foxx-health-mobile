@@ -4,11 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment_info/appointment_info_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
@@ -325,7 +327,7 @@ Visit: https://foxxhealth.com/
                 ],
                 onSelected: (value) async {
                   if (value == 'existing') {
-                    final AppointmentTypeModel result =
+                    final AppointmentInfoModel result =
                         await showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
@@ -345,13 +347,13 @@ Visit: https://foxxhealth.com/
                               topRight: Radius.circular(20),
                             ),
                           ),
-                          child: const AppointmentTypeScreen(),
+                          child: const AppointmentInfoScreen(),
                         ),
                       ),
                     );
 
                     if (result != null) {
-                      checklistCubit.setAppointmentType(result.name);
+                      checklistCubit.setAppointmentType(result.titleText);
                       checklistCubit.setAppointmentTypeId(result.id);
                       if (mounted)
                         setState(() {}); // Force rebuild if still mounted

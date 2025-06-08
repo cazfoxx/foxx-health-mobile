@@ -6,7 +6,6 @@ import 'package:foxxhealth/features/presentation/cubits/health_assessment/health
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/symptom_tracker_health_assessment_screen.dart.dart';
-import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class AreaOfConcernScreen extends StatefulWidget {
@@ -53,40 +52,41 @@ class _AreaOfConcernScreenState extends State<AreaOfConcernScreen> {
 
           final areas = context.read<HealthAssessmentCubit>().areasOfConcern;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            shrinkWrap: true,
-            itemCount: areas.length,
-            itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: CheckboxListTile(
-                  value: selectedAreas.contains(areas[index]),  // Changed this line
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        selectedAreas.add(areas[index]);
-                      } else {
-                        selectedAreas.remove(areas[index]);
-                      }
-                    });
-                  },
-                  title: Text(
-                    areas[index].areaOfConcernName,
-                    style: AppTextStyles.bodyOpenSans,
+          return SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: areas.map((area) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  activeColor: Theme.of(context).primaryColor,
-                  checkboxShape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                  child: CheckboxListTile(
+                    value: selectedAreas.contains(area),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedAreas.add(area);
+                        } else {
+                          selectedAreas.remove(area);
+                        }
+                      });
+                    },
+                    title: Text(
+                      area.areaOfConcernName,
+                      style: AppTextStyles.bodyOpenSans,
+                    ),
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    activeColor: Theme.of(context).primaryColor,
+                    checkboxShape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
-                ),
-              );
-            },
+                )).toList(),
+              ),
+            ),
           );
         },
       ),

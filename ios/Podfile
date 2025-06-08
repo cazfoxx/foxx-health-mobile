@@ -29,21 +29,37 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
 end
 
 post_install do |installer|
+  # Firebase Crashlytics dSYM upload script
   installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      # Enable dSYM generation
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+    end
+    
     flutter_additional_ios_build_settings(target)
     
-    # Add this section for Crashlytics dSYM generation
-    target.build_configurations.each do |config|
-      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
-      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    # Add the Firebase Crashlytics upload script
+    if target.name == 'Runner'
+      target.build_phases.each do |build_phase|
+        if build_phase.respond_to?(:name) && build_phase.name == 'Upload Crashlytics dSYM'
+          target.build_phases.delete(build_phase)
+        end
+      end
+      
+      upload_phase = target.new_shell_script_build_phase('Upload Crashlytics dSYM')
+      upload_phase.shell_script = '"${PODS_ROOT}/FirebaseCrashlytics/upload-symbols" -gsp "${PROJECT_DIR}/Runner/GoogleService-Info.plist" -p ios "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}"'
+      upload_phase.input_paths = ['$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)']
     end
   end
+end
+
+target 'RunnerTests' do
+  inherit! :search_paths
 end

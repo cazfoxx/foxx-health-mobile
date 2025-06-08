@@ -12,6 +12,7 @@ import 'package:foxxhealth/features/presentation/screens/track_symptoms/widgets/
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/reminder_dialog.dart';
+import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 
 class SelectSymptomsScreen extends StatefulWidget {
   const SelectSymptomsScreen({Key? key}) : super(key: key);
@@ -105,12 +106,29 @@ class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
 
                 if (cubit.state is SymptomsLoaded) {
                   final symptoms = (cubit.state as SymptomsLoaded).symptoms;
+                  final trackerCubit = context.read<SymptomTrackerCubit>();
+                  final existingSymptoms = trackerCubit.symptomIds;
+                  
                   final categoryData = Category(
                     title: category.title,
                     symptoms: symptoms
                         .map((symptom) => SymptomItem(
                               name: symptom.symptomName,
-                              isSelected: false,
+                              isSelected: existingSymptoms.any((s) => 
+                                s.symptomName == symptom.symptomName && 
+                                s.symptomCategory == category.title
+                              ),
+                              severity: existingSymptoms
+                                .firstWhere(
+                                  (s) => s.symptomName == symptom.symptomName && s.symptomCategory == category.title,
+                                  orElse: () => SymptomId(
+                                    symptomName: '',
+                                    symptomType: '',
+                                    symptomCategory: '',
+                                    severity: '',
+                                  ),
+                                )
+                                .severity,
                             ))
                         .toList(),
                   );

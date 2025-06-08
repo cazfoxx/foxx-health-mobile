@@ -5,7 +5,7 @@ import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubi
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 
 class CheckListSelectionSheet extends StatefulWidget {
-  final Function(String) onCheckListSelected;
+  final Function(ChecklistModel) onCheckListSelected;
 
   const CheckListSelectionSheet({
     Key? key,
@@ -126,7 +126,7 @@ class _CheckListSelectionSheetState extends State<CheckListSelectionSheet> {
                             title: Text(checklist.name),
                             subtitle: Text('Last Edited: '),
                             onTap: () =>
-                                widget.onCheckListSelected(checklist.name),
+                                widget.onCheckListSelected(checklist),
                           );
                         },
                       );

@@ -44,6 +44,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   bool _isActive = true;
   bool _isDeleted = false;
   int _appointmentTypeId = 0;
+  String _appointmentType = '';
   List<SymptomTrackerResponse> _symptoms = [];
   List<Symptom> _seletedSymptom = [];
 
@@ -63,6 +64,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
   int get userWeight => _userWeight;
   int get age => _age;
   List<String> get ethnicities => _ethnicities;
+  String get appointmentType => _appointmentType;
   String get preExistingConditionText => _preExistingConditionText;
   String get specificHealthConcerns => _specificHealthConcerns;
   String get specificHealthGoals => _specificHealthGoals;
@@ -104,8 +106,9 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     _preExistingConditionText = condition;
   }
 
-  void setLocation(String newLocation) {
-    _location = newLocation;
+  void setLocation(String selectedLocation) {
+    _location = selectedLocation;
+    emit(HealthAssessmentDataLoaded());
   }
 
   void setSpecificHealthConcerns(String concerns) {
@@ -132,6 +135,10 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
     _appointmentTypeId = id;
   }
 
+  void setAppointmentType(String appointmentType) {
+    _appointmentType = appointmentType;
+  }
+
   void setSymptoms(SymptomTrackerResponse newSymptoms) {
     _symptoms.add(newSymptoms);
   }
@@ -142,7 +149,6 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
 
   void setSelectedState(state_model.State state) {
     _selectedState = state;
-    _location = state.stateName;
   }
 
   void setSelectedIncomeRange(IncomeRange incomeRange) {
@@ -381,7 +387,8 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
         'userWeight': _userWeight,
         'age': _age,
         'incomeRangeId': _seletedIncomeRange?.id,
-        'stateId': _selectedState?.id,
+        // 'stateId': _selectedState?.id,
+        'state': _location,
         'ethnicities': _ethnicities,
         'preExistingConditionText': _preExistingConditionText,
         'specificHealthConcerns': _specificHealthConcerns,
@@ -435,7 +442,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> guideView = response.data;
-        clearSavedData();
+        // clearSavedData();
         emit(HealthAssessmentGuideViewFetched(guideView));
       } else {
         emit(HealthAssessmentError(

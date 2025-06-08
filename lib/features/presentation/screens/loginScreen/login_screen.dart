@@ -72,19 +72,23 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       if (widget.isSign) {
         // For sign in, check email validation and password
-        _isButtonEnabled = _formKey.currentState?.validate() ??
-            false &&
-                _emailController.text.trim().isNotEmpty &&
-                _passwordController.text.trim().isNotEmpty;
+        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
+            _emailController.text.trim().isNotEmpty &&
+            _passwordController.text.trim().isNotEmpty;
       } else {
-        // For sign up, check all conditions including email validation
-        _isButtonEnabled = _formKey.currentState?.validate() ??
-            false &&
-                _emailController.text.trim().isNotEmpty &&
-                _passwordController.text.trim().isNotEmpty &&
-                validatePassword(_passwordController.text) &&
-                _agreeToTerms &&
-                _isOver16;
+        // For sign up, check all conditions:
+        // 1. Email validation
+        // 2. Password rules (min length, capital letter, letter+number)
+        // 3. Both checkboxes checked
+        final emailValid = _formKey.currentState?.validate() ?? false;
+        final emailNotEmpty = _emailController.text.trim().isNotEmpty;
+        final passwordValid = validatePassword(_passwordController.text);
+        final checkboxesChecked = _agreeToTerms && _isOver16;
+
+        _isButtonEnabled = emailValid && 
+                         emailNotEmpty && 
+                         passwordValid && 
+                         checkboxesChecked;
       }
     });
   }
@@ -182,13 +186,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
-                              if (value!.length > 05) {
-                                // Regular expression for email validation
-                                final emailRegex =
-                                    RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                                if (!emailRegex.hasMatch(value ?? '')) {
-                                  return 'Please enter a valid email address';
-                                }
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter an email address';
+                              }
+                              // Regular expression for email validation
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(value)) {
+                                return 'Please enter a valid email address';
                               }
                               return null;
                             },
@@ -223,18 +227,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            // validator: (value) {
-                            //   if (value == null || value.isEmpty) return 'Must be at least 8 characters';
-                            //   if (value.length < 8) return 'Must be at least 8 characters';
-                            //   if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
-                            //   if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
-                            //     return 'Must contain letters and numbers';
-                            //   }
-                            //   return null;
-                            // },
+                            validator: (value) {
+                              if (!widget.isSign) {  // Only validate for sign up
+                                if (value == null || value.isEmpty) return 'Must be at least 8 characters';
+                                if (value.length < 8) return 'Must be at least 8 characters';
+                                if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
+                                if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
+                                  return 'Must contain letters and numbers';
+                                }
+                              }
+                              return null;
+                            },
                             onChanged: (value) {
-                              _updatePasswordValidation();
+                              if (!widget.isSign) {
+                                _updatePasswordValidation();
+                              }
                               _formKey.currentState?.validate();
+                              _updateButtonState();
                             },
                             decoration: InputDecoration(
                               hintText: 'Password',

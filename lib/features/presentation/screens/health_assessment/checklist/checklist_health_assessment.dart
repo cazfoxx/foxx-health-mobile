@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/core/utils/snackbar_utils.dart';
-import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
-    show AppointmentTypeModel;
-import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
+import 'dart:developer';
+import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_assessment/check_list/health_assesment_checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment_info/appointment_info_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
+import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 // import 'package:share_plus/share_plus.dart';
@@ -24,13 +24,50 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
   String appointment = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Use addPostFrameCallback to ensure the context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      saveChecklist();
+    });
+  }
+
+  saveChecklist() async {
+    try {
+      final cubit = context.read<HealthAssessmentChecklistCubit>();
+      await cubit.saveChecklist();
+      if (mounted && cubit.state is! HealthAssessmentChecklistError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Checklist saved successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save checklist: $e')),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChecklistCubit, ChecklistState>(
+    return BlocBuilder<HealthAssessmentChecklistCubit, HealthAssessmentChecklistState>(
       builder: (context, state) {
-        final cubit = context.read<ChecklistCubit>();
-        return Scaffold(
-          backgroundColor: AppColors.background,
+        final cubit = context.read<HealthAssessmentChecklistCubit>();
+        return BaseScaffold(
           appBar: _buildAppBar(),
+          currentIndex: 0,
+          onTap: (p0) {
+          Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ),
+          (route) => false,
+        );   
+          },
+       
           body: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,39 +78,31 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
                   child: Column(
                     children: [
                       const SizedBox(height: 24),
-                      _buildReorderableSection(
-                        'Suggested Questions',
-                        cubit.suggestedQuestion,
-                        (oldIndex, newIndex) {
-                          setState(() {
-                            if (newIndex > oldIndex) newIndex -= 1;
-                            final item =
-                                cubit.suggestedQuestion.removeAt(oldIndex);
-                            cubit.suggestedQuestion.insert(newIndex, item);
-                          });
-                        },
-                        showSeeAll: true,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildReorderableSection(
-                        'Personal Questions',
-                        cubit.customQuestion,
-                        (oldIndex, newIndex) {
-                          setState(() {
-                            if (newIndex > oldIndex) newIndex -= 1;
-                            final item =
-                                cubit.customQuestion.removeAt(oldIndex);
-                            cubit.customQuestion.insert(newIndex, item);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSection(
-                        'Prescriptions & Supplements',
-                        cubit.prescription,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSection('Medical Term Explainer', []),
+                      if (cubit.informationToPrepare.isNotEmpty)
+                        Column(
+                          children: [
+                            _buildSection(
+                              'Information to prepare',
+                              cubit.informationToPrepare,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      if (cubit.questionsForDoctor.isNotEmpty)
+                        Column(
+                          children: [
+                            _buildSection(
+                              'Questions for Doctor',
+                              cubit.questionsForDoctor,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      if (cubit.testsToDiscuss.isNotEmpty)
+                        _buildSection(
+                          'Tests to discuss',
+                          cubit.testsToDiscuss,
+                        ),
                     ],
                   ),
                 )
@@ -94,20 +123,6 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
       leadingWidth: 100,
       leading: TextButton(
         onPressed: () {
-          if (_isEditing) {
-            // Get the cubit instance
-            final cubit = context.read<ChecklistCubit>();
-
-            // Call edit checklist API
-            cubit.editChecklist().then((_) {
-              SnackbarUtils.showSuccess(
-                context: context,
-                title: 'Checklist',
-                message: 'Updated successfully',
-              );
-              // Show success snackbar
-            });
-          }
           setState(() => _isEditing = !_isEditing);
         },
         child: Text(
@@ -135,7 +150,6 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
   }
 
   Widget _buildHeaderSection() {
-    final cubit = context.read<ChecklistCubit>();
     return Container(
       color: AppColors.lightViolet,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -150,11 +164,9 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
             Padding(
               padding: const EdgeInsets.all(14.0),
               child: InkWell(
-                onTap: () => _showEditBottomSheet(cubit.checkListName),
+                onTap: () => _showEditBottomSheet('Health Assessment Checklist'),
                 child: Text(
-                  cubit.checkListName.isEmpty
-                      ? 'Check List'
-                      : cubit.checkListName,
+                  'Health Assessment Checklist',
                   style: AppTextStyles.heading2.copyWith(
                     color: AppColors.amethystViolet,
                   ),
@@ -182,7 +194,6 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        final cubit = context.read<ChecklistCubit>();
         TextEditingController controller =
             TextEditingController(text: currentName);
         return Padding(
@@ -197,8 +208,6 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
-                  cubit.setCheckListName(controller.text);
-                  setState(() {}); // Refresh UI
                   Navigator.of(context).pop();
                 },
                 child: Text('Save'),
@@ -254,7 +263,7 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
             ],
             onSelected: (value) async {
               if (value == 'existing') {
-                final AppointmentTypeModel result = await showModalBottomSheet(
+                final AppointmentInfoModel result = await showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   shape: RoundedRectangleBorder(
@@ -273,17 +282,18 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
                           topRight: Radius.circular(20),
                         ),
                       ),
-                      child: const AppointmentTypeScreen(),
+                      child: const AppointmentInfoScreen(),
                     ),
                   ),
                 );
 
                 if (result != null) {
-                  final checklistCubit = context.read<ChecklistCubit>();
-                  checklistCubit.setAppointmentTypeId(result.id);
-                  checklistCubit.setCheckListName(result.name);
+                  //show snackbar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Appointment added successfully')),
+                  );
                   setState(() {
-                    appointment = result.name;
+                    appointment = result.titleText;
                   });
                 }
               } else {
@@ -314,246 +324,270 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
     );
   }
 
-  Widget _buildReorderableSection(
-    String title,
-    List<String> items,
-    void Function(int, int) onReorder, {
-    bool showSeeAll = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: AppTextStyles.heading3),
-            if (showSeeAll)
-              TextButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => FractionallySizedBox(
-                      heightFactor: 0.9,
-                      child: SeeFullListScreen(
-                        selectedQuestions: items,
-                        onUpdate: (updatedQuestions) {
-                          // Handle updated questions
-                        },
+  void _showAddItemBottomSheet(String section) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final TextEditingController controller = TextEditingController();
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Add New Item',
+                style: AppTextStyles.heading3,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Enter item details',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: AppTextStyles.body.copyWith(
+                        color: Colors.grey,
                       ),
                     ),
-                  ).then(
-                    (value) {
-                      setState(() {});
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (controller.text.trim().isNotEmpty) {
+                        final cubit = context.read<HealthAssessmentChecklistCubit>();
+                        switch (section) {
+                          case 'Information to prepare':
+                            cubit.addInformationToPrepare(controller.text.trim());
+                            break;
+                          case 'Questions for Doctor':
+                            cubit.addQuestionForDoctor(controller.text.trim());
+                            break;
+                          case 'Tests to discuss':
+                            cubit.addTestToDiscuss(controller.text.trim());
+                            break;
+                        }
+                        Navigator.pop(context);
+                      }
                     },
-                  );
-                },
-                child: Text(
-                  'See All',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.amethystViolet,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (items.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  color: AppColors.amethystViolet,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Add $title',
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.amethystViolet,
-                  ),
-                ),
-              ],
-            ),
-          )
-        else if (_isEditing)
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
-              ),
-            ),
-            child: ReorderableListView(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              onReorder: onReorder,
-              children: [
-                for (int index = 0; index < items.length; index++)
-                  ListTile(
-                    key: ValueKey('$title-$index'),
-                    leading: const Icon(
-                        Icons.drag_handle), // Drag handle on the left
-                    title: Text(
-                      items[index],
-                      style: AppTextStyles.body2,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amethystViolet,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () {
-                        setState(() {
-                          items.removeAt(index);
-                        });
-                      },
-                    ), // Delete button on the right
+                    child: Text(
+                      'Add',
+                      style: AppTextStyles.body.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-              ],
-            ),
-          )
-        else
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
+                ],
               ),
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: Divider(
-                  color: Colors.grey.withOpacity(0.3),
-                  height: 1,
-                ),
-              ),
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    items[index],
-                    style: AppTextStyles.body2,
-                  ),
-                );
-              },
-            ),
+              const SizedBox(height: 16),
+            ],
           ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildSection(String title, List<String> items,
-      {bool showSeeAll = false}) {
+  void _showAddNoteBottomSheet(ChecklistItem item, String section) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final TextEditingController controller = TextEditingController(text: item.note);
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Add Note',
+                style: AppTextStyles.heading3.copyWith(color: AppColors.davysGray),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.text,
+                style: AppTextStyles.body2,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Enter your note here',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: AppTextStyles.body.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      final cubit = context.read<HealthAssessmentChecklistCubit>();
+                      cubit.updateNote(item.text, controller.text, section);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amethystViolet,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      'Save',
+                      style: AppTextStyles.body.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSection(String title, List<ChecklistItem> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: AppTextStyles.heading3),
-            if (showSeeAll)
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SeeFullListScreen(
-                        selectedQuestions: items,
-                        onUpdate: (updatedQuestions) {
-                          // Handle updated questions
-                        },
-                      ),
-                    ),
-                  );
-                },
-                child: Text(
-                  'See All',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.amethystViolet,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-          ],
-        ),
+        Text(title, style: AppTextStyles.heading3),
         const SizedBox(height: 16),
-        if (items.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(17),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  color: AppColors.amethystViolet,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Add $title',
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.amethystViolet,
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.lightViolet.withOpacity(0.2),
-              ),
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => Divider(
-                color: AppColors.lightViolet.withOpacity(0.2),
-                height: 1,
-              ),
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    items[index],
-                    style: AppTextStyles.body2,
-                  ),
-                  trailing: _isEditing
-                      ? IconButton(
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: () {
-                            setState(() {
-                              items.removeAt(index);
-                            });
-                          },
-                        )
-                      : null,
-                );
-              },
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.lightViolet.withOpacity(0.2),
             ),
           ),
+          child: Column(
+            children: [
+              ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: items.length,
+                separatorBuilder: (context, index) => Divider(
+                  color: AppColors.lightViolet.withOpacity(0.2),
+                  height: 1,
+                ),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return ListTile(
+                    title: Text(
+                      item.text,
+                      style: AppTextStyles.body2,
+                    ),
+                    subtitle: title == 'Information to prepare' ? GestureDetector(
+                      onTap: () => _showAddNoteBottomSheet(item, title),
+                      child: Text(
+                        item.note?.isNotEmpty == true ? item.note! : 'Add note',
+                        style: AppTextStyles.body2OpenSans.copyWith(
+                          color: AppColors.davysGray,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ) : null,
+                    trailing: _isEditing
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () {
+                              final cubit = context.read<HealthAssessmentChecklistCubit>();
+                              switch (title) {
+                                case 'Information to prepare':
+                                  cubit.removeInformationToPrepare(item.text);
+                                  break;
+                                case 'Questions for Doctor':
+                                  cubit.removeQuestionForDoctor(item.text);
+                                  break;
+                                case 'Tests to discuss':
+                                  cubit.removeTestToDiscuss(item.text);
+                                  break;
+                              }
+                            },
+                          )
+                        : null,
+                  );
+                },
+              ),
+              InkWell(
+                onTap: () => _showAddItemBottomSheet(title),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline,
+                        color: AppColors.davysGray,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Add Item',
+                        style: AppTextStyles.body2OpenSans.copyWith(
+                          color: AppColors.davysGray,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
