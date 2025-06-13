@@ -81,9 +81,16 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
                       if (cubit.informationToPrepare.isNotEmpty)
                         Column(
                           children: [
+                            
+                            const SizedBox(height: 24),
+                            // _buildSection(
+                            //   'Information to prepare',
+                            //   cubit.informationToPrepare,
+                            // ),
+                            if (cubit.followUpItems.isNotEmpty)
                             _buildSection(
-                              'Information to prepare',
-                              cubit.informationToPrepare,
+                              'Follow-up items',
+                              cubit.followUpItems,
                             ),
                             const SizedBox(height: 24),
                           ],
@@ -98,11 +105,11 @@ class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
                             const SizedBox(height: 24),
                           ],
                         ),
-                      if (cubit.testsToDiscuss.isNotEmpty)
-                        _buildSection(
-                          'Tests to discuss',
-                          cubit.testsToDiscuss,
-                        ),
+                      // if (cubit.testsToDiscuss.isNotEmpty)
+                      //   _buildSection(
+                      //     'Tests to discuss',
+                      //     cubit.testsToDiscuss,
+                      //   ),
                     ],
                   ),
                 )

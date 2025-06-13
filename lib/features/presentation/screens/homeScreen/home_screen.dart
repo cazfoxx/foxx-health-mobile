@@ -164,23 +164,14 @@ class _HomeContentState extends State<HomeContent> {
                   child: Row(
                     children: [
                       SvgPicture.asset(
-                        'assets/svg/foxx_logo.svg',
-                        width: 25,
-                        height: 25,
+                        'assets/svg/logo_horizontal.svg',
+
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'FoXX Health',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.amethystViolet,
-                        ),
-                      ),
+                    
                     ],
                   ),
                 ),
-                const SizedBox(width: 65),
+                const SizedBox(width: 68),
                 FutureBuilder(
                     future: _getUserInitial(),
                     builder: (context, snapshot) {
@@ -220,7 +211,7 @@ class _HomeContentState extends State<HomeContent> {
                   children: [
                     _buildActionItem(
                       icon: SvgPicture.asset(
-                          'assets/svg/home/track_symptoms.svg'),
+                          'assets/svg/splash/symptom_tracking.svg'),
                       title: 'Track Symptoms',
                       onTap: () {
                         context
@@ -242,7 +233,7 @@ class _HomeContentState extends State<HomeContent> {
                     const Divider(height: 24),
                     _buildActionItem(
                       icon: SvgPicture.asset(
-                          'assets/svg/home/personal_health.svg'),
+                          'assets/svg/splash/personal_health_guide.svg'),
                       title: 'Create Health Assessment',
                       onTap: () {
                         context

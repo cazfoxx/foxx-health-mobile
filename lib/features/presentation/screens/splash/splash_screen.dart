@@ -9,6 +9,75 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar:Container(
+        height: 150,
+        color: Colors.white,
+        child: Column(
+          children: [
+             Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen(
+                                    isSign: false,
+                                  )));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amethystViolet,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                    ),
+                    child: const Text(
+                      'Create an Account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen(isSign: true)));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(
+                        color: AppColors.amethystViolet,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                    ),
+                    child: const Text(
+                      'Sign In',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.amethystViolet,
+                      ),
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -20,18 +89,19 @@ class SplashScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     SvgPicture.asset(
-                      'assets/svg/foxx_logo.svg',
-                      height: 60,
+                      'assets/svg/splash/foxx_logo_splash.svg',
+                      height: 134,
+                      width: 134,
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'FoXX Health',
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: AppColors.amethystViolet,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    // const SizedBox(height: 8),
+                    // const Text(
+                    //   'FoXX Health',
+                    //   style: TextStyle(
+                    //     fontSize: 24,
+                    //     color: AppColors.amethystViolet,
+                    //     fontWeight: FontWeight.w600,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -45,7 +115,7 @@ class SplashScreen extends StatelessWidget {
                   children: [
                     const SizedBox(height: 10),
                     const Text(
-                      'Welcome FPO',
+                      'Your health toolkit',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -55,89 +125,31 @@ class SplashScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildFeatureItem(
                       'Symptom tracking',
-                      'Easily track and monitor your symptoms',
+                      'Understand your body. Log symptoms, and spot trends over time',
+                      image: 'assets/svg/splash/symptom_tracking.svg',
                     ),
                     const SizedBox(height: 20),
                     _buildFeatureItem(
-                      'Tailored checklists',
-                      'Knowing exactly what questions to ask. Self-advocate for your health effectively and thoroughly.',
+                      'Appointment preparation',
+                      'Personalized questions and checklists to help you advocate for yourself',
+                      image: 'assets/svg/splash/appointment.svg',
                     ),
                     const SizedBox(height: 20),
                     _buildFeatureItem(
                       'Trusted health information',
-                      'Access reliable, science-based health information directly',
+                      'Access expert-backed, science-based guidance when you need it',
+                      image: 'assets/svg/splash/health_information.svg',
                     ),
                     const SizedBox(height: 20),
                     _buildFeatureItem(
                       'Personal Health Guide',
                       'A guided assessment to personalize your journey and get you the support you actually need',
+                      image: 'assets/svg/splash/personal_health_guide.svg',
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 55),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                height: 44,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => LoginScreen(
-                                  isSign: false,
-                                )));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.amethystViolet,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'Create an Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                height: 44,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => LoginScreen(isSign: true)));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(
-                      color: AppColors.amethystViolet,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.amethystViolet,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
+          
             ],
           ),
         ),
@@ -145,13 +157,14 @@ class SplashScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(String title, String description) {
+  Widget _buildFeatureItem(String title, String description, {required String image}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 50,
           height: 50,
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white,
@@ -159,6 +172,10 @@ class SplashScreen extends StatelessWidget {
               color: AppColors.amethystViolet,
               width: 1,
             ),
+          ),
+          child: SvgPicture.asset(image,
+            width: 30,
+            height: 30,
           ),
         ),
         const SizedBox(width: 16),

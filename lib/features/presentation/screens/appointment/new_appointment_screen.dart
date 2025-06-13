@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/data/models/checklist_model.dart';
@@ -33,17 +34,23 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
   }
 
 
-  void _saveAppointment() {
+  void _saveAppointment()async {
     if (_titleController.text.isEmpty ||
         _selectedType == null ||
         _selectedDate == null ||
         _selectedChecklists.isEmpty ||
         _selectedSymptoms.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
+          
+          Navigator.pop(context);
+          SnackbarUtils.showError(
+            context: context,
+            title: 'Please fill in all fields',
+          );
+    
+     
+    }else{
+      
+
 
     final appointmentCubit = context.read<AppointmentInfoCubit>();
     appointmentCubit.setTitleText(_titleController.text);
@@ -55,7 +62,13 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
         .setSymptomIds(_selectedSymptoms.map((s) => s.id ?? 0).toList());
     appointmentCubit.createAppointmentInfo().then((_) {
       Navigator.pop(context);
+      //show success snackbar
+      SnackbarUtils.showSuccess(
+        context: context,
+        title: 'Appointment created successfully',
+      );
     });
+    }
   }
 
   @override

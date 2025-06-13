@@ -8,7 +8,7 @@ import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
+
 import 'package:foxxhealth/features/presentation/screens/appointment/new_appointment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment_info/appointment_info_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/see_full_list_screen.dart';

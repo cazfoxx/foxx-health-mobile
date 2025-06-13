@@ -7,6 +7,7 @@ import 'package:foxxhealth/features/presentation/screens/loginScreen/login_scree
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get.dart' as getx;
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -149,14 +150,18 @@ class LoggerInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) async{
     ApiClient.logger.e(
       '❌ ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
       error: err.error,
       stackTrace: err.stackTrace,
     );
 
-    if (err.response?.statusCode == 401) {
+    if (err.response?.statusCode == 401){
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      // Clear AppStorage
+      AppStorage.clearCredentials();
       Navigator.of(getx.Get.context!).pushAndRemoveUntil(MaterialPageRoute(
         builder: (context) => LoginScreen(
           showBackButton: false,

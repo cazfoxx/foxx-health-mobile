@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
@@ -72,9 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       if (widget.isSign) {
         // For sign in, check email validation and password
-        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
-            _emailController.text.trim().isNotEmpty &&
-            _passwordController.text.trim().isNotEmpty;
+        _isButtonEnabled = _formKey.currentState?.validate() ??
+            false &&
+                _emailController.text.trim().isNotEmpty &&
+                _passwordController.text.trim().isNotEmpty;
       } else {
         // For sign up, check all conditions:
         // 1. Email validation
@@ -85,10 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final passwordValid = validatePassword(_passwordController.text);
         final checkboxesChecked = _agreeToTerms && _isOver16;
 
-        _isButtonEnabled = emailValid && 
-                         emailNotEmpty && 
-                         passwordValid && 
-                         checkboxesChecked;
+        _isButtonEnabled =
+            emailValid && emailNotEmpty && passwordValid && checkboxesChecked;
       }
     });
   }
@@ -96,6 +97,99 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: Container(
+        width: double.infinity,
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        margin: const EdgeInsets.only(bottom: 20),
+        child: BlocConsumer<LoginCubit, LoginState>(
+          listener: (context, state) {
+            if (state is LoginSuccess) {
+              if (!widget.isSign) {
+                // If it's sign up, navigate to onboarding
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OnboardingScreen(),
+                  ),
+                );
+              } else {
+                SnackbarUtils.showSuccess(
+                    context: context,
+                    title: 'Welcome back',
+                    message: _emailController.text.split('@')[0]);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(),
+                  ),
+                );
+              }
+            } else if (state is LoginError) {
+              // Show error message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isButtonEnabled
+                    ? () {
+                        final loginCubit = context.read<LoginCubit>();
+                        loginCubit.setUserDetails(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
+                        if (!widget.isSign) {
+                          // If it's sign up, navigate to onboarding
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OnboardingScreen(),
+                            ),
+                          );
+                        } else {
+                          // If it's sign in, only call the sign in method
+                          // Navigation will be handled in BlocListener
+                          loginCubit.signInWithEmail(
+                            _emailController.text,
+                            _passwordController.text,
+                          );
+                        }
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isButtonEnabled
+                      ? AppColors.amethystViolet
+                      : Colors.grey[300],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: state is LoginLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        widget.isSign ? 'Sign In' : 'Create An Account',
+                        style: TextStyle(
+                          color: _isButtonEnabled
+                              ? Colors.white
+                              : Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+              ),
+            );
+          },
+        ),
+      ),
       backgroundColor: Colors.white,
       appBar: _buildAppBar(widget.showBackButton),
       body: SafeArea(
@@ -112,12 +206,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   PreferredSizeWidget _buildAppBar(bool showBackButton) {
     return AppBar(
-      leading: !showBackButton?
-      SizedBox():
-      IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
-      ),
+      leading: !showBackButton
+          ? SizedBox()
+          : IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
       backgroundColor: Colors.white,
       elevation: 0,
     );
@@ -190,7 +284,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return 'Please enter an email address';
                               }
                               // Regular expression for email validation
-                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              final emailRegex =
+                                  RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                               if (!emailRegex.hasMatch(value)) {
                                 return 'Please enter a valid email address';
                               }
@@ -228,11 +323,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _passwordController,
                             obscureText: _obscurePassword,
                             validator: (value) {
-                              if (!widget.isSign) {  // Only validate for sign up
-                                if (value == null || value.isEmpty) return 'Must be at least 8 characters';
-                                if (value.length < 8) return 'Must be at least 8 characters';
-                                if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
-                                if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
+                              if (!widget.isSign) {
+                                // Only validate for sign up
+                                if (value == null || value.isEmpty)
+                                  return 'Must be at least 8 characters';
+                                if (value.length < 8)
+                                  return 'Must be at least 8 characters';
+                                if (!RegExp(r'[A-Z]').hasMatch(value))
+                                  return 'Must contain a capital letter';
+                                if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)')
+                                    .hasMatch(value)) {
                                   return 'Must contain letters and numbers';
                                 }
                               }
@@ -279,8 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        if (!widget.isSign
-                            ) ...[
+                        if (!widget.isSign) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 8),
@@ -341,8 +440,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   widget.isSign
                       ? const SizedBox()
                       : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Column(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Column(
                             children: [
                               Row(
                                 children: [
@@ -363,16 +462,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                       children: [
                                         TextSpan(text: 'I agree to '),
                                         TextSpan(
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              PrivacyPolicyBottomSheet.show(
+                                                  context);
+                                            },
                                           text: 'Privacy Policy',
                                           style: AppTextStyles.captionOpenSans
-                                              .copyWith(color: Colors.black,
-                                              decoration: TextDecoration.underline),
+                                              .copyWith(
+                                                  color: Colors.black,
+                                                  decoration:
+                                                      TextDecoration.underline),
                                         ),
                                         TextSpan(text: ' and '),
                                         TextSpan(
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              PrivacyPolicyBottomSheet.show(
+                                                  context);
+                                            },
                                           text: 'Terms and Conditions',
                                           style: AppTextStyles.captionOpenSans
-                                              .copyWith(color: Colors.black,decoration: TextDecoration.underline),
+                                              .copyWith(
+                                                  color: Colors.black,
+                                                  decoration:
+                                                      TextDecoration.underline),
                                         ),
                                       ],
                                     ),
@@ -400,7 +514,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                      ),
+                        ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
@@ -431,105 +545,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  Container(
-                    width: double.infinity,
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    child: BlocConsumer<LoginCubit, LoginState>(
-                      listener: (context, state) {
-                        if (state is LoginSuccess) {
-                          if (!widget.isSign) {
-                            // If it's sign up, navigate to onboarding
-
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OnboardingScreen(),
-                              ),
-                            );
-                          } else {
-                            SnackbarUtils.showSuccess(
-                                context: context,
-                                title: 'Welcome back',
-                                message: _emailController.text.split('@')[0]);
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HomeScreen(),
-                              ),
-                            );
-                          }
-                        } else if (state is LoginError) {
-                          // Show error message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(state.message),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                      builder: (context, state) {
-                        return SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isButtonEnabled
-                                ? () {
-                                    final loginCubit =
-                                        context.read<LoginCubit>();
-                                    loginCubit.setUserDetails(
-                                      email: _emailController.text,
-                                      password: _passwordController.text,
-                                    );
-                                    if (!widget.isSign) {
-                                      // If it's sign up, navigate to onboarding
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              OnboardingScreen(),
-                                        ),
-                                      );
-                                    } else {
-                                      // If it's sign in, only call the sign in method
-                                      // Navigation will be handled in BlocListener
-                                      loginCubit.signInWithEmail(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
-                                    }
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _isButtonEnabled
-                                  ? AppColors.amethystViolet
-                                  : Colors.grey[300],
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: state is LoginLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : Text(
-                                    widget.isSign
-                                        ? 'Sign In'
-                                        : 'Create An Account',
-                                    style: TextStyle(
-                                      color: _isButtonEnabled
-                                          ? Colors.white
-                                          : Colors.grey[600],
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
 
                   // Add bottom padding
                 ],

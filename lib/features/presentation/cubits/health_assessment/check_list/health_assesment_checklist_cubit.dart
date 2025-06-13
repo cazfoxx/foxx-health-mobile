@@ -21,6 +21,7 @@ class HealthAssessmentChecklistCubit extends Cubit<HealthAssessmentChecklistStat
   List<ChecklistItem> _informationToPrepare = [];
   List<ChecklistItem> _questionsForDoctor = [];
   List<ChecklistItem> _testsToDiscuss = [];
+  List<ChecklistItem> _followUpItems = [];
 
   String checklistTitle = '';
   int? appointmentTypeId;
@@ -31,6 +32,7 @@ class HealthAssessmentChecklistCubit extends Cubit<HealthAssessmentChecklistStat
   List<ChecklistItem> get informationToPrepare => _informationToPrepare;
   List<ChecklistItem> get questionsForDoctor => _questionsForDoctor;
   List<ChecklistItem> get testsToDiscuss => _testsToDiscuss;
+  List<ChecklistItem> get followUpItems => _followUpItems;
 
   // Methods for Information to Prepare
   void addInformationToPrepare(String info) {
@@ -54,6 +56,13 @@ class HealthAssessmentChecklistCubit extends Cubit<HealthAssessmentChecklistStat
   void addQuestionForDoctor(String question) {
     if (!_questionsForDoctor.any((item) => item.text == question)) {
       _questionsForDoctor = [..._questionsForDoctor, ChecklistItem(text: question)];
+      emit(HealthAssessmentChecklistLoaded());
+    }
+  }
+
+  void addFollowUpItem(String item) {
+    if (!_followUpItems.any((item) => item.text == item)) {
+      _followUpItems = [..._followUpItems, ChecklistItem(text: item)];
       emit(HealthAssessmentChecklistLoaded());
     }
   }
@@ -123,9 +132,23 @@ class HealthAssessmentChecklistCubit extends Cubit<HealthAssessmentChecklistStat
       _questionsForDoctor = [];
       _testsToDiscuss = [];
 
-      // Populate information to prepare
+      // Populate information to prepare (as curated info)
       for (var info in guideView['information_to_prepare_details']) {
         _informationToPrepare.add(ChecklistItem(text: info['information']));
+      }
+
+      // Add follow-up items as curated info as well
+      if (guideView['appointment_followup_items_details'] != null) {
+        for (var item in guideView['appointment_followup_items_details']) {
+          _informationToPrepare.add(ChecklistItem(text: item['follow_up_item_text']));
+        }
+      }
+
+      // Add follow-up items as curated info as well
+      if (guideView['appointment_followup_items_details'] != null) {
+        for (var item in guideView['appointment_followup_items_details']) {
+          _informationToPrepare.add(ChecklistItem(text: item['follow_up_item_text']));
+        }
       }
 
       // Populate questions for doctor
@@ -164,12 +187,30 @@ class HealthAssessmentChecklistCubit extends Cubit<HealthAssessmentChecklistStat
       final accountId = prefs.getInt('accountId') ?? 0;
       log('Account ID: $accountId');
 
+      // Create info array combining both curated and custom questions
+      List<Map<String, String>> info = [];
+      
+      // Add follow-up items and information to prepare as curated_info
+      for (var item in _followUpItems) {
+        info.add({
+          "type": "curated_info",
+          "text": item.text
+        });
+      }
+      
+      // Add questions for doctor as custom_info
+      for (var question in _questionsForDoctor) {
+        info.add({
+          "type": "custom_info",
+          "text": question.text
+        });
+      }
+
       final data = {
-        "name": checklistTitle + ' PHG checklist',
+        "name": checklistTitle,
         "appointment_type_id": appointmentTypeId,
-        "curated_question_ids": [], // If you have curated questions, add their IDs here
-        "custom_questions": _questionsForDoctor.map((q) => q.text).toList(),
-        "prescription_and_supplements": [], // If you have prescriptions, add them here
+        "info": info,
+        "prescription_and_supplements": _testsToDiscuss.map((test) => test.text).toList(),
         "is_active": true,
         "is_deleted": false,
         "account_id": accountId

@@ -85,7 +85,7 @@ class AddBottomSheet extends StatelessWidget {
                           ),
                           child: _buildActionItem(
                             icon: SvgPicture.asset(
-                                'assets/svg/home/track_symptoms.svg'),
+                                'assets/svg/splash/symptom_tracking.svg'),
                             title: 'Track Symptoms',
                             onTap: () {
                               Navigator.pop(context);
@@ -119,7 +119,7 @@ class AddBottomSheet extends StatelessWidget {
                           ),
                           child: _buildActionItem(
                             icon: SvgPicture.asset(
-                                'assets/svg/home/personal_health.svg'),
+                                'assets/svg/splash/personal_health_guide.svg'),
                             title: 'Create Health Assessment',
                             onTap: () {
                               Navigator.pop(context);

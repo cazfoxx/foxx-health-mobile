@@ -97,11 +97,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           );
           Navigator.pop(context);
         } else if (state is ForgotPasswordError) {
-          SnackbarUtils.showError(
-            context: context,
-            title: 'Error',
-            message: state.message,
-          );
+          // SnackbarUtils.showError(
+          //   context: context,
+          //   title: 'Error',
+          //   message: state.message,
+          // );
         }
       },
       builder: (context, state) {

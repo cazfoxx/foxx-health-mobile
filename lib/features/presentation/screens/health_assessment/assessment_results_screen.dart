@@ -141,6 +141,13 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
                       .where((test) => _testsToDiscuss[test['test_name']] == true)
                       .toList();
                   
+                  // Filter follow-up items
+                  filteredGuideView['appointment_followup_items_details'] = state.guideView['appointment_followup_items_details']
+                      .where((item) => _followUpItems[item['follow_up_item_text']] == true)
+                      .toList();
+
+                      
+                  
                   checklistCubit.populateFromAssessmentResults(filteredGuideView);
                   
                   checklistCubit.setChecklistTitle(healthCubit.appointmentType);

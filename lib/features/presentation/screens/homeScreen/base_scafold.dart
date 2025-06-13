@@ -40,22 +40,29 @@ class BaseScaffold extends StatelessWidget {
           }
         },
         type: BottomNavigationBarType.fixed,
+        
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(
-            activeIcon: SvgPicture.asset('assets/svg/home/home_solid_icon.svg'),
-            icon: SvgPicture.asset('assets/svg/home/home_icon.svg'),
+            activeIcon: SvgPicture.asset('assets/svg/home/home_solid_icon.svg',
+            color: AppColors.amethystViolet,),
+            icon: SvgPicture.asset('assets/svg/home/home_icon.svg',
+            color: AppColors.amethystViolet,),
             label: 'Home',
+            
           ),
           BottomNavigationBarItem(
-            activeIcon: SvgPicture.asset('assets/svg/home/news_solid.svg'),
-            icon: SvgPicture.asset('assets/svg/home/news_icon.svg'),
+            activeIcon: SvgPicture.asset('assets/svg/home/news_solid.svg',
+            color: AppColors.amethystViolet,),
+            icon: SvgPicture.asset('assets/svg/home/news_icon.svg',
+            color: AppColors.amethystViolet,),
             label: 'News',
           ),
           BottomNavigationBarItem(
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(top: 10,bottom: 0),
+              padding: const EdgeInsets.only(top: 7,bottom: 7),
               width: 70,
               decoration: BoxDecoration(
                 color: AppColors.amethystViolet,
@@ -63,18 +70,23 @@ class BaseScaffold extends StatelessWidget {
               ),
               child: const Icon(Icons.add, color: Colors.white),
             ),
-            label: 'Add',
+            label: '',
           ),
           BottomNavigationBarItem(
             activeIcon:
-                SvgPicture.asset('assets/svg/home/health_icon_navigation.svg'),
-            icon: SvgPicture.asset('assets/svg/home/health_icon.svg'),
+                SvgPicture.asset('assets/svg/home/health_icon_navigation.svg',
+                color: AppColors.amethystViolet,
+                ),
+            icon: SvgPicture.asset('assets/svg/home/health_icon.svg',
+            color: AppColors.amethystViolet,),
             label: 'Symptom',
           ),
           BottomNavigationBarItem(
             activeIcon:
-                SvgPicture.asset('assets/svg/home/feedback_solid_icon.svg'),
-            icon: SvgPicture.asset('assets/svg/home/feedback_icon.svg'),
+                SvgPicture.asset('assets/svg/home/feedback_solid_icon.svg',
+                color: AppColors.amethystViolet,),
+            icon: SvgPicture.asset('assets/svg/home/feedback_icon.svg',
+            color: AppColors.amethystViolet,),
             label: 'Feedback',
           ),
         ],

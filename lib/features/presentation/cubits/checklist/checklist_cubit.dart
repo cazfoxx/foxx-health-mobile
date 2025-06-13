@@ -228,20 +228,38 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       final prefs = await SharedPreferences.getInstance();
       final accountId = prefs.getInt('accountId') ?? 0;
 
-      ChecklistModel checklist = ChecklistModel(
-        name: checkListName,
-        appointmentTypeId: appointmentTypeId,
-        curatedQuestionIds: curatedQuestionIds,
-        customQuestions: customQuestion,
-        prescriptionAndSupplements: prescription,
-        isActive: true,
-        isDeleted: false,
-        accountId: accountId
-      );
+      // Create info array combining both suggested and custom questions
+      List<Map<String, String>> info = [];
+      
+      // Add suggested questions as curated_info
+      for (var question in suggestedQuestion) {
+        info.add({
+          "type": "curated_info",
+          "text": question
+        });
+      }
+      
+      // Add custom questions as custom_info
+      for (var question in customQuestion) {
+        info.add({
+          "type": "custom_info",
+          "text": question
+        });
+      }
+
+      final data = {
+        'name': checkListName,
+        'appointment_type_id': appointmentTypeId,
+        'info': info,
+        'prescription_and_supplements': prescription,
+        'is_active': true,
+        'is_deleted': false,
+        'account_id': accountId
+      };
 
       final response = await _apiClient.post(
         '/api/v1/checklists/',
-        data: checklist.toJson(),
+        data: data,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -293,11 +311,29 @@ class ChecklistCubit extends Cubit<ChecklistState> {
       final prefs = await SharedPreferences.getInstance();
       final accountId = prefs.getInt('accountId') ?? 0;
 
+      // Create info array combining both suggested and custom questions
+      List<Map<String, String>> info = [];
+      
+      // Add suggested questions as curated_info
+      for (var question in suggestedQuestion) {
+        info.add({
+          "type": "curated_info",
+          "text": question
+        });
+      }
+      
+      // Add custom questions as custom_info
+      for (var question in customQuestion) {
+        info.add({
+          "type": "custom_info",
+          "text": question
+        });
+      }
+
       final data = {
         'name': checkListName,
         'appointment_type_id': appointmentTypeId,
-        'curated_question_ids': curatedQuestionIds,
-        'custom_questions': customQuestion,
+        'info': info,
         'prescription_and_supplements': prescription,
         'is_active': true,
         'is_deleted': false,
