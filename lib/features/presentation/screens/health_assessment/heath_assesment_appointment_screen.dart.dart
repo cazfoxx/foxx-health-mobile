@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
@@ -26,12 +27,19 @@ class _HealthAssessmentAppointTypeScreenState
   final _searchController = TextEditingController();
   String? selectedType;
   List<String> filteredTypes = [];
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentAppointTypeScreen',
+      screenClass: 'HealthAssessmentAppointTypeScreen',
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-
+    _logScreenView();
   }
 
   void _showTypeSelector() async {

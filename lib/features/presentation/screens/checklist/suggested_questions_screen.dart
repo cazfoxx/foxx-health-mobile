@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_checklist.dart';
 import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
@@ -29,9 +30,19 @@ class _SuggestedQuestionsScreenState extends State<SuggestedQuestionsScreen> {
   List<Map<String, dynamic>> _curatedQuestions = [];
   bool _isLoading = true;
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistSuggestedQuestionsScreen',
+      screenClass: 'ChecklistSuggestedQuestionsScreen',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     _fetchCuratedQuestions();
   }
 

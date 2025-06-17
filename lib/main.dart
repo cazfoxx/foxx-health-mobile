@@ -5,9 +5,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_info/appointment_info_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_type/appointment_cubit.dart';
@@ -25,6 +27,8 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 
 
 void main() async {
@@ -43,6 +47,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Firebase Analytics
+  final analytics = FirebaseAnalytics.instance;
+  await analytics.setAnalyticsCollectionEnabled(true);
+  
   await GetStorage.init();
 
   const fatalError = true;
@@ -69,7 +78,37 @@ void main() async {
     return true;
   };
 
-  runApp(const MyApp());
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = 'https://3bb3cb47d80c471f533d39d99ab4fca1@o4509508680548352.ingest.us.sentry.io/4509508682317824';
+      // Adds request headers and IP for users
+      options.sendDefaultPii = true;
+      
+      // Performance monitoring
+      options.tracesSampleRate = 1.0;
+      options.profilesSampleRate = 1.0;
+      
+      // Additional configuration
+      options.environment = 'development'; // or 'development', 'staging'
+      options.attachStacktrace = true;
+      options.maxBreadcrumbs = 100;
+      
+      // Enable auto session tracking
+      options.enableAutoSessionTracking = true;
+      
+      // Enable native crash handling
+      options.enableNativeCrashHandling = true;
+      
+      // Enable app lifecycle breadcrumbs
+      options.enableAppLifecycleBreadcrumbs = true;
+      
+      // Enable user interaction breadcrumbs
+      options.enableUserInteractionBreadcrumbs = true;
+    },
+    appRunner: () => runApp(SentryWidget(child: const MyApp())),
+  );
+
+  await Sentry.captureException(StateError('This is a sample exception.'));
 }
 
 class MyApp extends StatelessWidget {
@@ -112,6 +151,9 @@ class MyApp extends StatelessWidget {
             scaffoldMessengerKey: ApiClient.scaffoldKey,
             title: 'FoxxHealth',
             debugShowCheckedModeBanner: false,
+            navigatorObservers: [
+              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+            ],
             theme: ThemeData(
               colorScheme:
                   ColorScheme.fromSeed(seedColor: const Color(0xFF6B4EFF)),

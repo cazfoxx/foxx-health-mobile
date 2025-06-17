@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
@@ -30,7 +31,19 @@ class ReviewSymptomsScreen extends StatefulWidget {
 
 class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
   String appointment = '';
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'TrackSymptomsReviewSymptomsScreen',
+      screenClass: 'TrackSymptomsReviewSymptomsScreen',
+    );
+  }
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
   Widget _buildHeaderSection() {
     return Container(
       color: AppColors.lightViolet,

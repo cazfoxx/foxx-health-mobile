@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/base_checklist_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/completion_screen.dart';
@@ -20,6 +21,20 @@ class _PrescriptionHealthAssessmentScreenState
     extends State<PrescriptionHealthAssessmentScreen> {
   final _noteController = TextEditingController();
   final List<String> _additionalNotes = [];
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'PrescriptionHealthAssessmentScreen',
+      screenClass: 'PrescriptionHealthAssessmentScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
 
   @override
   void dispose() {

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -22,6 +23,7 @@ class _LocationScreenState extends State<LocationScreen> {
   final _searchController = TextEditingController();
   String? selectedState;
   List<String> filteredStates = [];
+  final _analytics = AnalyticsService();
 
   static const List<String> allStates = [
     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
@@ -36,9 +38,17 @@ class _LocationScreenState extends State<LocationScreen> {
     'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
   ];
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentLocationScreen',
+      screenClass: 'HealthAssessmentLocationScreen',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     filteredStates = List.from(allStates);
   }
 

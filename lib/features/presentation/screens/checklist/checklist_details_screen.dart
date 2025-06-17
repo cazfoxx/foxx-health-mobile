@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
@@ -29,6 +30,21 @@ class ChecklistDetailsScreen extends StatefulWidget {
 class _ChecklistDetailsScreenState extends State<ChecklistDetailsScreen> {
   bool _isEditing = false;
   String appointment = '';
+
+  final _analytics = AnalyticsService();
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistDetailsScreen',
+      screenClass: 'ChecklistDetailsScreen',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

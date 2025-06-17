@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -23,10 +24,20 @@ class _SeeFullListScreenState extends State<SeeFullListScreen> {
   List<Map<String, dynamic>> _curatedQuestions = [];
   bool _isLoading = true;
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistSeeFullListScreen',
+      screenClass: 'ChecklistSeeFullListScreen',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _selectedQuestions = List.from(widget.selectedQuestions);
+    _logScreenView();
     _fetchCuratedQuestions();
   }
 

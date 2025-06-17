@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -16,6 +17,14 @@ class HealthGoalsScreen extends StatefulWidget {
 
 class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
   final TextEditingController _goalsController = TextEditingController();
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentHealthGoalsScreen',
+      screenClass: 'HealthAssessmentHealthGoalsScreen',
+    );
+  }
 
   void _setHealthGoals(BuildContext context) {
     final healthCubit = context.read<HealthAssessmentCubit>();
@@ -25,6 +34,7 @@ class _HealthGoalsScreenState extends State<HealthGoalsScreen> {
   @override
   void dispose() {
     _goalsController.dispose();
+    _logScreenView();
     super.dispose();
   }
 

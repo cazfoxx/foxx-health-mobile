@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -18,6 +19,20 @@ class PreExistingConditionsScreen extends StatefulWidget {
 class _PreExistingConditionsScreenState
     extends State<PreExistingConditionsScreen> {
   final TextEditingController _conditionController = TextEditingController();
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'PreExistingConditionsScreen',
+      screenClass: 'PreExistingConditionsScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
 
   void _setPreExistingConditions(BuildContext context) {
     final healthCubit = context.read<HealthAssessmentCubit>();

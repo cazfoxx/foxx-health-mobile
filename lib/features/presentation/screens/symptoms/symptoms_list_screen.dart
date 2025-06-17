@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_request.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
@@ -24,9 +25,19 @@ class _SymptomsListScreenState extends State<SymptomsListScreen> {
   late DateTime _currentWeekMonday;
   late ScrollController _scrollController;
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'SymptomsListScreen',
+      screenClass: 'SymptomsListScreen',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     _selectedDate = DateTime.now();
     _currentWeekMonday = _getWeekStartDate(DateTime.now());
     _scrollController = ScrollController();

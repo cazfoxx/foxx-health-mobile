@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/income_range_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
@@ -18,10 +19,18 @@ class HouseholdIncomeScreen extends StatefulWidget {
 
 class _HouseholdIncomeScreenState extends State<HouseholdIncomeScreen> {
   IncomeRange? selectedIncome;
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentHouseholdIncomeScreen',
+      screenClass: 'HealthAssessmentHouseholdIncomeScreen',
+    );
+  }
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     // Fetch income ranges when screen initializes
     context.read<HealthAssessmentCubit>().fetchIncomeRanges();
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -16,10 +17,23 @@ class HealthConcernsScreen extends StatefulWidget {
 
 class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
   final TextEditingController _concernController = TextEditingController();
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentHealthConcernsScreen',
+      screenClass: 'HealthAssessmentHealthConcernsScreen',
+    );
+  }
   void _setHealthConcerns(BuildContext context) {
     final healthCubit = context.read<HealthAssessmentCubit>();
     healthCubit.setSpecificHealthConcerns(_concernController.text);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
@@ -19,6 +20,21 @@ class PreppingAssessmentScreen extends StatefulWidget {
 }
 
 class _PreppingAssessmentScreenState extends State<PreppingAssessmentScreen> {
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'PreppingAssessmentScreen',
+      screenClass: 'PreppingAssessmentScreen',
+    );
+  }
+
+  @override
+  void dispose() {
+    _logScreenView();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -23,10 +24,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   bool showThankYou = false;
   final TextEditingController _textController = TextEditingController();
 
+  final _analytics = AnalyticsService();
+
   @override
   void dispose() {
     _textController.dispose();
+    _logScreenView();
     super.dispose();
+  }
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'FeedbackScreen',
+      screenClass: 'FeedbackScreen',
+    );
   }
 
   @override

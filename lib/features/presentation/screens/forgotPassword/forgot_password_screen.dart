@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/forgot_password/forgot_password_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -30,6 +31,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _hasLetterAndNumber = false;
   bool _hasCapitalLetter = false;
 
+  final _analytics = AnalyticsService();
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +40,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _otpController.addListener(_updateButtonState);
     _passwordController.addListener(_updatePasswordValidation);
     _confirmPasswordController.addListener(_updateButtonState);
+    _logScreenView();
+  }
+
+
+  
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ForgotPasswordScreen',
+      screenClass: 'ForgotPasswordScreen',
+    );
   }
 
   void _updatePasswordValidation() {

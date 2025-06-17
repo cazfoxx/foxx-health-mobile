@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_track_symptoms.dart';
 import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
@@ -19,6 +20,20 @@ class DescribeSymptomsScreen extends StatefulWidget {
 
 class _DescribeSymptomsScreenState extends State<DescribeSymptomsScreen> {
   final TextEditingController _descriptionController = TextEditingController();
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'TrackSymptomsDescribeSymptomsScreen',
+      screenClass: 'TrackSymptomsDescribeSymptomsScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
 
   @override
   void dispose() {

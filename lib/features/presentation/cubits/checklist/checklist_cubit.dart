@@ -134,7 +134,7 @@ class ChecklistCubit extends Cubit<ChecklistState> {
         targetScreen = const PrescriptionScreen();
         break;
       case ChecklistScreen.review:
-        targetScreen = const CompletionScreen();
+        targetScreen =  CompletionScreen();
         break;
     }
 

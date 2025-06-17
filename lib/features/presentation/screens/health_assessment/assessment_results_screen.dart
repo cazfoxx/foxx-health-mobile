@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -36,9 +37,17 @@ class _AssessmentResultsScreenState extends State<AssessmentResultsScreen>
 
   late final AnimationController _controller;
   late final Animation<double> _expandAnimation;
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'AssessmentResultsScreen',
+      screenClass: 'AssessmentResultsScreen',
+    );
+  }
   @override
   void initState() {
+    _logScreenView();
     super.initState();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 200),

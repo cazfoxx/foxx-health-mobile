@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_checklist.dart';
 import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
@@ -29,9 +30,19 @@ class _AddNotesScreenState extends State<AddNotesScreen> {
   final _noteController = TextEditingController();
   final List<String> _additionalNotes = [];
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'AddNotesScreen',
+      screenClass: 'AddNotesScreen',
+    );
+  }
+
   @override
   void dispose() {
     _noteController.dispose();
+    _logScreenView();
     super.dispose();
   }
 

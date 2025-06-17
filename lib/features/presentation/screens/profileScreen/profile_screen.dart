@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold.dart';
@@ -10,7 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+   ProfileScreen({super.key});
 
   Future<void> _handleSignOut(BuildContext context) async {
     try {
@@ -32,8 +33,24 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  final _analytics = AnalyticsService();
+
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ProfileScreen',
+      screenClass: 'ProfileScreen',
+    );
+  }
+
+
+  
+
+
+
   @override
   Widget build(BuildContext context) {
+    _logScreenView();
     context.read<ProfileCubit>().fetchProfile();
     return BaseScaffold(
       currentIndex: 0,

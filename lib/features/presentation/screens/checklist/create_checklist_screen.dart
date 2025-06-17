@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/appointment/appointment_type_screen.dart';
@@ -20,9 +21,18 @@ class _CreateChecklistScreenState extends State<CreateChecklistScreen> {
   String? selectedType;
   final TextEditingController _searchController = TextEditingController();
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'CreateChecklistScreen',
+      screenClass: 'CreateChecklistScreen',
+    );
+  }
   @override
   void dispose() {
     _searchController.dispose();
+    _logScreenView();
     super.dispose();
   }
 

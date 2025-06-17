@@ -2,12 +2,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/network/api_logger_interceptor.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
-import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get.dart' as getx;
+import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sentry_dio/sentry_dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -41,6 +42,9 @@ class ApiClient {
         },
       ),
     );
+
+    // Add Sentry Dio integration
+    dio.addSentry();
 
     dio.interceptors.add(LoggerInterceptor());
     dio.interceptors.add(AuthInterceptor());
@@ -150,24 +154,27 @@ class LoggerInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async{
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     ApiClient.logger.e(
       '❌ ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
       error: err.error,
       stackTrace: err.stackTrace,
     );
 
-    if (err.response?.statusCode == 401){
+    if (err.response?.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+      GetStorage().erase();
       // Clear AppStorage
       AppStorage.clearCredentials();
-      Navigator.of(getx.Get.context!).pushAndRemoveUntil(MaterialPageRoute(
-        builder: (context) => LoginScreen(
-          showBackButton: false,
-          isSign: true,
-        ),
-      ), (route) => false);
+      Navigator.of(getx.Get.context!).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(
+              showBackButton: false,
+              isSign: true,
+            ),
+          ),
+          (route) => false);
     }
 
     if (err.response?.data != null) {

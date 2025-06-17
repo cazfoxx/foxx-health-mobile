@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
@@ -15,6 +16,21 @@ class EthnicityScreen extends StatefulWidget {
 }
 
 class _EthnicityScreenState extends State<EthnicityScreen> {
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'EthnicityScreen',
+      screenClass: 'EthnicityScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
+
   final List<String> ethnicities = [
     'Indigenous or Alaska Native',
     'Black or African American',

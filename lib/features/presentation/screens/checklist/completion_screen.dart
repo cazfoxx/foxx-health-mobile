@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/checklist_details_screen.dart';
@@ -9,12 +10,24 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 
 class CompletionScreen extends StatelessWidget {
-  const CompletionScreen({
+   CompletionScreen({
     super.key,
   });
 
+  final _analytics = AnalyticsService();
+
+
+
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistCompletionScreen',
+      screenClass: 'ChecklistCompletionScreen',
+    );
+  }
   @override
   Widget build(BuildContext context) {
+    _logScreenView();
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

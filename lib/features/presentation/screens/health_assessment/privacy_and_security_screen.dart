@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/screens/checklist/checklist_details_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/physical_info_screen.dart';
@@ -8,12 +9,21 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_button.dart';
 
 class PrivacyAndSecurityScreen extends StatelessWidget {
-  const PrivacyAndSecurityScreen({
+   PrivacyAndSecurityScreen({
     super.key,
   });
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'PrivacyAndSecurityScreen',
+      screenClass: 'PrivacyAndSecurityScreen',
+    );
+  }
   @override
   Widget build(BuildContext context) {
+    _logScreenView();
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

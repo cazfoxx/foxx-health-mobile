@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/data/models/appointment_type_model.dart'
     show AppointmentTypeModel;
@@ -25,11 +26,19 @@ class _NewAppointmentScreenState extends State<NewAppointmentScreen> {
   List<ChecklistModel> _selectedChecklists = [];
   List<SymptomTrackerResponse> _selectedSymptoms = [];
   AppointmentTypeModel? _selectedType;
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'NewAppointmentScreen',
+      screenClass: 'NewAppointmentScreen',
+    );
+  }
   @override
   void dispose() {
     _titleController.dispose();
     _typeController.dispose();
+    _logScreenView();
     super.dispose();
   }
 

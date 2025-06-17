@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
@@ -20,6 +21,14 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
   final _inchController = TextEditingController();
   final _weightController = TextEditingController();
   final _ageController = TextEditingController();
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'PhysicalInfoScreen',
+      screenClass: 'PhysicalInfoScreen',
+    );
+  }
 
   String? _ageError;
   bool _isFormValid = false;
@@ -27,6 +36,7 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     _feetController.addListener(_validateForm);
     _inchController.addListener(_validateForm);
     _weightController.addListener(_validateForm);

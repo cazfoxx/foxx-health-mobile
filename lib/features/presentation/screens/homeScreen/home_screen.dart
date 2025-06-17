@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
@@ -27,6 +28,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _analytics = AnalyticsService();
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = widget.selectedIndex!;
     }
     _initializeScreens();
+    _logScreenView();
+  }
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HomeScreen',
+      screenClass: 'HomeScreen',
+    );
   }
 
   int _selectedIndex = 0;
@@ -53,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
-  void _onSwipe(DragEndDetails details) {
+  void _onSwipe(DragEndDetails details) async {
     if (details.primaryVelocity! > 0) {
       // Swiping right
       log('swiping right ${_selectedIndex}');
@@ -67,6 +78,14 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex--;
         }
         setState(() {});
+        await _analytics.logEvent(
+          name: 'screen_swipe',
+          parameters: {
+            'direction': 'right',
+            'from_screen': _screens[_selectedIndex].toString(),
+            'to_screen': _screens[_selectedIndex].toString(),
+          },
+        );
       }
     } else if (details.primaryVelocity! < 0) {
       // Swiping left
@@ -82,21 +101,33 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex++;
         }
         setState(() {});
+        await _analytics.logEvent(
+          name: 'screen_swipe',
+          parameters: {
+            'direction': 'left',
+            'from_screen': _screens[_selectedIndex].toString(),
+            'to_screen': _screens[_selectedIndex].toString(),
+          },
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-     context.read<ProfileCubit>().fetchProfile();
+    context.read<ProfileCubit>().fetchProfile();
     return BaseScaffold(
       currentIndex: _selectedIndex,
       body: GestureDetector(
         onHorizontalDragEnd: _onSwipe,
         child: _screens[_selectedIndex],
       ),
-      onTap: (index) {
+      onTap: (index) async {
         if (index == 2) {
+          await _analytics.logEvent(
+            name: 'add_button_tapped',
+            parameters: {'screen': 'home'},
+          );
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -109,6 +140,13 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          await _analytics.logEvent(
+            name: 'bottom_nav_tapped',
+            parameters: {
+              'index': index,
+              'screen': _screens[index].toString(),
+            },
+          );
         }
       },
     );
@@ -125,6 +163,8 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
+  final _analytics = AnalyticsService();
+
   @override
   void initState() {
     super.initState();
@@ -153,7 +193,11 @@ class _HomeContentState extends State<HomeContent> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 GestureDetector(
-                  onDoubleTap: () {
+                  onDoubleTap: () async {
+                    await _analytics.logEvent(
+                      name: 'api_logger_opened',
+                      parameters: {'from': 'home_screen'},
+                    );
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -165,9 +209,7 @@ class _HomeContentState extends State<HomeContent> {
                     children: [
                       SvgPicture.asset(
                         'assets/svg/logo_horizontal.svg',
-
                       ),
-                    
                     ],
                   ),
                 ),
@@ -176,11 +218,15 @@ class _HomeContentState extends State<HomeContent> {
                     future: _getUserInitial(),
                     builder: (context, snapshot) {
                       return GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          await _analytics.logEvent(
+                            name: 'profile_opened',
+                            parameters: {'from': 'home_screen'},
+                          );
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ProfileScreen(),
+                              builder: (context) =>  ProfileScreen(),
                             ),
                           );
                         },
@@ -213,7 +259,11 @@ class _HomeContentState extends State<HomeContent> {
                       icon: SvgPicture.asset(
                           'assets/svg/splash/symptom_tracking.svg'),
                       title: 'Track Symptoms',
-                      onTap: () {
+                      onTap: () async {
+                        await _analytics.logEvent(
+                          name: 'symptom_tracking_tapped',
+                          parameters: {'from': 'home_screen'},
+                        );
                         context
                             .read<SymptomTrackerCubit>()
                             .checkAndNavigateToLastScreen(context);
@@ -224,7 +274,11 @@ class _HomeContentState extends State<HomeContent> {
                       icon: SvgPicture.asset(
                           'assets/svg/home/create_check_list.svg'),
                       title: 'Create Check List',
-                      onTap: () {
+                      onTap: () async {
+                        await _analytics.logEvent(
+                          name: 'checklist_tapped',
+                          parameters: {'from': 'home_screen'},
+                        );
                         context
                             .read<ChecklistCubit>()
                             .checkAndNavigateToLastScreen(context);
@@ -235,7 +289,11 @@ class _HomeContentState extends State<HomeContent> {
                       icon: SvgPicture.asset(
                           'assets/svg/splash/personal_health_guide.svg'),
                       title: 'Create Health Assessment',
-                      onTap: () {
+                      onTap: () async {
+                        await _analytics.logEvent(
+                          name: 'health_assessment_tapped',
+                          parameters: {'from': 'home_screen'},
+                        );
                         context
                             .read<HealthAssessmentCubit>()
                             .checkAndNavigateToLastScreen(context);

@@ -3,10 +3,30 @@ import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/privacy_and_security_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 
-class HealthAssessmentScreen extends StatelessWidget {
+class HealthAssessmentScreen extends StatefulWidget {
   const HealthAssessmentScreen({super.key});
-  
+
+  @override
+  State<HealthAssessmentScreen> createState() => _HealthAssessmentScreenState();
+}
+
+class _HealthAssessmentScreenState extends State<HealthAssessmentScreen> {
+  final _analytics = AnalyticsService();
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'HealthAssessmentScreen',
+      screenClass: 'HealthAssessmentScreen',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +173,7 @@ class HealthAssessmentScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PrivacyAndSecurityScreen(),
+                        builder: (context) =>  PrivacyAndSecurityScreen(),
                       ),
                     );
                   },

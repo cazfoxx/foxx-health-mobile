@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_checklist.dart';
 import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/checklist/checklist_cubit.dart';
@@ -23,6 +24,21 @@ class PrescriptionScreen extends StatefulWidget {
 class _PrescriptionScreenState extends State<PrescriptionScreen> {
   final _noteController = TextEditingController();
   final List<String> _additionalNotes = [];
+
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistPrescriptionScreen',
+      screenClass: 'ChecklistPrescriptionScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
 
   @override
   void dispose() {

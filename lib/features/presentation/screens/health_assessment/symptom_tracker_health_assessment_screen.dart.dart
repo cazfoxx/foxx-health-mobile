@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_health_assessment.dart';
 import 'package:foxxhealth/features/data/models/symptom_tracker_response.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessement_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/health_assessment_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/health_assessment/area_of_concern_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/prescription_health_assessment_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
-import 'package:foxxhealth/features/presentation/screens/health_assessment/prepping_assessment_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/symptoms_selection_sheet.dart';
@@ -25,7 +24,20 @@ class _SymptomTrackerHealthAssessmentScreenState
   final _searchController = TextEditingController();
   List<SymptomTrackerResponse> selectedSymptoms = [];
 
+  final _analytics = AnalyticsService();
 
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'SymptomTrackerHealthAssessmentScreen',
+      screenClass: 'SymptomTrackerHealthAssessmentScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
 
   void _showSymptomSelector() {
     showModalBottomSheet(

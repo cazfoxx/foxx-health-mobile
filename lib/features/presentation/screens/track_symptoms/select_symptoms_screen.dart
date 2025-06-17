@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/save_track_symptoms.dart';
 import 'package:foxxhealth/core/utils/screens_enums.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
@@ -21,7 +22,23 @@ class SelectSymptomsScreen extends StatefulWidget {
   State<SelectSymptomsScreen> createState() => _SelectSymptomsScreenState();
 }
 
+
 class _SelectSymptomsScreenState extends State<SelectSymptomsScreen> {
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'TrackSymptomsSelectSymptomsScreen',
+      screenClass: 'TrackSymptomsSelectSymptomsScreen',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logScreenView();
+  }
+
   final List<SymptomCategory> categories = [
     SymptomCategory(
       title: 'Body',

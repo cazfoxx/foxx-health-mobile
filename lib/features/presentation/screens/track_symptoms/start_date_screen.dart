@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_assessment/widgets/header_wdiget.dart';
 import 'package:foxxhealth/features/presentation/screens/track_symptoms/select_symptoms_screen.dart';
@@ -15,10 +16,20 @@ class StartDateScreen extends StatefulWidget {
 
 class _StartDateScreenState extends State<StartDateScreen> {
 
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'TrackSymptomsStartDateScreen',
+      screenClass: 'TrackSymptomsStartDateScreen',
+    );
+  }
+
 
   @override
   void initState() {
     super.initState();
+    _logScreenView();
      context.read<SymptomTrackerCubit>().clear();
   }
 

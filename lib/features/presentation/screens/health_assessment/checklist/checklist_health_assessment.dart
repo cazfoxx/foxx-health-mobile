@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'dart:developer';
 import 'package:foxxhealth/features/data/models/appointment_info_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_assessment/check_list/health_assesment_checklist_cubit.dart';
@@ -22,10 +23,19 @@ class ChecklistHealthAssessment extends StatefulWidget {
 class _ChecklistHealthAssessmentState extends State<ChecklistHealthAssessment> {
   bool _isEditing = false;
   String appointment = '';
+  final _analytics = AnalyticsService();
+
+  Future<void> _logScreenView() async {
+    await _analytics.logScreenView(
+      screenName: 'ChecklistHealthAssessmentScreen',
+      screenClass: 'ChecklistHealthAssessmentScreen',
+    );
+  }
 
   @override
   void initState() {
     super.initState();
+    _logScreenView();
     // Use addPostFrameCallback to ensure the context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       saveChecklist();
