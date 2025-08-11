@@ -9,7 +9,7 @@ import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
@@ -91,25 +91,30 @@ class LoginCubit extends Cubit<LoginState> {
       
       // Get Firebase token
       final firebaseToken = await userCredential.user?.getIdToken();
+      final firebaseUid = userCredential.user?.uid;
       
-      // Register with your API using Dio
+      // Register with your API using Dio (new endpoint)
       final response = await _apiClient.post(
-        '/api/v1/auth/register',
+        '/api/v1/auth/register/firebase',
         data: {
-          'emailAddress': _email,
-          'userName': _username ?? '',
-          'pronounCode': _pronoun ?? '',
-          'preferPronoun': _pronoun ?? '',
-          'ageGroupCode': _age ?? '',
-          'heardFromCode': _referralSource ?? '',
-          'otherHeardFrom': '',
-          'isActive': true,
+          'email_address': _email,
+          'user_name': _username ?? '',
+          'pronoun_code': _pronoun ?? '',
+          'prefer_pronoun': _pronoun ?? '',
+          'age_group_code': _age ?? '',
+          'heard_from_code': _referralSource ?? '',
+          'other_heard_from': '',
+          'is_active': true,
           'password': _password,
+        },
+        queryParameters: {
+          'firebase_uid': firebaseUid ?? '',
         },
       );
 
       if (response.statusCode == 200) {
         if (_email != null) {
+          await Future.delayed(const Duration(seconds: 2));
           await signInWithEmail(_email!, _password!);
           await _saveEmailToPrefs(_email!, response.data['access_token'], firebaseToken ?? '');
           
@@ -166,12 +171,12 @@ class LoginCubit extends Cubit<LoginState> {
       // Get Firebase token
       final firebaseToken = await userCredential.user?.getIdToken();
 
-      // Then proceed with your API login
+      // login with firebase api
       final response = await _apiClient.post(
-        '/api/v1/auth/login',
+        '/api/v1/auth/login/firebase',
+        data: {},
         queryParameters: {
-          'email': email,
-          'password': password,
+          'firebase_token': firebaseToken ?? '',
         },
       );
 
@@ -181,20 +186,13 @@ class LoginCubit extends Cubit<LoginState> {
         
         // Log login event
         await _analytics.logLogin();
-        await _analytics.setUserProperties(
-          userId: userCredential.user?.uid ?? '',
-          userRole: 'patient',
-        );
+        // await _analytics.setUserProperties(
+        //   userId: userCredential.user?.uid ?? '',
+        //   userRole: 'patient',
+        // );
         
         // After successful login, set user context in Sentry
-        await Sentry.configureScope((scope) {
-          scope.setUser(SentryUser(
-            email: email,
-            // Add other user properties as needed
-            // id: userId,
-            // username: username,
-          ));
-        });
+      
 
         emit(LoginSuccess());
       } else {
@@ -208,14 +206,7 @@ class LoginCubit extends Cubit<LoginState> {
       }
     } catch (e, stackTrace) {
       // Log the error to Sentry with additional context
-      await Sentry.captureException(
-        e,
-        stackTrace: stackTrace,
-        withScope: (scope) {
-          scope.setTag('login_method', 'email');
-          scope.setExtra('email', email);
-        },
-      );
+   
       emit(LoginError(e.toString()));
     }
   }
@@ -227,5 +218,42 @@ class LoginCubit extends Cubit<LoginState> {
     final hasCapitalLetter = RegExp(r'[A-Z]').hasMatch(password);
 
     return hasMinLength && hasLetterAndNumber && hasCapitalLetter;
+  }
+
+  Future<void> deleteAccount(BuildContext context) async {
+    try {
+      emit(LoginLoading());
+      // Call backend API to delete account
+      final response = await _apiClient.delete(
+        '/api/v1/accounts/me',
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Delete from Firebase
+        final user = _auth.currentUser;
+        if (user != null) {
+          await user.delete();
+        }
+        SnackbarUtils.showSuccess(
+          context: context,
+          title: 'Account Deleted',
+          message: 'Your account has been deleted successfully.',
+        );
+        emit(LoginAccountDeleted());
+      } else {
+        emit(LoginError('Failed to delete account: ${response.data}'));
+        SnackbarUtils.showSuccess(
+          context: context,
+          title: 'Error',
+          message: 'Failed to delete account: ${response.data}',
+        );
+      }
+    } catch (e) {
+      emit(LoginError('Account deletion failed: $e'));
+      SnackbarUtils.showSuccess(
+        context: context,
+        title: 'Error',
+        message: e.toString(),
+      );
+    }
   }
 }

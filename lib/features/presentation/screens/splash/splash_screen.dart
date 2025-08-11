@@ -1,208 +1,176 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar:Container(
-        height: 150,
-        color: Colors.white,
-        child: Column(
-          children: [
-             Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => LoginScreen(
-                                    isSign: false,
-                                  )));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.amethystViolet,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: const Text(
-                      'Create an Account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => LoginScreen(isSign: true)));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(
-                        color: AppColors.amethystViolet,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: const Text(
-                      'Sign In',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.amethystViolet,
-                      ),
-                    ),
-                  ),
-                ),
-          ],
-        ),
-      ),
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-              Center(
-                child: Column(
-                  children: [
-                    SvgPicture.asset(
+    return Foxxbackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 60),
+                  
+                  // Logo
+                  Center(
+                    child: SvgPicture.asset(
                       'assets/svg/splash/foxx_logo_splash.svg',
-                      height: 134,
-                      width: 134,
+                      height: 120,
+                      width: 120,
                     ),
-                    // const SizedBox(height: 8),
-                    // const Text(
-                    //   'FoXX Health',
-                    //   style: TextStyle(
-                    //     fontSize: 24,
-                    //     color: AppColors.amethystViolet,
-                    //     fontWeight: FontWeight.w600,
-                    //   ),
-                    // ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                color: AppColors.background,
-                padding: EdgeInsets.only(right: 20, left: 20, bottom: 70),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Your health toolkit',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3142),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Welcome Text
+                   Text(
+                    'Welcome to FoXX',
+                    style: AppHeadingTextStyles.h2.copyWith(color: AppColors.primary01),
+                  ),
+                  
+                  
+                  const SizedBox(height: 40),
+                  
+                  // First Text Block
+                   Text(
+                    'FoXX exists because women deserve better. Better answers, better tools, and care that actually listens.',
+                    textAlign: TextAlign.center,
+                    style: AppOSTextStyles.osMdSemiboldBody.copyWith(color: AppColors.primary01),
+                  ),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // Starburst Separator
+                  _buildStarburstSeparator(),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // Second Text Block
+                   Text(
+                    'We don\'t miss the details, because your story, your experience, and your body all matter. From the questions we ask to how we protect your data, everything is built on trust and intention.',
+                    textAlign: TextAlign.center,
+                    style: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+                  ),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // Starburst Separator
+                  _buildStarburstSeparator(),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // Third Text Block
+                   Text(
+                    'At the end of setup, you\'ll enter your payment details to begin your free trial. You\'re in control - no charge until it ends, and you can cancel anytime.',
+                    textAlign: TextAlign.center,
+                    style: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+                  ),
+                  
+                  const SizedBox(height: 60),
+                  
+                  // Buttons
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(isSign: false),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text(
+                        'Create An Account',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D3142),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildFeatureItem(
-                      'Symptom tracking',
-                      'Understand your body. Log symptoms, and spot trends over time',
-                      image: 'assets/svg/splash/symptom_tracking.svg',
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  SizedBox(
+                    width: double.infinity,
+
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(isSign: true),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        side: const BorderSide(
+                          color: Color(0xFF805EC9),
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text(
+                        'Sign In',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D3142),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildFeatureItem(
-                      'Appointment preparation',
-                      'Personalized questions and checklists to help you advocate for yourself',
-                      image: 'assets/svg/splash/appointment.svg',
-                    ),
-                    const SizedBox(height: 20),
-                    _buildFeatureItem(
-                      'Trusted health information',
-                      'Access expert-backed, science-based guidance when you need it',
-                      image: 'assets/svg/splash/health_information.svg',
-                    ),
-                    const SizedBox(height: 20),
-                    _buildFeatureItem(
-                      'Personal Health Guide',
-                      'A guided assessment to personalize your journey and get you the support you actually need',
-                      image: 'assets/svg/splash/personal_health_guide.svg',
-                    ),
-                  ],
-                ),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                ],
               ),
-          
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFeatureItem(String title, String description, {required String image}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            border: Border.all(
-              color: AppColors.amethystViolet,
-              width: 1,
-            ),
-          ),
-          child: SvgPicture.asset(image,
-            width: 30,
-            height: 30,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2D3142),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF9A9CAA),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+  Widget _buildStarburstSeparator() {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8E6F0),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Icon(
+        Icons.star,
+        size: 12,
+        color: Color(0xFFB8B5C7),
+      ),
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:foxxhealth/features/presentation/screens/homeScreen/base_scafold
 import 'package:foxxhealth/features/presentation/screens/homeScreen/widgets/add_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/screens/news/news_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
+import 'package:foxxhealth/features/presentation/screens/visit/visit_details_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/screens/profileScreen/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -336,26 +337,26 @@ class _HomeContentState extends State<HomeContent> {
                               SingleChildScrollView(
                                 child: Column(
                                   children: [
-                                    // _buildCheckListItem(
-                                    //   context: context,
-                                    //   title: 'Dr. Sarah Johnson',
-                                    //   subtitle: 'General Physician',
-                                    //   date: 'Apr 25, 2024',
-                                    //   onTap: () {
-                                    //     Navigator.push(
-                                    //       context,
-                                    //       MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             const VisitDetailsScreen(
-                                    //           doctorName: 'Dr. Sarah Johnson',
-                                    //           specialization:
-                                    //               'General Physician',
-                                    //           date: 'Apr 25, 2024',
-                                    //         ),
-                                    //       ),
-                                    //     );
-                                    //   },
-                                    // ),
+                                    _buildCheckListItem(
+                                      context: context,
+                                      title: 'Dr. Sarah Johnson',
+                                      subtitle: 'General Physician',
+                                      date: 'Apr 25, 2024',
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const VisitDetailsScreen(
+                                              doctorName: 'Dr. Sarah Johnson',
+                                              specialization:
+                                                  'General Physician',
+                                              date: 'Apr 25, 2024',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
 
                                     const SizedBox(height: 12),
                                     InkWell(

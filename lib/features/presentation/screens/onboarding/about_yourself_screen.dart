@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 
 class AboutYourselfScreen extends StatefulWidget {
   const AboutYourselfScreen({super.key});
@@ -145,84 +146,105 @@ class AboutYourselfScreenState extends State<AboutYourselfScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
+    return Foxxbackground(
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+        
+
+              Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            OnboardingHeadingContainer(
-              title: 'Tell me about yourself',
-              subtitle:
-                  'We want you to have personalize medical information but we want to keep your privacy.',
+            Text(
+              'Let’s personalize your experience.',
+              style: AppTextStyles.heading2.copyWith(
+                color: AppColors.amethystViolet,
+              ),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      child: TextField(
-                        controller: _usernameController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter your username',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                              color: _hasError ? Colors.red : Colors.grey[300]!,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                              color: _hasError ? Colors.red : Colors.grey[300]!,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                              color: _hasError ? Colors.red : AppColors.amethystViolet,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (_hasError && value.isNotEmpty) {
-                            setState(() {
-                              _hasError = false;
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'This username will be used as your unique ID to connect with other FoXX member',
-                      style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      "What's your pronoun?",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPronounOption('She / Her'),
-                    _buildPronounOption('They / Them'),
-                    _buildPronounOption('She / They'),
-                    _buildCustomPronounSection(),
-                  ],
-                ),
+            const SizedBox(height: 8),
+            Text(
+              'We’ll get to know you and provide better visit preps.',
+              style: AppTextStyles.body2OpenSans.copyWith(
+                color: AppColors.davysGray,
               ),
             ),
           ],
+        ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        child: TextField(
+                          controller: _usernameController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your username',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: _hasError ? Colors.red : Colors.grey[300]!,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: _hasError ? Colors.red : Colors.grey[300]!,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: _hasError ? Colors.red : AppColors.amethystViolet,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (_hasError && value.isNotEmpty) {
+                              setState(() {
+                                _hasError = false;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'This username will be used as your unique ID to connect with other FoXX member',
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        "What's your pronoun?",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPronounOption('She / Her'),
+                      _buildPronounOption('They / Them'),
+                      _buildPronounOption('She / They'),
+                      _buildCustomPronounSection(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

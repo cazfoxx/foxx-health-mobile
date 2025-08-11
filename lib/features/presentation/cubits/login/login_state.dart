@@ -21,3 +21,5 @@ class LoginError extends LoginState {
   @override
   List<Object> get props => [message];
 }
+
+class LoginAccountDeleted extends LoginState {}

@@ -20,7 +20,6 @@ version: 1.0.1+2
 
 environment:
   sdk: ^3.5.3
-
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
 # consider running `flutter pub upgrade --major-versions`. Alternatively,
@@ -28,8 +27,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  sentry_flutter: ^9.0.0
-  sentry_dio: ^9.0.0
   get_storage: ^2.1.1
   awesome_snackbar_content: ^0.1.6
   calendar_date_picker2: ^0.5.3
@@ -58,12 +55,15 @@ dependencies:
   flutter_screenutil: ^5.9.3
   shared_preferences: ^2.2.2
   firebase_crashlytics: ^4.3.6
+  flutter_stripe: ^11.5.0
+  url_launcher: ^6.3.1
+  intl: ^0.20.2
+  clarity_flutter: ^1.0.0
 
 
 dev_dependencies:
-  sentry_dart_plugin: ^2.4.1
-  flutter_test:
-    sdk: flutter
+
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -88,6 +88,7 @@ flutter:
     - assets/svg/
     - assets/svg/home/
     - assets/svg/splash/
+    - assets/svg/revamp/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

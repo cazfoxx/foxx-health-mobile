@@ -12,6 +12,7 @@ import 'checklist_item.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
+  
   String _getInitials(String? name) {
     if (name == null || name.isEmpty) return '?';
     return name[0].toUpperCase();

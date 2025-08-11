@@ -43,6 +43,71 @@ class _ReviewSymptomsScreenState extends State<ReviewSymptomsScreen> {
   void initState() {
     super.initState();
     _logScreenView();
+    _addSampleData();
+  }
+
+  void _addSampleData() {
+    final cubit = context.read<SymptomTrackerCubit>();
+    
+    // Add sample symptoms with different severities
+    final sampleSymptoms = [
+      SymptomId(
+        symptomName: 'Headache',
+        symptomType: 'Body',
+        symptomCategory: 'Body',
+        severity: 'Moderate',
+      ),
+      SymptomId(
+        symptomName: 'Fatigue',
+        symptomType: 'Body',
+        symptomCategory: 'Body',
+        severity: 'Mild',
+      ),
+      SymptomId(
+        symptomName: 'Anxiety',
+        symptomType: 'Mood',
+        symptomCategory: 'Mood',
+        severity: 'Severe',
+      ),
+      SymptomId(
+        symptomName: 'Irritability',
+        symptomType: 'Mood',
+        symptomCategory: 'Mood',
+        severity: 'Moderate',
+      ),
+      SymptomId(
+        symptomName: 'Brain Fog',
+        symptomType: 'Mind',
+        symptomCategory: 'Mind',
+        severity: 'Mild',
+      ),
+      SymptomId(
+        symptomName: 'Poor Sleep',
+        symptomType: 'Habits',
+        symptomCategory: 'Habits',
+        severity: 'Moderate',
+      ),
+    ];
+    
+    // Set sample symptoms
+    cubit.setSymptomIds(sampleSymptoms);
+    
+    // Set sample description
+    cubit.setSymptomDescription(
+      'I\'ve been experiencing persistent headaches for the past week, usually in the afternoon. '
+      'They\'re accompanied by fatigue and difficulty concentrating. My sleep has been disrupted, '
+      'and I\'ve been feeling more anxious than usual. The symptoms seem to worsen with stress.'
+    );
+    
+    // Set sample date range (last 7 days)
+    final now = DateTime.now();
+    cubit.setFromDate(now.subtract(const Duration(days: 7)));
+    cubit.setToDate(now);
+    
+    // Set sample appointment
+    setState(() {
+      appointment = 'Dr. Sarah Johnson - Dec 15, 2024';
+    });
   }
   Widget _buildHeaderSection() {
     return Container(

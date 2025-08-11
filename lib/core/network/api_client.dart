@@ -7,8 +7,7 @@ import 'package:get/get.dart' as getx;
 import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sentry_dio/sentry_dio.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -43,8 +42,8 @@ class ApiClient {
       ),
     );
 
-    // Add Sentry Dio integration
-    dio.addSentry();
+    // Remove this line
+    // dio.addSentry();
 
     dio.interceptors.add(LoggerInterceptor());
     dio.interceptors.add(AuthInterceptor());

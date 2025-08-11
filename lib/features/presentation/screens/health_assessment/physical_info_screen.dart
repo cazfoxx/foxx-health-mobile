@@ -96,9 +96,9 @@ class _PhysicalInfoScreenState extends State<PhysicalInfoScreen> {
         SaveHealthAssessment.saveAssessment(context, HealthAssessmentScreen.physicalInfo);
       },
       onNext: () {
-        _setHealthAssessmentValues(context);
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => LocationScreen()));
+        // _setHealthAssessmentValues(context);
+        // Navigator.of(context)
+        //     .push(MaterialPageRoute(builder: (context) => LocationScreen()));
       },
       isNextEnabled: _isFormValid,
       body: Column(

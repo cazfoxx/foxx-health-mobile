@@ -508,7 +508,7 @@ class HealthAssessmentCubit extends Cubit<HealthAssessmentState> {
         break;
 
       case HealthAssessmentScreen.location:
-        targetScreen = const LocationScreen();
+        // targetScreen = const LocationScreen();
         break;
       case HealthAssessmentScreen.income:
         targetScreen = const HouseholdIncomeScreen();

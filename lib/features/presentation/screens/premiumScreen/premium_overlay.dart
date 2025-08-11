@@ -1,8 +1,13 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/constants/app_constants.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class PremiumOverlay extends StatefulWidget {
   const PremiumOverlay({Key? key}) : super(key: key);
@@ -17,54 +22,44 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   final _apiClient = ApiClient();
 
   Future<void> initializePayment() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      //      final response = await _apiClient.post(
-      //   'https://api.stripe.com/v1/payment_intents',
-      //   data: {
-      //     'amount': 20, // $9.99 in cents
-      //     'currency': 'usd',
-      //     'payment_method_types[]': 'card',
-      //   },
-       
-      // );
-
-      // final clientSecret = response.data['client_secret'];
-
-
-
-      // // 2. Initialize payment sheet
-      // await Stripe.instance.initPaymentSheet(
-      //   paymentSheetParameters: SetupPaymentSheetParameters(
-      //     merchantDisplayName: 'FoXX Health',
-      //     paymentIntentClientSecret: clientSecret,
-      //     style: ThemeMode.light,
-      //   ),
-      // );
-
-
-
-      // 4. Handle success
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment successful!')),
+      // Call the FastAPI backend to create a checkout session
+      final response = await http.post(
+        Uri.parse('https://fastapi-backend-v2-788993188947.us-central1.run.app/api/v1/payments/create-checkout-session'),
+        headers: {
+          'accept': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTgxYzJiMi1jZjdjLTRiYTUtYTQyNy1mNjBhMmIyOWJjOWUiLCJleHAiOjE3NTM0NDM3ODF9.l0sR6H6hlbGDCI1urYAB8Oc1K2q9YVgCpkL3RMlBKhk',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'billing_cycle': isYearlySelected ? 'yearly' : 'monthly',
+        }),
       );
 
-      // 5. Update user's premium status
-      await _apiClient.post('/api/v1/update-premium-status', data: {
-        'isPremium': true,
-      });
-
-      Navigator.pop(context); // Close premium overlay
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        // Launch the URL in a browser
+        final url = data['url'];
+        if (await canLaunch(url)) {
+          await launch(url);
+        } else {
+          throw 'Could not launch $url';
+        }
+      } else {
+        throw 'Failed to create checkout session: ${data['detail'] ?? "Unknown error"}';
+      }
 
     } catch (e) {
-      log('Payment error: $e');
-      if (!mounted) return;
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('Payment failed: ${e.toString()}')),
-      // );
+      // Handle errors
+      log(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {

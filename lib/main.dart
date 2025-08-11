@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:foxxhealth/core/constants/appconst.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
@@ -22,17 +23,21 @@ import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.da
 import 'package:foxxhealth/features/presentation/cubits/symptom_tracker/symptom_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptoms/symptoms_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/home_screen/revamp_home_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/onboarding/widgets/onboarding_flow.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// Remove this import
 
-
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:foxxhealth/features/presentation/cubits/feedback/feedback_cubit.dart';
 
 void main() async {
-  // Initialize storage for API logs
+  // Replace SentryWidgetsFlutterBinding with regular Flutter initialization
+  // SentryWidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   
   // Lock orientation to portrait
@@ -78,37 +83,20 @@ void main() async {
     return true;
   };
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = 'https://3bb3cb47d80c471f533d39d99ab4fca1@o4509508680548352.ingest.us.sentry.io/4509508682317824';
-      // Adds request headers and IP for users
-      options.sendDefaultPii = true;
-      
-      // Performance monitoring
-      options.tracesSampleRate = 1.0;
-      options.profilesSampleRate = 1.0;
-      
-      // Additional configuration
-      options.environment = 'development'; // or 'development', 'staging'
-      options.attachStacktrace = true;
-      options.maxBreadcrumbs = 100;
-      
-      // Enable auto session tracking
-      options.enableAutoSessionTracking = true;
-      
-      // Enable native crash handling
-      options.enableNativeCrashHandling = true;
-      
-      // Enable app lifecycle breadcrumbs
-      options.enableAppLifecycleBreadcrumbs = true;
-      
-      // Enable user interaction breadcrumbs
-      options.enableUserInteractionBreadcrumbs = true;
-    },
-    appRunner: () => runApp(SentryWidget(child: const MyApp())),
-  );
+  // Remove the entire SentryFlutter.init block
+  // await SentryFlutter.init(
+  //  (options) { ... },
+  //  appRunner: () => runApp(SentryWidget(child: const MyApp())),
+  // );
+  
+  // Replace with direct app runner
+  runApp(const MyApp());
 
-  await Sentry.captureException(StateError('This is a sample exception.'));
+  Stripe.publishableKey = AppConstants.publishableKey;
+  await Stripe.instance.applySettings();
+
+  // Remove this line
+  // await Sentry.captureException(StateError('This is a sample exception.'));
 }
 
 class MyApp extends StatelessWidget {
@@ -146,6 +134,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => ForgotPasswordCubit()),
             BlocProvider(create: (context) => HealthAssessmentChecklistCubit()),
             BlocProvider(create: (context) => AppointmentInfoCubit()),
+            BlocProvider(create: (context) => FeedbackCubit()),
           ],
           child: GetMaterialApp(
             scaffoldMessengerKey: ApiClient.scaffoldKey,
