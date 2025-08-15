@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/health_tracker/health_tracker_screen.dart';
+import 'package:foxxhealth/core/constants/user_profile_constants.dart';
+import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/shared/neumorphic_card.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/my_prep/my_prep_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/profile/profile_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/health_tracker/health_tracker_screen.dart';
 
-class RevampHomeScreen extends StatelessWidget {
+class RevampHomeScreen extends StatefulWidget {
   const RevampHomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<RevampHomeScreen> createState() => _RevampHomeScreenState();
+}
+
+class _RevampHomeScreenState extends State<RevampHomeScreen> {
+  // Profile fetching is now handled by MainNavigationScreen
 
   @override
   Widget build(BuildContext context) {
@@ -17,53 +25,69 @@ class RevampHomeScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top bar with date and icons
+                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Date
-                    Text(
-                      'Wednesday, Apr 17',
-                      style: AppOSTextStyles.osSmSemiboldLabel.copyWith(color: AppColors.davysGray),
-                    ),
+                 SizedBox(height: 10,),
                     // Top right icons
                     Row(
                       children: [
                         CircleAvatar(
                           backgroundColor: AppColors.mauve50,
                           radius: 20,
-                          child: Icon(Icons.chat_bubble_outline, color: AppColors.amethyst, size: 20),
+                          child: Icon(Icons.chat_bubble_outline,
+                              color: AppColors.amethyst, size: 20),
                         ),
                         const SizedBox(width: 12),
-                        CircleAvatar(
-                          backgroundColor: AppColors.mauve50,
-                          radius: 20,
-                          child: Icon(Icons.person_outline, color: AppColors.amethyst, size: 20),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const ProfileScreen(),
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.mauve50,
+                            radius: 20,
+                            child: Icon(Icons.person_outline,
+                                color: AppColors.amethyst, size: 20),
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 30),
+                   Text(
+                      'Wednesday, Apr 17',
+                      style: AppOSTextStyles.osMdSemiboldLabel
+                          .copyWith(color: AppColors.davysGray),
+                    ),
                 // Greeting
                 Text(
-                  'Hi, AppleS@uce',
-                  style: AppHeadingTextStyles.h2.copyWith(color: AppColors.primary01),
+                  'Hi, ${UserProfileConstants.getDisplayName()}',
+                  style: AppHeadingTextStyles.h2
+                      .copyWith(color: AppColors.primary01),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // How are you feeling card
                 _buildFeelingCard(context),
                 const SizedBox(height: 16),
-                
+
                 // Physical feeling card with pagination
-                _buildPhysicalFeelingCard(),
+                _buildPhysicalFeelingCard(context),
                 const SizedBox(height: 16),
-                
+
                 // Create & Health Profile cards
                 Row(
                   children: [
@@ -73,11 +97,13 @@ class RevampHomeScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Recent Items
-                Text('Recent Items', style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01)),
+                Text('Recent Items',
+                    style: AppOSTextStyles.osMdSemiboldTitle
+                        .copyWith(color: AppColors.primary01)),
                 const SizedBox(height: 12),
-                
+
                 // Recent Item Cards
                 Expanded(
                   child: ListView(
@@ -100,69 +126,105 @@ class RevampHomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(context),
       ),
     );
   }
 
   Widget _buildFeelingCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: AppColors.glassCardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: AppColors.mauve50,
-                child: Icon(Icons.timeline, color: AppColors.amethyst),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'How are you feeling?',
-                style: AppOSTextStyles.osMdSemiboldLink.copyWith(
-                  color: AppColors.primary01,
-                  decoration: TextDecoration.underline,
+    return GestureDetector(
+      onTap: () {
+       
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: AppColors.glassCardDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: AppColors.mauve50,
+                  child: Icon(Icons.timeline, color: AppColors.amethyst),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Column(
-            children: [
-              Container(
-                width: double.infinity,
-                height: 40,
-                decoration: AppColors.glassCardDecoration.copyWith(
-                  color: AppColors.gray100.withOpacity(0.7),
+                const SizedBox(width: 8),
+                Text(
+                  'How are you feeling?',
+                  style: AppOSTextStyles.osMdSemiboldLink.copyWith(
+                    color: AppColors.primary01,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
-                child: Center(
-                  child: Text("I feel good, no symptoms", style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01),),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: AppColors.glassCardDecoration.copyWith(
+                    color: AppColors.gray100.withOpacity(0.7),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "I feel good, no symptoms",
+                      style: AppOSTextStyles.osMdSemiboldTitle
+                          .copyWith(color: AppColors.primary01),
+                    ),
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                height: 40,
-                decoration: AppColors.glassCardDecoration.copyWith(
-                  color: AppColors.gray100.withOpacity(0.7),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const HealthTrackerScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 40,
+                    decoration: AppColors.glassCardDecoration.copyWith(
+                      color: AppColors.gray100.withOpacity(0.7),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Log my symptoms",
+                        style: AppOSTextStyles.osMdSemiboldTitle
+                            .copyWith(color: AppColors.primary01),
+                      ),
+                    ),
+                  ),
                 ),
-                child: Center(
-                  child: Text("Log my symptoms", style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01),),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPhysicalFeelingCard() {
-    return Container(
+  Widget _buildPhysicalFeelingCard(BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+         showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => Container(
+            height: MediaQuery.of(context).size.height*0.9,
+            decoration: BoxDecoration(
+              color: AppColors.amethystViolet.withOpacity(0.97),
+            ),
+            child: PremiumOverlay(),
+          ),
+        );
+        
+      },
+      child: Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: AppColors.glassCardDecoration,
@@ -171,13 +233,18 @@ class RevampHomeScreen extends StatelessWidget {
         children: [
           Row(
             children: [
+              Icon(Icons.payments, color: AppColors.amethyst, size: 30),
+              const SizedBox(width: 8),
+
               Expanded(
                 child: Text(
-                  'How you\'re feeling physically, like energy levels, sleep, or pain?',
-                  style: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+                  '2 Days left to renew, renew now to continue using the app',
+                  style:
+                      AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, color: AppColors.amethyst, size: 16),
+              Icon(Icons.arrow_forward_ios,
+                  color: AppColors.amethyst, size: 16),
             ],
           ),
           const SizedBox(height: 12),
@@ -214,6 +281,7 @@ class RevampHomeScreen extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -231,10 +299,13 @@ class RevampHomeScreen extends StatelessWidget {
           children: [
             Icon(Icons.add_box, color: AppColors.amethyst, size: 32),
             const SizedBox(height: 8),
-            Text('Create', style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01)),
+            Text('Create',
+                style: AppOSTextStyles.osMdSemiboldTitle
+                    .copyWith(color: AppColors.primary01)),
             const SizedBox(height: 4),
             Text('Appointment companion',
-                style: AppOSTextStyles.osSmSemiboldBody.copyWith(color: AppColors.primary01), 
+                style: AppOSTextStyles.osSmSemiboldBody
+                    .copyWith(color: AppColors.primary01),
                 textAlign: TextAlign.center),
           ],
         ),
@@ -250,70 +321,20 @@ class RevampHomeScreen extends StatelessWidget {
         children: [
           Icon(Icons.favorite, color: AppColors.amethyst, size: 32),
           const SizedBox(height: 8),
-          Text('Health Profile', style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01)),
+          Text('Health Profile',
+              style: AppOSTextStyles.osMdSemiboldTitle
+                  .copyWith(color: AppColors.primary01)),
           const SizedBox(height: 4),
           Text('Help us get to know you',
-              style: AppOSTextStyles.osSmSemiboldBody.copyWith(color: AppColors.primary01), 
+              style: AppOSTextStyles.osSmSemiboldBody
+                  .copyWith(color: AppColors.primary01),
               textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home, 'Home', true, () {}),
-          _buildNavItem(Icons.assignment, 'My Prep', false, () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => const MyPrepScreen(),
-            ));
-          }),
-          _buildNavItem(Icons.timeline, 'Tracker', false, () {}),
-          _buildNavItem(Icons.search, 'Insight', false, () {}),
-          _buildNavItem(Icons.group, 'The Den', false, () {}),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? AppColors.primary01 : AppColors.gray600,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-              color: isActive ? AppColors.primary01 : AppColors.gray600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Bottom navigation methods removed - now handled by MainNavigationScreen
 }
 
 class _RecentItemCard extends StatelessWidget {
@@ -336,13 +357,19 @@ class _RecentItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01)),
+          Text(title,
+              style: AppOSTextStyles.osMdSemiboldTitle
+                  .copyWith(color: AppColors.primary01)),
           const SizedBox(height: 4),
-          Text('Last Edited: $lastEdited', style: AppOSTextStyles.osSmSemiboldBody.copyWith(color: AppColors.primary01)),
+          Text('Last Edited: $lastEdited',
+              style: AppOSTextStyles.osSmSemiboldBody
+                  .copyWith(color: AppColors.primary01)),
           const SizedBox(height: 12),
           Row(
             children: [
-              Text('Date', style: AppOSTextStyles.osSmSemiboldBody.copyWith(color: AppColors.primary01)),
+              Text('Date',
+                  style: AppOSTextStyles.osSmSemiboldBody
+                      .copyWith(color: AppColors.primary01)),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -352,18 +379,22 @@ class _RecentItemCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 16, color: AppColors.amethyst),
+                    Icon(Icons.calendar_today,
+                        size: 16, color: AppColors.amethyst),
                     const SizedBox(width: 4),
-                    Text(date, style: AppOSTextStyles.osSmSemiboldBody.copyWith(color: AppColors.primary01)),
+                    Text(date,
+                        style: AppOSTextStyles.osSmSemiboldBody
+                            .copyWith(color: AppColors.primary01)),
                   ],
                 ),
               ),
               const Spacer(),
-              Icon(Icons.arrow_forward_ios, size: 18, color: AppColors.amethyst),
+              Icon(Icons.arrow_forward_ios,
+                  size: 18, color: AppColors.amethyst),
             ],
           ),
         ],
       ),
     );
   }
-} 
+}

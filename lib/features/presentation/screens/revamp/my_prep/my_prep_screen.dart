@@ -94,7 +94,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(context),
+
       ),
     );
   }
@@ -422,35 +422,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home, 'Home', false, () {
-            Navigator.of(context).pop();
-          }),
-          _buildNavItem(Icons.assignment, 'My Prep', true, () {}),
-          _buildNavItem(Icons.timeline, 'Tracker', false, () {}),
-          _buildNavItem(Icons.search, 'Insight', false, () {}),
-          _buildNavItem(Icons.group, 'The Den', false, () {}),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(

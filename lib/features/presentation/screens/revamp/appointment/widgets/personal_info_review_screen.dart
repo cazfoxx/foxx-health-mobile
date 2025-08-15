@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -22,12 +23,12 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
     // Update data after the widget is fully built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Map<String, String> personalInfo = {
-        'age': '27 years',
-        'gender': 'Female',
-        'height': '5ft 4 in',
-        'weight': '115 lbs',
-        'ethnicity': 'Latino/Hispanic, Asian',
-        'income': 'Not specified',
+        'age': UserProfileConstants.getAgeString(),
+        'gender': UserProfileConstants.gender ?? 'Not specified',
+        'height': UserProfileConstants.getHeightString(),
+        'weight': UserProfileConstants.getWeightString(),
+        'ethnicity': UserProfileConstants.ethnicity ?? 'Not specified',
+        'income': UserProfileConstants.householdIncomeRange ?? 'Not specified',
       };
       widget.onDataUpdate(personalInfo);
     });
@@ -75,17 +76,25 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildInfoCard('Age', '27 years'),
+                  _buildInfoCard('Age', UserProfileConstants.getAgeString()),
                   const SizedBox(height: 12),
-                  _buildInfoCard('Gender', 'Female'),
+                  _buildInfoCard('Gender', UserProfileConstants.gender ?? 'Not specified'),
                   const SizedBox(height: 12),
-                  _buildInfoCard('Height', '5ft 4 in'),
+                  _buildInfoCard('Height', UserProfileConstants.getHeightString()),
                   const SizedBox(height: 12),
-                  _buildInfoCard('Weight', '115 lbs'),
+                  _buildInfoCard('Weight', UserProfileConstants.getWeightString()),
                   const SizedBox(height: 12),
-                  _buildInfoCard('Ethnicity', 'Latino/Hispanic, Asian'),
+                  _buildInfoCard('Ethnicity', UserProfileConstants.ethnicity ?? 'Not specified'),
                   const SizedBox(height: 12),
-                  _buildInfoCard('Income', 'Not specified'),
+                  _buildInfoCard('Income', UserProfileConstants.householdIncomeRange ?? 'Not specified'),
+                  const SizedBox(height: 12),
+                  _buildInfoCard('Address', UserProfileConstants.address ?? 'Not specified'),
+                  const SizedBox(height: 12),
+                  _buildInfoCard('Health Concerns', _formatHealthConcerns()),
+                  const SizedBox(height: 12),
+                  _buildInfoCard('Health History', _formatHealthHistory()),
+                  const SizedBox(height: 12),
+                  _buildInfoCard('Medications', _formatMedications()),
                 ],
               ),
             ),
@@ -133,5 +142,29 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
         ],
       ),
     );
+  }
+
+  String _formatHealthConcerns() {
+    if (UserProfileConstants.healthConcerns == null || 
+        UserProfileConstants.healthConcerns!.isEmpty) {
+      return 'None specified';
+    }
+    return UserProfileConstants.healthConcerns!.join(', ');
+  }
+
+  String _formatHealthHistory() {
+    if (UserProfileConstants.healthHistory == null || 
+        UserProfileConstants.healthHistory!.isEmpty) {
+      return 'None specified';
+    }
+    return UserProfileConstants.healthHistory!.join(', ');
+  }
+
+  String _formatMedications() {
+    if (UserProfileConstants.medicationsOrSupplements == null || 
+        UserProfileConstants.medicationsOrSupplements!.isEmpty) {
+      return 'None specified';
+    }
+    return UserProfileConstants.medicationsOrSupplements!.join(', ');
   }
 }

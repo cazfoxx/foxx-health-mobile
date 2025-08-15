@@ -3,7 +3,8 @@ import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxb
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/data/services/onboarding_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/home_screen/revamp_home_screen.dart';
+import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/main_navigation/main_navigation_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/onboarding/widgets/username_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/onboarding/widgets/gender_identity_screen.dart';
@@ -108,6 +109,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
     try {
       final loginCubit = context.read<LoginCubit>();
+      final onboardingCubit = context.read<OnboardingCubit>();
       
       // Set all the collected data in the LoginCubit
       loginCubit.setUserDetails(
@@ -124,15 +126,57 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       }
 
       // Register the user using LoginCubit
-      final success = await loginCubit.registerUser(context);
+      final loginSuccess = await loginCubit.registerUser(context);
 
-      if (success) {
-        // Navigate to revamp home screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const RevampHomeScreen(),
-          ),
+      if (loginSuccess) {
+        // Add a delay to ensure the login token is properly set
+        await Future.delayed(const Duration(seconds: 2));
+        
+        // After successful login, set all onboarding data and submit to onboarding API
+        onboardingCubit.setOnboardingData(
+          userName: username,
+          gender: genderIdentity,
+          age: age,
+          weight: weight,
+          height: height?['feet'] != null ? (height!['feet'] * 30.48 + height!['inches'] * 2.54) : null,
+          ethnicity: ethnicity,
+          address: location,
+          householdIncomeRange: income,
+          healthConcerns: healthConcerns?.toList() ?? [],
+          healthHistory: diagnoses?.toList() ?? [],
+          medicationsOrSupplementsIndicator: medicationStatus,
+          medicationsOrSupplements: medications ?? [],
+          currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+          privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+          sixteenAndOver: true,
+          isActive: true,
         );
+
+        // Submit onboarding data to API
+        final onboardingSuccess = await onboardingCubit.submitOnboardingData();
+
+        if (onboardingSuccess) {
+                              // Navigate to main navigation screen
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigationScreen(),
+                      ),
+                    );
+        } else {
+          // Onboarding API failed but login was successful
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created successfully! Onboarding data will be saved later.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+                              // Still navigate to main navigation screen since account was created
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigationScreen(),
+                      ),
+                    );
+        }
       } else {
         // Error is already handled by LoginCubit and shown via Snackbar
         setState(() {
@@ -163,6 +207,81 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       Navigator.of(context).pop();
     }
   }
+
+  // Data update methods for onboarding cubit
+  void _updateUsername(String username) {
+    this.username = username;
+    context.read<OnboardingCubit>().setUserName(username);
+  }
+
+  void _updateGender(String gender) {
+    genderIdentity = gender;
+    context.read<OnboardingCubit>().setGender(gender);
+  }
+
+  void _updateAge(int age) {
+    this.age = age;
+    context.read<OnboardingCubit>().setAge(age);
+  }
+
+  void _updateWeight(double weight) {
+    this.weight = weight;
+    context.read<OnboardingCubit>().setWeight(weight);
+  }
+
+  void _updateHeight(Map<String, dynamic> height) {
+    this.height = height;
+    // Convert feet and inches to cm for the API
+    if (height['feet'] != null && height['inches'] != null) {
+      final heightInCm = (height['feet'] * 30.48) + (height['inches'] * 2.54);
+      context.read<OnboardingCubit>().setHeight(heightInCm);
+    }
+  }
+
+  void _updateEthnicity(String ethnicity) {
+    this.ethnicity = ethnicity;
+    context.read<OnboardingCubit>().setEthnicity(ethnicity);
+  }
+
+  void _updateLocation(String location) {
+    this.location = location;
+    context.read<OnboardingCubit>().setAddress(location);
+  }
+
+  void _updateIncome(String income) {
+    this.income = income;
+    context.read<OnboardingCubit>().setHouseholdIncomeRange(income);
+  }
+
+  void _updateHealthConcerns(Set<String> healthConcerns) {
+    this.healthConcerns = healthConcerns;
+    context.read<OnboardingCubit>().setHealthConcerns(healthConcerns.toList());
+  }
+
+  void _updateDiagnoses(Set<String> diagnoses) {
+    this.diagnoses = diagnoses;
+    context.read<OnboardingCubit>().setHealthHistory(diagnoses.toList());
+  }
+
+  void _updateMedicationStatus(String medicationStatus) {
+    this.medicationStatus = medicationStatus;
+    context.read<OnboardingCubit>().setMedicationsOrSupplementsIndicator(medicationStatus);
+  }
+
+  void _updateMedications(List<String> medications) {
+    this.medications = medications;
+    context.read<OnboardingCubit>().setMedicationsOrSupplements(medications);
+  }
+
+  void _updateLifeStage(String lifeStage) {
+    this.lifeStage = lifeStage;
+    context.read<OnboardingCubit>().setCurrentStageInLife([lifeStage]);
+  }
+
+  void _updateDataPrivacy(bool dataPrivacyAccepted) {
+    this.dataPrivacyAccepted = dataPrivacyAccepted;
+    context.read<OnboardingCubit>().setPrivacyPolicyAccepted(dataPrivacyAccepted);
+  }
   
   List<Widget> get screens => [
     UsernameScreen(onNext: _nextPage),
@@ -183,12 +302,26 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LoginCubit(),
-      child: Foxxbackground(
-        child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: _currentPage > 0 ? AppBar(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => LoginCubit()),
+        BlocProvider(create: (context) => OnboardingCubit()),
+      ],
+      child: BlocListener<OnboardingCubit, OnboardingState>(
+        listener: (context, state) {
+          if (state is OnboardingError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: Foxxbackground(
+          child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: _currentPage > 0 ? AppBar(
           backgroundColor: Colors.white.withOpacity(0.4),
           elevation: 0,
           leading: FoxxBackButton(onPressed: _previousPage),
@@ -238,6 +371,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                         CircularProgressIndicator(),
                         SizedBox(height: 16),
                         Text('Creating your account...'),
+                        SizedBox(height: 8),
+                        Text('Please wait while we set up your profile', 
+                             style: TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   )
@@ -253,6 +389,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                   ),
         ),
         ),
+      ),
       ),
     );
   }

@@ -1,13 +1,10 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:foxxhealth/core/constants/app_constants.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class PremiumOverlay extends StatefulWidget {
   const PremiumOverlay({Key? key}) : super(key: key);
@@ -27,27 +24,28 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     });
 
     try {
-      // Call the FastAPI backend to create a checkout session
-      final response = await http.post(
-        Uri.parse('https://fastapi-backend-v2-788993188947.us-central1.run.app/api/v1/payments/create-checkout-session'),
-        headers: {
-          'accept': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTgxYzJiMi1jZjdjLTRiYTUtYTQyNy1mNjBhMmIyOWJjOWUiLCJleHAiOjE3NTM0NDM3ODF9.l0sR6H6hlbGDCI1urYAB8Oc1K2q9YVgCpkL3RMlBKhk',
-          'Content-Type': 'application/json',
+      // Call the FastAPI backend to create a checkout session using ApiClient
+      final response = await _apiClient.post(
+        '/api/v1/payments/create-checkout-session',
+        data: {
+          'billing_cycle': isYearlySelected ? 'annual' : 'monthly',
         },
-        body: jsonEncode({
-          'billing_cycle': isYearlySelected ? 'yearly' : 'monthly',
-        }),
       );
-
-      final data = jsonDecode(response.body);
       
-      if (response.statusCode == 200) {
+
+      final data = response.data;
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
         // Launch the URL in a browser
         final url = data['url'];
-        if (await canLaunch(url)) {
-          await launch(url);
+        log('Opening Stripe checkout URL: $url');
+        
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          log('Successfully launched Stripe checkout URL');
         } else {
+          log('Could not launch URL: $url');
           throw 'Could not launch $url';
         }
       } else {
@@ -71,82 +69,84 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              )),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Foxxbackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SingleChildScrollView(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.9,
+            decoration: BoxDecoration(
+      color: Colors.transparent,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                )),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: AppColors.amethystViolet),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      Text('Premium Plan', style: AppTextStyles.heading3),
+                      const SizedBox(width: 50),
+                    ],
+                  ),
+                ),
+                _buildPremiumBenefits(),
+                  Container(
+                    color: Colors.transparent,
+                child: Column(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.amethystViolet),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Text('Premium Plan', style: AppTextStyles.heading3),
-                    const SizedBox(width: 50),
+                const SizedBox(height: 32),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isYearlySelected = true;
+                    });
+                  },
+                  child: _buildSubscriptionOption(
+                    title: 'Yearly Subscription',
+                    price: '\$20',
+                    description: 'Auto renewal 1 year on expiry.',
+                    isSelected: isYearlySelected,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isYearlySelected = false;
+                    });
+                  },
+                  child: _buildSubscriptionOption(
+                    title: 'Monthly Subscription',
+                    price: '\$2',
+                    description: 'Auto renewal 1 month on expiry.',
+                    isSelected: !isYearlySelected,
+                  ),
+                ),
+            
+                     const SizedBox(height: 48),
+                _buildTestimonial(),
+                const SizedBox(height: 16),
+                // _buildTermsOfService(),
+                const SizedBox(height:10),
+                
+                
                   ],
                 ),
               ),
-              _buildPremiumBenefits(),
-                Container(
-                  color: AppColors.background,
-              child: Column(
-                children: [
-              const SizedBox(height: 32),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isYearlySelected = true;
-                  });
-                },
-                child: _buildSubscriptionOption(
-                  title: 'Yearly Subscription',
-                  price: '\$20',
-                  description: 'Auto renewal 1 year on expiry.',
-                  isSelected: isYearlySelected,
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isYearlySelected = false;
-                  });
-                },
-                child: _buildSubscriptionOption(
-                  title: 'Monthly Subscription',
-                  price: '\$2',
-                  description: 'Auto renewal 1 month on expiry.',
-                  isSelected: !isYearlySelected,
-                ),
-              ),
-          
-                   const SizedBox(height: 48),
-              _buildTestimonial(),
-              const SizedBox(height: 16),
-              _buildTermsOfService(),
-              const SizedBox(height:10),
-              
-              
-                ],
-              ),
+             
+                _buildTrialButton(),
+                const SizedBox(height: 10),
+              ],
             ),
-           
-              _buildTrialButton(),
-              const SizedBox(height: 10),
-            ],
           ),
         ),
       ),
@@ -247,9 +247,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
   Widget _buildTestimonial() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: MediaQuery.of(context).size.width * 0.7,
       child: Text(
-        "Every woman deserves a tool like the FoXx Health app, designed to empower them to become their own health expert and take control of their well-being",
+        "Every woman deserves a tool like the FoXx Health app",
         style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w400),
         textAlign: TextAlign.center,
       ),

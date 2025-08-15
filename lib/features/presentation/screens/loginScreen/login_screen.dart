@@ -1,16 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/main_navigation/main_navigation_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/onboarding/view/onboarding_flow.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/features/presentation/screens/homeScreen/home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/forgotPassword/forgot_password_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 
@@ -151,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       },
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             widget.isSign ? 'Sign In' : 'Create your account',
@@ -173,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 4),
             const Text(
               'Your health details are always protected. Logging in simply unlocks your private account.',
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
@@ -444,7 +442,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(),
+                builder: (context) => const MainNavigationScreen(),
               ),
             );
           }

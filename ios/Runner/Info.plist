@@ -56,5 +56,24 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	
+	<!-- Deep link configuration for foxxhealth.app -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>foxxhealth.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>foxxhealth</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Universal Links for foxxhealth.app -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:foxxhealth.app</string>
+	</array>
 </dict>
 </plist>
