@@ -1,10 +1,8 @@
 import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
 import 'package:foxxhealth/features/data/services/symptom_service.dart';
-
 part 'symptom_search_state.dart';
 
 class SymptomSearchCubit extends Cubit<SymptomSearchState> {
@@ -29,7 +27,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 
   Future<void> loadInitialSymptoms() async {
     try {
-      print('🔄 Loading initial symptoms...');
+
       emit(SymptomSearchLoading());
       
       final result = await SymptomService.getAllSymptoms(skip: 0, limit: _limit);

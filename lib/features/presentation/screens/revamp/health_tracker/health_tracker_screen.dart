@@ -6,7 +6,9 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/health_tracker/symptom_search_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/revamp/health_tracker/body_map_bottom_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/revamp/health_tracker/symptom_details_bottom_sheet.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
+import 'package:foxxhealth/features/data/services/symptom_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 
@@ -28,93 +30,92 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => HealthTrackerCubit()),
-        BlocProvider(create: (context) => SymptomSearchCubit()),
-      ],
+    return BlocProvider(
+      create: (context) => HealthTrackerCubit(),
       child: BlocBuilder<HealthTrackerCubit, HealthTrackerState>(
-        builder: (context, state) {
+        builder: (context, healthState) {
           final healthCubit = context.read<HealthTrackerCubit>();
-          final symptomCubit = context.read<SymptomSearchCubit>();
-          
-          return Foxxbackground(
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                leading: FoxxBackButton(),
-              ),
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top Navigation Bar
-                       
-                        const SizedBox(height: 24),
-                    
-                        // Header Section
-                        Text(
-                          'Health Tracker',
-                          style: AppHeadingTextStyles.h2.copyWith(
-                            color: AppColors.primary01,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Find for your symptom through our clickable body, or by using the search function',
-                          style: AppOSTextStyles.osMd.copyWith(
-                            color: AppColors.davysGray,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                    
-                        // Date Selection Card
-                        _buildDateSelectionCard(healthCubit),
-                        const SizedBox(height: 24),
+          return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
+            builder: (context, symptomState) {
+              final symptomCubit = context.read<SymptomSearchCubit>();
+              
+              return Foxxbackground(
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  appBar: AppBar(
+                    backgroundColor: Colors.transparent,
+                    leading: FoxxBackButton(),
+                  ),
+                  body: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top Navigation Bar
+                           
+                            const SizedBox(height: 24),
                         
-                                                // Selected Symptoms Section
-                        if (symptomCubit.state is SymptomSearchLoading) ...[
-                          const Center(child: CircularProgressIndicator()),
-                        ] else if (symptomCubit.selectedSymptoms.isNotEmpty) ...[
-                          Text(
-                            'My Symptoms',
-                            style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                              color: AppColors.primary01,
+                            // Header Section
+                            Text(
+                              'Health Tracker',
+                              style: AppHeadingTextStyles.h2.copyWith(
+                                color: AppColors.primary01,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSelectedSymptomsList(symptomCubit),
-                        ],
-                        const SizedBox(height: 24),
-                    
-                        // Add symptoms section header
-                        Text(
-                          'Add symptoms',
-                          style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                            color: AppColors.primary01,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                    
-                        // Search by Symptom Card
-                        _buildSearchBySymptomCard(healthCubit, symptomCubit),
-                        const SizedBox(height: 16),
-                    
-                        // Area of the Body Card
-                        _buildAreaOfBodyCard(),
-                        const SizedBox(height: 24),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Find for your symptom through our clickable body, or by using the search function',
+                              style: AppOSTextStyles.osMd.copyWith(
+                                color: AppColors.davysGray,
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                         
-                      ],
+                            // Date Selection Card
+                            _buildDateSelectionCard(healthCubit),
+                            const SizedBox(height: 24),
+                            
+                            // Selected Symptoms Section
+                            if (symptomCubit.selectedSymptoms.isNotEmpty) ...[
+                              Text(
+                                'My Symptoms',
+                                style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                                  color: AppColors.primary01,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildSelectedSymptomsList(symptomCubit),
+                            ],
+                            const SizedBox(height: 24),
+                        
+                            // Add symptoms section header
+                            Text(
+                              'Add symptoms',
+                              style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                                color: AppColors.primary01,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                        
+                            // Search by Symptom Card
+                            _buildSearchBySymptomCard(healthCubit, symptomCubit),
+                            const SizedBox(height: 16),
+                        
+                            // Area of the Body Card
+                            _buildAreaOfBodyCard(),
+                            const SizedBox(height: 24),
+                            
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
@@ -193,19 +194,13 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
   Widget _buildSearchBySymptomCard(HealthTrackerCubit cubit, SymptomSearchCubit symptomCubit) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.of(context).push<List<Symptom>>(
+        await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => const SymptomSearchScreen(),
           ),
         );
-        print('🏠 Health Tracker received result: $result');
-        if (result != null) {
-          print('✅ Setting ${result.length} selected symptoms');
-          print('Symptom names: ${result.map((s) => s.name).toList()}');
-          cubit.setSelectedSymptoms(result);
-        } else {
-          print('❌ Result is null');
-        }
+        // The selected symptoms are already updated in the SymptomSearchCubit
+        // No need to handle the result since we're using the same cubit instance
       },
       child: Container(
         width: double.infinity,
@@ -401,8 +396,8 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
               
               // Symptom Name
               Expanded(
-                child:                   Text(
-                    symptom.name,
+                child: Text(
+                  symptom.name,
                   style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                     color: AppColors.primary01,
                   ),
@@ -428,13 +423,58 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     );
   }
 
-  void _showSymptomDetails(Symptom symptom) {
-    // TODO: Implement symptom details bottom sheet
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Details for: ${symptom.name}'),
-        backgroundColor: Colors.blue,
+  void _showSymptomDetails(Symptom symptom) async {
+    if (!mounted) return;
+    
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
       ),
     );
+    
+    try {
+      // Fetch symptom details from API
+      Map<String, dynamic>? symptomDetails;
+      
+      // Try to get from API first, fallback to mock data for testing
+      try {
+        symptomDetails = await SymptomService.getSymptomDetails(symptom.id);
+      } catch (apiError) {
+        print('API Error, using mock data: $apiError');
+        symptomDetails = SymptomDetailsHelper.getMockSymptomDetails(symptom.id);
+      }
+      
+      if (!mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show symptom details bottom sheet
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => SymptomDetailsBottomSheet(
+          symptom: symptom,
+          symptomDetails: symptomDetails,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading symptom details: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
-} 
+}

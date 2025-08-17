@@ -90,4 +90,27 @@ class SymptomService {
   static List<String> getFilterGroups() {
     return ['All', 'Period', 'Behavioral Changes', 'Body Image'];
   }
+
+  static Future<Map<String, dynamic>?> getSymptomDetails(String symptomId) async {
+    try {
+      print('🌐 API Call: getSymptomDetails(symptomId: $symptomId)');
+      
+      final response = await _apiClient.get(
+        '/api/v1/symptom/$symptomId',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Authorization': 'Bearer $_token',
+          },
+        ),
+      );
+
+      print('✅ API Response: Symptom details received');
+      
+      return response.data;
+    } catch (e) {
+      print('❌ API Error: $e');
+      return null;
+    }
+  }
 } 

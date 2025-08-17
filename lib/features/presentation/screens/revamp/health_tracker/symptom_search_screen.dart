@@ -48,33 +48,31 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) {
-        final cubit = SymptomSearchCubit();
-        // Load initial symptoms when cubit is created
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          cubit.loadInitialSymptoms();
-        });
-        return cubit;
-      },
-      child: Foxxbackground(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: SafeArea(
-            child: Column(
-              children: [
-                // Top Navigation Bar
-                _buildTopNavigationBar(),
-                
-                // Filter Section
-                _buildFilterSection(),
-                
-                // Symptoms List
-                Expanded(
-                  child: _buildSymptomsList(),
-                ),
-              ],
-            ),
+    // Initialize the cubit when the screen is first built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cubit = context.read<SymptomSearchCubit>();
+      if (cubit.state is SymptomSearchInitial) {
+        cubit.loadInitialSymptoms();
+      }
+    });
+    
+    return Foxxbackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Top Navigation Bar
+              _buildTopNavigationBar(),
+              
+              // Filter Section
+              _buildFilterSection(),
+              
+              // Symptoms List
+              Expanded(
+                child: _buildSymptomsList(),
+              ),
+            ],
           ),
         ),
       ),
@@ -92,8 +90,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
           // Back Button
           FoxxBackButton(
             onPressed: () {
-              final cubit = context.read<SymptomSearchCubit>();
-              Navigator.of(context).pop(cubit.selectedSymptomsList);
+              Navigator.of(context).pop();
             },
           ),
 
