@@ -9,7 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:foxxhealth/core/constants/appconst.dart';
+
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/services/dynamic_links_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
@@ -18,13 +18,12 @@ import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/main_navigation/main_navigation_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 
 
 void main() async {
@@ -88,9 +87,6 @@ void main() async {
 
   // Replace with direct app runner
   runApp(const MyApp());
-
-  Stripe.publishableKey = AppConstants.publishableKey;
-  await Stripe.instance.applySettings();
 
   // Remove this line
   // await Sentry.captureException(StateError('This is a sample exception.'));

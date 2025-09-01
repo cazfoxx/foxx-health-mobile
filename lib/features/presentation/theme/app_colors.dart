@@ -7,7 +7,6 @@ class AppColors {
   static const backgroundDefault = Color(0xffFEEFF1);
   static const disabledButton = Color(0xffCECECF);
 
-
   static const amethystViolet = Color(0xff805EC9);
   static const blue = Color(0xff007AFF);
 
@@ -17,7 +16,7 @@ class AppColors {
 
 
 
-//revamp colors
+
 
   // Brand Colors
   static const davysGray = Color(0xFF5E5C6C); 
@@ -122,21 +121,28 @@ class AppColors {
   );
 
   /// Glass card treatment for home cards 
-  static final BoxDecoration glassCardDecoration = BoxDecoration(
-    color: AppColors.crossGlassBase.withOpacity(0.28),
-    borderRadius: BorderRadius.circular(20),
-    border: Border.all(
-      color: AppColors.gray200.withOpacity(0.9),
-      width: 1.2,
-    ),
+  // static final BoxDecoration glassCardDecoration = BoxDecoration(
+  //   color: AppColors.crossGlassBase.withOpacity(0.28),
+  //   borderRadius: BorderRadius.circular(20),
+  //   border: Border.all(
+  //     color: AppColors.gray200.withOpacity(0.9),
+  //     width: 1.2,
+  //   ),
 
-    boxShadow: [
-      BoxShadow(
-        color: AppColors.gray400.withOpacity(0.08),
-        blurRadius: 12,
-        offset: Offset(0, 2),
-      ),
-    ],
+  //   boxShadow: [
+  //     BoxShadow(
+  //       color: AppColors.gray400.withOpacity(0.08),
+  //       blurRadius: 12,
+  //       offset: Offset(0, 2),
+  //     ),
+  //   ],
+  // );
+
+  /// Inner shadow decoration for glass cards
+  static final BoxDecoration glassCardDecoration = BoxDecoration(
+    borderRadius: BorderRadius.circular(20),
+    color: Colors.white.withOpacity(0.28),
+
   );
 
   static LinearGradient gradient45 = LinearGradient(

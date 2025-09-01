@@ -4,12 +4,12 @@ import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/main_navigation/main_navigation_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/onboarding/view/onboarding_flow.dart';
+import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/onboarding/view/onboarding_flow.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/forgotPassword/forgot_password_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
+import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key, required this.isSign, this.showBackButton = true});

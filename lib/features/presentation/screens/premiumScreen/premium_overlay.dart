@@ -1,10 +1,10 @@
 import 'dart:developer';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:foxxhealth/core/network/api_client.dart';
-import 'package:foxxhealth/features/presentation/screens/revamp/background/foxxbackground.dart';
+import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class PremiumOverlay extends StatefulWidget {
   const PremiumOverlay({Key? key}) : super(key: key);
@@ -16,45 +16,91 @@ class PremiumOverlay extends StatefulWidget {
 class _PremiumOverlayState extends State<PremiumOverlay> {
   bool isYearlySelected = true;
   bool _isLoading = false;
-  final _apiClient = ApiClient();
+  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  List<ProductDetails> _products = [];
+  bool _isAvailable = false;
+  late StreamSubscription<List<PurchaseDetails>> _subscription;
+
+  // Product IDs - replace with your actual product IDs from App Store/Google Play
+  static const String yearlyProductId = 'foxx_health_yearly_premium';
+  static const String monthlyProductId = 'foxx_health_monthly_premium';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeStore();
+    _listenToPurchaseUpdated();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeStore() async {
+    final bool available = await _inAppPurchase.isAvailable();
+    if (!available) {
+      setState(() {
+        _isAvailable = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isAvailable = true;
+    });
+
+    // Load products
+    await _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final Set<String> productIds = {yearlyProductId, monthlyProductId};
+      final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(productIds);
+      
+      if (response.notFoundIDs.isNotEmpty) {
+        log('Products not found: ${response.notFoundIDs}');
+      }
+
+      setState(() {
+        _products = response.productDetails;
+      });
+    } catch (e) {
+      log('Error loading products: $e');
+    }
+  }
 
   Future<void> initializePayment() async {
+    if (!_isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('In-app purchases are not available on this device')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Call the FastAPI backend to create a checkout session using ApiClient
-      final response = await _apiClient.post(
-        '/api/v1/payments/create-checkout-session',
-        data: {
-          'billing_cycle': isYearlySelected ? 'annual' : 'monthly',
-        },
+      final String productId = isYearlySelected ? yearlyProductId : monthlyProductId;
+      final ProductDetails product = _products.firstWhere(
+        (p) => p.id == productId,
+        orElse: () => throw 'Product not found: $productId',
       );
-      
 
-      final data = response.data;
+      final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Launch the URL in a browser
-        final url = data['url'];
-        log('Opening Stripe checkout URL: $url');
-        
-        final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-          log('Successfully launched Stripe checkout URL');
-        } else {
-          log('Could not launch URL: $url');
-          throw 'Could not launch $url';
-        }
+      if (product.id == yearlyProductId) {
+        await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
       } else {
-        throw 'Failed to create checkout session: ${data['detail'] ?? "Unknown error"}';
+        await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
       }
 
     } catch (e) {
-      // Handle errors
-      log(e.toString());
+      log('Error during purchase: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $e')),
       );
@@ -64,6 +110,82 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  String _getProductPrice(String productId) {
+    try {
+      final product = _products.firstWhere((p) => p.id == productId);
+      return product.currencySymbol + product.rawPrice.toString();
+    } catch (e) {
+      // Fallback prices if products are not loaded
+      return productId == yearlyProductId ? '\$20' : '\$2';
+    }
+  }
+
+  String _getProductTitle(String productId) {
+    return productId == yearlyProductId ? 'Yearly Subscription' : 'Monthly Subscription';
+  }
+
+  String _getProductDescription(String productId) {
+    return productId == yearlyProductId 
+        ? 'Auto renewal 1 year on expiry.' 
+        : 'Auto renewal 1 month on expiry.';
+  }
+
+  void _listenToPurchaseUpdated() {
+    _subscription = _inAppPurchase.purchaseStream.listen(
+      (List<PurchaseDetails> purchaseDetailsList) {
+        _handlePurchaseUpdates(purchaseDetailsList);
+      },
+      onDone: () {
+        _subscription.cancel();
+      },
+      onError: (error) {
+        log('Error in purchase stream: $error');
+      },
+    );
+  }
+
+  void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) {
+    purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+      if (purchaseDetails.status == PurchaseStatus.pending) {
+        // Show loading UI
+        log('Purchase pending');
+      } else if (purchaseDetails.status == PurchaseStatus.purchased) {
+        // Verify purchase
+        await _verifyPurchase(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.error) {
+        // Handle error
+        log('Purchase error: ${purchaseDetails.error}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Purchase failed: ${purchaseDetails.error?.message ?? "Unknown error"}')),
+        );
+      } else if (purchaseDetails.status == PurchaseStatus.canceled) {
+        // Handle cancellation
+        log('Purchase canceled');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase was canceled')),
+        );
+      }
+
+      if (purchaseDetails.pendingCompletePurchase) {
+        await _inAppPurchase.completePurchase(purchaseDetails);
+      }
+    });
+  }
+
+  Future<void> _verifyPurchase(PurchaseDetails purchaseDetails) async {
+    // Here you would typically verify the purchase with your backend
+    // For now, we'll just show a success message
+    log('Purchase successful: ${purchaseDetails.productID}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Purchase successful! Welcome to Premium!')),
+    );
+    
+    // Close the premium overlay
+    if (mounted) {
+      Navigator.pop(context);
     }
   }
 
@@ -111,9 +233,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                     });
                   },
                   child: _buildSubscriptionOption(
-                    title: 'Yearly Subscription',
-                    price: '\$20',
-                    description: 'Auto renewal 1 year on expiry.',
+                    title: _getProductTitle(yearlyProductId),
+                    price: _getProductPrice(yearlyProductId),
+                    description: _getProductDescription(yearlyProductId),
                     isSelected: isYearlySelected,
                   ),
                 ),
@@ -125,9 +247,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                     });
                   },
                   child: _buildSubscriptionOption(
-                    title: 'Monthly Subscription',
-                    price: '\$2',
-                    description: 'Auto renewal 1 month on expiry.',
+                    title: _getProductTitle(monthlyProductId),
+                    price: _getProductPrice(monthlyProductId),
+                    description: _getProductDescription(monthlyProductId),
                     isSelected: !isYearlySelected,
                   ),
                 ),

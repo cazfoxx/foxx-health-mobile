@@ -2,8 +2,6 @@
 
 A comprehensive health and wellness mobile application built with Flutter, designed to help users track symptoms, manage appointments, and advocate for their health effectively.
 
-
-
 ## 🛠 Technical Stack
 
 - **Framework**: Flutter (Latest Stable)
@@ -13,6 +11,7 @@ A comprehensive health and wellness mobile application built with Flutter, desig
 - **Analytics**: Firebase Analytics
 - **Storage**: Shared Preferences & Local Storage
 - **UI Components**: Custom Design System
+- **Image Handling**: Image Picker for profile uploads
 
 ## 📱 Installation
 
@@ -34,88 +33,73 @@ flutter run
 
 ```
 lib/
-├── core/
-│   ├── components/           # Shared UI components
-│   ├── constants/           # App constants and configurations
-│   ├── network/             # API client and network utilities
-│   ├── services/            # Core services (analytics, etc.)
-│   └── utils/               # Utility functions and helpers
-├── features/
-│   ├── data/
-│   │   ├── models/          # Data models and DTOs
-│   │   └── services/        # API services and repositories
-│   └── presentation/
-│       ├── cubits/          # State management (Bloc/Cubit)
-│       ├── screens/
-│       │   ├── splash/      # Splash screen
-│       │   ├── loginScreen/ # Authentication screens
-│       │   ├── onboarding/  # User onboarding flow
-│       │   ├── homeScreen/  # Main home screen
-│       │   ├── track_symptoms/ # Symptom tracking
-│       │   ├── appointment/ # Appointment management
-│       │   └── revamp/      # 🆕 NEW: Revamped UI/UX
-│       │       ├── onboarding/     # Enhanced onboarding flow
-│       │       ├── home_screen/    # New home screen design
-│       │       ├── my_prep/        # Appointment preparation
-│       │       ├── appointment/    # Comprehensive appointment flow
-│       │       │   ├── view/       # Main appointment flow controller
-│       │       │   └── widgets/    # Individual appointment screens
-│       │       └── shared/         # Shared revamp components
-│       ├── theme/
-│       │   ├── app_colors.dart     # Color palette
-│       │   └── app_text_styles.dart # Typography system
-│       └── widgets/         # Shared presentation widgets
-├── assets/
-│   ├── fonts/               # Custom fonts
-│   └── svg/                 # SVG assets and icons
-└── main.dart               # Application entry point
+├── core/                    # Core functionality
+│   ├── components/          # Shared UI components
+│   ├── constants/           # App constants
+│   ├── network/             # API client & network utilities
+│   │   ├── api_client.dart  # Dio HTTP client configuration
+│   │   └── api_logger_interceptor.dart # Request/response logging
+│   └── utils/               # Utility functions
+├── features/                # Feature-based modules
+│   ├── data/                # Data layer
+│   │   └── models/          # Data models (HealthTracker, AppointmentCompanion, etc.)
+│   └── presentation/        # UI layer
+│       ├── cubits/          # State management with integrated API calls
+│       │   ├── symptom_search/           # Centralized API operations
+│       │   ├── onboarding/               # Onboarding flow management
+│       │   ├── appointment_companion/    # Appointment companion logic
+│       │   ├── banner/                   # Banner management
+│       │   └── home_health_tracker/      # Home health tracker state
+│       ├── screens/         # Screen implementations
+│       │   ├── health_profile/           # Health profile & questions
+│       │   ├── appointment/              # Appointment management
+│       │   ├── onboarding/               # Onboarding flow
+│       │   ├── profile/                  # User profile management
+│       │   └── main_navigation/          # Main app navigation
+│       ├── theme/           # App theming
+│       └── widgets/         # Shared widgets
+└── main.dart               # App entry point
 ```
 
-## 🆕 Revamp Folder Structure
+## 🏛️ Architecture Overview
 
-The `revamp` folder contains the latest UI/UX improvements and new features:
+### **Refactored Architecture (Current)**
 
-### 📁 `revamp/onboarding/`
-- **Enhanced Onboarding Flow**: Multi-step user onboarding with API integration
-- **Personalized Questions**: Dynamic questionnaire system
-- **Account Creation**: Seamless user registration process
+The application follows a **Cubit-Centric Architecture** where API calls are directly integrated into cubits, eliminating the traditional service layer for better cohesion and simplified data flow.
 
-### 📁 `revamp/home_screen/`
-- **Modern Home Interface**: Redesigned main screen with improved navigation
-- **Quick Actions**: Streamlined access to key features
-- **Health Dashboard**: Visual health status overview
+#### **Key Architectural Decisions:**
 
-### 📁 `revamp/my_prep/`
-- **Appointment Management**: Centralized appointment preparation hub
-- **Companion Tools**: AI-powered appointment companions
-- **Progress Tracking**: Visual progress indicators
+1. **Service Layer Elimination**: 
+   - Removed `lib/features/data/services/` directory
+   - API calls moved directly into relevant cubits
+   - Reduced abstraction layers for better maintainability
 
-### 📁 `revamp/appointment/`
-- **15-Screen Flow**: Comprehensive appointment preparation process
-- **Data Collection**: Multi-faceted health information gathering
-- **Personalized Results**: AI-generated appointment companions
+2. **Centralized API Operations**:
+   - `SymptomSearchCubit` serves as the primary API hub
+   - Handles multiple domains: symptoms, health trackers, appointments, profile icons, AI responses
+   - Single point of truth for API operations
 
-#### Appointment Flow Screens:
-1. **Personal Info Review** - User information verification
-2. **Appointment Type** - Type of medical appointment
-3. **Care Provider** - Healthcare provider selection
-4. **Main Reason** - Primary reason for visit
-5. **Symptom Selection** - Tracked symptoms review
-6. **Life Situation** - Current life circumstances
-7. **Journey Progress** - Health journey status
-8. **Premium Info** - Premium features introduction
-9. **Concern Prioritization** - Priority setting for concerns
-10. **Symptom Changes** - Symptom progression tracking
-11. **Communication Preferences** - Healthcare communication style
-12. **Care Experience** - Past healthcare experiences
-13. **Concerns** - Specific worries about care
-14. **Data Privacy** - Privacy information and consent
-15. **Appointment Companion** - Final personalized companion
+3. **Feature-Specific Cubits**:
+   - `OnboardingCubit`: Manages onboarding questions and flow
+   - `AppointmentCompanionCubit`: Handles appointment companion operations
+   - `BannerCubit`: Manages banner content
+   - `HomeHealthTrackerCubit`: Manages home health tracker state
 
-### 📁 `revamp/shared/`
-- **Reusable Components**: Shared UI components for revamp screens
-- **Navigation Elements**: Common navigation patterns
-- **Design System**: Consistent styling and theming
+#### **Data Flow:**
+
+```
+UI Screen → Cubit → API Client → Backend
+    ↑                                    ↓
+    ←────────── State Updates ←───────────
+```
+
+#### **Benefits of New Architecture:**
+
+- **Reduced Complexity**: Fewer abstraction layers
+- **Better Cohesion**: Related functionality grouped together
+- **Easier Testing**: Direct cubit testing without service mocking
+- **Simplified Debugging**: Clear call stack and error handling
+- **Faster Development**: Less boilerplate code
 
 ## 🎨 Design System
 
@@ -135,39 +119,118 @@ The `revamp` folder contains the latest UI/UX improvements and new features:
 - **FoxxBackground**: Consistent background component
 - **Glass Card Decoration**: Modern glass-morphism effects
 
+## 🔧 Core Features
 
+### **API Integration**
+- **Centralized API Client**: Dio-based HTTP client with interceptors
+- **Authentication**: Bearer token management
+- **Error Handling**: Comprehensive error handling and logging
+- **Request/Response Logging**: Detailed API call monitoring
+
+### **State Management**
+- **Cubit Pattern**: Lightweight state management
+- **Integrated API Calls**: Direct API integration in cubits
+- **Reactive UI**: Automatic UI updates on state changes
+- **Error States**: Graceful error handling and recovery
+
+### **Health Profile System**
+- **Get to Know Me API**: Dynamic health questions from backend
+- **Question Categories**: Appointment Companion, Digital Twin, Symptom Insights
+- **Data Usage Tags**: Visual indicators for question purposes
+- **Filtering & Sorting**: Advanced question management
+
+### **Appointment Management**
+- **AI-Generated Questions**: Dynamic appointment preparation
+- **Companion Creation**: Personalized appointment companions
+- **Response Generation**: AI-powered question generation
+- **Premium Features**: Enhanced AI responses for premium users
+
+### **Profile Management**
+- **Icon Upload**: Profile picture upload functionality
+- **Image Picker**: Gallery-based image selection
+- **Real-time Updates**: Immediate UI updates on profile changes
 
 ## 📊 Analytics & Monitoring
 
 - **Firebase Analytics**: User behavior tracking
 - **Crash Reporting**: Error monitoring and reporting
 - **Performance Monitoring**: App performance metrics
+- **API Logging**: Detailed request/response logging
 
+## 🚀 Development Guidelines
 
-
-### Code Style
+### **Code Style**
 - Follow Flutter/Dart conventions
 - Use meaningful variable and function names
 - Add comments for complex logic
 - Maintain consistent formatting
 
+### **Architecture Patterns**
+- **Cubit-Centric**: Prefer cubits over complex service layers
+- **Direct API Integration**: Keep API calls close to state management
+- **Feature-Based Organization**: Group related functionality together
+- **Single Responsibility**: Each cubit handles one domain area
+
+### **API Development**
+- **Centralized Operations**: Use SymptomSearchCubit for multiple domains
+- **Error Handling**: Implement comprehensive error states
+- **Loading States**: Always provide loading indicators
+- **Retry Mechanisms**: Allow users to retry failed operations
+
+### **Testing Strategy**
+- **Cubit Testing**: Test state changes and API interactions
+- **Widget Testing**: Test UI components and interactions
+- **Integration Testing**: Test complete user flows
+- **API Mocking**: Mock API responses for testing
+
+## 🔄 Migration Notes
+
+### **From Service Layer Architecture**
+- **Removed**: `lib/features/data/services/` directory
+- **Moved**: API calls from services to cubits
+- **Updated**: All import statements and method calls
+- **Enhanced**: Error handling and loading states
+
+### **Breaking Changes**
+- Service classes no longer exist
+- API calls now go through cubits directly
+- Import statements updated throughout the codebase
+- Method signatures may have changed
+
+## 📝 API Endpoints
+
+### **Health Profile**
+- `GET /api/v1/get-to-know-me/` - Fetch health profile questions
+
+### **Appointments**
+- `POST /api/v1/appointment-companions/{id}/generate-ai-response` - Generate AI questions
+- `GET /api/v1/appointment-companions/{id}` - Get companion details
+
+### **Profile Management**
+- `POST /api/v1/accounts/me/profile-icon/upload` - Upload profile icon
+- `GET /api/v1/accounts/me/profile-icon` - Get profile icon
+
+### **Health Tracking**
+- `GET /api/v1/health-trackers` - Get health trackers
+- `POST /api/v1/health-trackers` - Create health tracker
+
+## 🤝 Contributing
+
+1. Follow the new cubit-centric architecture
+2. Integrate API calls directly into cubits
+3. Maintain comprehensive error handling
+4. Add loading states for all async operations
+5. Follow the established design system
+6. Write tests for new functionality
+
+## 📄 License
+
+This project is proprietary software. All rights reserved.
 
 
-## 🔄 Version History
-
-### v2.0.0 (Current - Revamp)
 
 
 
-
-### v1.0.0 (Legacy)
-- Basic symptom tracking
-- Simple appointment management
-- Original onboarding flow
-
----
-
-**Built with ❤️ by the Foxx Health Team**
 
 
 
