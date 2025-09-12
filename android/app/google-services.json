@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "788993188947",
+    "project_id": "arcane-shape-449219-v0",
+    "storage_bucket": "arcane-shape-449219-v0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:788993188947:android:66fd3ae16b69c6f6f2d2a6",
+        "android_client_info": {
+          "package_name": "com.beta.foxxhealth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:788993188947:android:6590d21215bdb47ef2d2a6",
+        "android_client_info": {
+          "package_name": "com.example.foxxhealth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

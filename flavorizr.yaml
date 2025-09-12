@@ -1,0 +1,26 @@
+flavorizr:
+  app:
+    android:
+      flavorDimensions: "flavor-type"
+  flavors:
+    development:
+      app:
+        name: "Foxx Health Dev"
+      android:
+        applicationId: "com.foxxhealth.dev"
+      ios:
+        bundleId: "com.foxxhealth.dev"
+    staging:
+      app:
+        name: "Foxx Health Staging"
+      android:
+        applicationId: "com.foxxhealth.staging"
+      ios:
+        bundleId: "com.foxxhealth.staging"
+    production:
+      app:
+        name: "Foxx Health"
+      android:
+        applicationId: "com.foxxhealth"
+      ios:
+        bundleId: "com.foxxhealth"

@@ -1,0 +1,3 @@
+class AppConstants{
+static const String publishableKey = 'pk_test_51RdTgUCEfPn7mThwOypoWYN1jVJe1H2DcfdcCWivqzOlXE8s2xJ0vk9kctdC79ji86Cl2wEvka97TlhSEasdmSWU00mreeXr5L';
+}
