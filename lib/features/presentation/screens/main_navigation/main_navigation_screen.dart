@@ -8,8 +8,10 @@ import 'package:foxxhealth/features/presentation/screens/den/den_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/home_screen/revamp_home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/my_prep/my_prep_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_details_bottom_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_insights_screen.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 import 'package:foxxhealth/features/data/models/health_tracker_model.dart';
+import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
 
 class MainNavigationScreen extends StatefulWidget {
@@ -463,16 +465,23 @@ class _TrackerTabState extends State<TrackerTab> {
                   final symptomCubit = context.read<SymptomSearchCubit>();
                   
                   // Convert SelectedSymptom to Map<String, dynamic> format
-                  final symptomsData = activeSymptoms.map((symptom) => {
-                    'id': symptom.info.id,
-                    'name': symptom.info.name,
-                    'filter_grouping': symptom.info.filterGrouping,
-                    'body_parts': symptom.info.bodyParts,
-                    'tags': symptom.info.tags,
-                    'visual_insights': symptom.info.visualInsights,
-                    'question_map': symptom.info.questionMap,
-                    'need_help_popup': symptom.needHelpPopup,
-                    'notes': symptom.notes,
+                  final symptomsData = activeSymptoms.map((symptom) {
+                    // Check if we have existing details for this symptom in the cubit
+                    final existingDetails = symptomCubit.symptomDetails[symptom.info.id];
+                    
+                    return {
+                      'id': symptom.info.id,
+                      'name': symptom.info.name,
+                      'filter_grouping': symptom.info.filterGrouping,
+                      'body_parts': symptom.info.bodyParts,
+                      'tags': symptom.info.tags,
+                      'visual_insights': symptom.info.visualInsights,
+                      'question_map': symptom.info.questionMap,
+                      'need_help_popup': symptom.needHelpPopup,
+                      'notes': symptom.notes,
+                      // Include existing answers if they exist in the symptom details
+                      'answers': existingDetails?['answers'] ?? {},
+                    };
                   }).toList();
 
                   // Optionally fetch additional details from API for each symptom
@@ -502,8 +511,27 @@ class _TrackerTabState extends State<TrackerTab> {
                         symptoms: enhancedSymptomsData,
                         onDetailsSaved: (symptomDetails) {
                           print('Symptom details saved: $symptomDetails');
-                          // Here you can handle the saved symptom details
-                          // For example, update the health tracker or show a success message
+                          
+                          // Store the details back in the cubit for future use
+                          for (final detail in symptomDetails) {
+                            final symptomId = detail['symptom']['id'] as String;
+                            symptomCubit.addSymptomWithDetails(
+                              // Create a temporary Symptom object for the cubit
+                              Symptom(
+                                id: symptomId,
+                                name: detail['symptom']['name'] as String,
+                                filterGrouping: List<String>.from(detail['symptom']['filter_grouping'] ?? []),
+                                bodyParts: List<String>.from(detail['symptom']['body_parts'] ?? []),
+                                tags: List<String>.from(detail['symptom']['tags'] ?? []),
+                                visualInsights: List<String>.from(detail['symptom']['visual_insights'] ?? []),
+                                questionMap: List<Map<String, dynamic>>.from(detail['symptom']['question_map'] ?? []),
+                                notes: detail['notes'] as String? ?? '',
+                                needHelpPopup: detail['symptom']['need_help_popup'] as bool? ?? false,
+                              ),
+                              detail,
+                            );
+                          }
+                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Symptom details saved successfully!'),
@@ -1023,27 +1051,37 @@ class _InsightTabState extends State<InsightTab> {
     
     return Column(
       children: symptoms.map((symptom) {
-        return Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: AppColors.glassCardDecoration,
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  symptom,
-                  style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                    color: AppColors.primary01,
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SymptomInsightsScreen(symptomName: symptom),
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: AppColors.glassCardDecoration,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    symptom,
+                    style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                      color: AppColors.primary01,
+                    ),
                   ),
                 ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: AppColors.amethyst,
-                size: 16,
-              ),
-            ],
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.amethyst,
+                  size: 16,
+                ),
+              ],
+            ),
           ),
         );
       }).toList(),

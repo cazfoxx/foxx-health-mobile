@@ -23,6 +23,7 @@ class ApiClient {
       printEmojis: true,
       printTime: true,
     ),
+    level: Level.debug, // Ensure debug level is set
   );
 
   factory ApiClient() {
@@ -211,11 +212,7 @@ class LoggerInterceptor extends Interceptor {
 
 class AuthInterceptor extends Interceptor {
   // List of endpoints that don't require authentication
-  static const List<String> _noAuthEndpoints = [
-
-    '/api/v1/auth/register',
-    '/api/v1/auth/login',
-  ];
+  static const List<String> _noAuthEndpoints = [];
 
   @override
   void onRequest(
@@ -229,7 +226,24 @@ class AuthInterceptor extends Interceptor {
     ApiClient.logger.d('🔍 AuthInterceptor - No Auth Endpoints: $_noAuthEndpoints');
     
     if (requiresAuth) {
-      final token = AppStorage.accessToken;
+      // First try to get token from AppStorage
+      String? token = AppStorage.accessToken;
+      
+      // If token is null, try to load from SharedPreferences directly
+      if (token == null) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          token = prefs.getString('access_token');
+          if (token != null) {
+            // Update AppStorage with the loaded token
+            AppStorage.accessToken = token;
+            ApiClient.logger.d('🔍 AuthInterceptor - Token loaded from SharedPreferences: ${token.length} chars');
+          }
+        } catch (e) {
+          ApiClient.logger.w('⚠️ AuthInterceptor - Error loading token from SharedPreferences: $e');
+        }
+      }
+      
       ApiClient.logger.d('🔍 AuthInterceptor - Token from AppStorage: ${token != null ? "Present (${token.length} chars)" : "NULL"}');
       
       if (token != null && token.isNotEmpty) {

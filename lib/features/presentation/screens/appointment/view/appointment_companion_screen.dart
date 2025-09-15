@@ -67,6 +67,9 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   bool _isLoading = true;
   bool _isLoadingAIResponse = false;
   String? _error;
+  
+  // Track unsaved changes
+  bool _hasUnsavedChanges = false;
 
   // Constants
   // static const List<String> _defaultQuestions = [
@@ -91,7 +94,13 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   Future<void> _loadCompanionDetails() async {
     final companionId = widget.appointmentData['companionId'] as int?;
     
+    // Debug: Print the appointment data and companion ID
+    print('🔍 Debug - appointmentData: ${widget.appointmentData}');
+    print('🔍 Debug - companionId: $companionId');
+    print('🔍 Debug - companionId type: ${companionId.runtimeType}');
+    
     if (companionId == null) {
+      print('❌ Error - companionId is null, cannot load companion details');
       setState(() => _isLoading = false);
       return;
     }
@@ -150,6 +159,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       if (_aiResponseData == null) {
         _aiResponseData = {};
       }
+      _hasUnsavedChanges = true;
       
       // Helper function to ensure we have a List<String>
       List<String> ensureList(String key) {
@@ -316,12 +326,14 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       } else {
         _selectedTags.add(tag);
       }
+      _hasUnsavedChanges = true;
     });
   }
 
   void _removeTag(String tag) {
     setState(() {
       _selectedTags.remove(tag);
+      _hasUnsavedChanges = true;
     });
   }
 
@@ -330,6 +342,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       setState(() {
         _availableTags.add(tagName.trim());
         _selectedTags.add(tagName.trim());
+        _hasUnsavedChanges = true;
       });
       _newTagController.clear();
       
@@ -401,64 +414,23 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   }
 
   Future<void> _updateAppointmentDate(DateTime newDate) async {
-    final companionId = widget.appointmentData['companionId'] as int?;
-    if (companionId == null) return;
-
-    // Update the local data immediately
+    // Update the local data only - API call will happen on save
     setState(() {
       if (_aiResponseData == null) {
         _aiResponseData = {};
       }
       _aiResponseData!['appointment_date'] = newDate.toIso8601String();
+      _hasUnsavedChanges = true;
     });
 
-    try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final appointmentCubit = AppointmentCompanionCubit();
-      
-      // Prepare the request data with the new date
-      Map<String, dynamic> requestData = {
-        'title': _title ?? 'Appointment Preparation Guide',
-        'symptoms_custom_questions': _symptomsList,
-        'conditions_custom_questions': _conditionsList,
-        'history_custom_questions': _historyList,
-        'my_appointment_notes': [_emotionalSupport ?? ''],
-        'appointment_date': newDate.toIso8601String(),
-        'post_appointment_notes': [],
-        'tags': _selectedTags.toList(),
-      };
-
-      // Call the API to update the appointment date
-      await appointmentCubit.updateAppointmentCompanionCustom(companionId, requestData);
-      
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Appointment date updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update appointment date: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Appointment date updated locally. Press Save to apply changes.'),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -477,11 +449,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       final moreLikeThisResponse = await appointmentCubit.generateMoreLikeThis(companionId);
       
       if (moreLikeThisResponse != null) {
-        // Update the AI response data with new content
+        // Update the AI response data with new content locally
         setState(() {
           if (_aiResponseData == null) {
             _aiResponseData = {};
           }
+          _hasUnsavedChanges = true;
           
           // Add new content to the appropriate section
           switch (sectionKey) {
@@ -543,8 +516,9 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Generated more questions for ${_getSectionDisplayName(sectionKey)}!'),
-              backgroundColor: Colors.green,
+              content: Text('Generated more questions for ${_getSectionDisplayName(sectionKey)}! Press Save to apply changes.'),
+              backgroundColor: Colors.blue,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -959,6 +933,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                     _aiResponseData = {};
                   }
                   _aiResponseData!['title'] = newName;
+                  _hasUnsavedChanges = true;
                 });
                 
                 Navigator.of(context).pop();
@@ -1241,6 +1216,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       
       setState(() {
         _isLoading = false;
+        _hasUnsavedChanges = false;
       });
 
       if (mounted) {
@@ -1314,11 +1290,11 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       ),
       actions: [
         TextButton(
-          onPressed: _saveAppointmentCompanion,
+          onPressed: _hasUnsavedChanges ? _saveAppointmentCompanion : null,
           child: Text(
             'Save',
             style: AppOSTextStyles.osMd.copyWith(
-              color: AppColors.amethyst,
+              color: _hasUnsavedChanges ? AppColors.amethyst : AppColors.gray400,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1657,6 +1633,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     final isHidden = _isQuestionHidden('emotionalSupport', emotionalSupportContent);
     
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Emotional Support', isExpanded, () => _toggleSection('emotionalSupport')),
         if (isExpanded) ...[

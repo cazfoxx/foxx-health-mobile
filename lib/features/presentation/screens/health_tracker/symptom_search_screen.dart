@@ -5,6 +5,8 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_details_bottom_sheet.dart';
+import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
 
 class SymptomSearchScreen extends StatefulWidget {
@@ -268,7 +270,8 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                 
                 return GestureDetector(
                   onTap: () {
-                    context.read<SymptomSearchCubit>().toggleSymptomSelection(symptom);
+                    // Show details sheet when symptom is selected
+                    _showSymptomDetailsSheet(symptom);
                   },
                   child: Container(
                     width: double.infinity,
@@ -322,5 +325,90 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
         );
       },
     );
+  }
+
+  void _showSymptomDetailsSheet(Symptom symptom) async {
+    try {
+      // Get symptom details from API
+      final cubit = context.read<SymptomSearchCubit>();
+      final symptomDetails = await cubit.getSymptomDetails(symptom.id);
+      
+      if (symptomDetails != null) {
+        // Convert symptom to the format expected by the details sheet
+        final symptomData = {
+          'id': symptom.id,
+          'info': {
+            'name': symptom.name,
+            'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+          },
+        };
+        
+        // Show the details sheet
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => SymptomDetailsBottomSheet(
+            symptoms: [symptomData],
+            onDetailsSaved: (details) {
+              // Add the symptom with details to selected symptoms
+              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+            },
+          ),
+        ).then((_) {
+          // Refresh the state when the sheet is closed
+          context.read<SymptomSearchCubit>().refreshSymptoms();
+        });
+      } else {
+        // Fallback if API fails - show details sheet with basic symptom info
+        final symptomData = {
+          'id': symptom.id,
+          'info': {
+            'name': symptom.name,
+            'question_map': null,
+          },
+        };
+        
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => SymptomDetailsBottomSheet(
+            symptoms: [symptomData],
+            onDetailsSaved: (details) {
+              // Add the symptom with details to selected symptoms
+              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+            },
+          ),
+        ).then((_) {
+          // Refresh the state when the sheet is closed
+          context.read<SymptomSearchCubit>().refreshSymptoms();
+        });
+      }
+    } catch (e) {
+      // Show error and fallback to basic details sheet
+      print('Error loading symptom details: $e');
+      
+      final symptomData = {
+        'id': symptom.id,
+        'info': {
+          'name': symptom.name,
+          'question_map': null,
+        },
+      };
+      
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => SymptomDetailsBottomSheet(
+          symptoms: [symptomData],
+          onDetailsSaved: (details) {
+            // Add the symptom with details to selected symptoms
+            context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+          },
+        ),
+      );
+    }
   }
 }

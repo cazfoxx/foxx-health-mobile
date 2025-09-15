@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'onboarding_state.dart';
 
@@ -232,9 +233,22 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       
       print('🚀 Starting onboarding API call...');
       
-      // Ensure token is loaded from storage
+      // Ensure token is loaded from storage and wait a bit for it to be available
       await AppStorage.loadCredentials();
       print('🔍 Current AppStorage token after reload: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
+      
+      // If token is still null, try loading from SharedPreferences directly
+      if (AppStorage.accessToken == null) {
+        print('⚠️ Token still null, trying to load from SharedPreferences directly...');
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('access_token');
+        if (token != null) {
+          AppStorage.accessToken = token;
+          print('✅ Token loaded directly from SharedPreferences: ${token.length} chars');
+        } else {
+          print('❌ No token found in SharedPreferences either');
+        }
+      }
 
       final response = await _apiClient.put(
         '/api/v1/accounts/me/onboarding',

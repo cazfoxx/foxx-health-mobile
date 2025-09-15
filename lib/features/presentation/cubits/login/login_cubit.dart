@@ -29,6 +29,9 @@ class LoginCubit extends Cubit<LoginState> {
   List<String> _healthGoals = [];
   List<String> _healthConcerns = [];
 
+  // Getter for password
+  String? get password => _password;
+
   LoginCubit() : super(LoginInitial());
 
   // Setters for onboarding data
@@ -66,10 +69,20 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   Future<void> _saveEmailToPrefs(String email, String token, String firebaseToken) async {
+    print('🔧 _saveEmailToPrefs called with:');
+    print('   Email: $email');
+    print('   Token: ${token.isNotEmpty ? "${token.substring(0, 20)}..." : "EMPTY"}');
+    print('   Firebase Token: ${firebaseToken.isNotEmpty ? "${firebaseToken.substring(0, 20)}..." : "EMPTY"}');
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_email', email);
     await prefs.setString('access_token', token);
     await prefs.setString('firebase_token', firebaseToken);
+    
+    // Verify the save worked
+    final savedToken = prefs.getString('access_token');
+    print('🔍 Token verification - saved: ${savedToken != null ? "${savedToken.substring(0, 20)}..." : "NULL"}');
+    
     log('📝 Email saved to prefs: $email');
     log('📝 Token saved to prefs: $token');
     log('📝 Firebase token saved to prefs: $firebaseToken');
@@ -77,64 +90,63 @@ class LoginCubit extends Cubit<LoginState> {
     print('🔧 Setting credentials in AppStorage...');
     await AppStorage.setCredentials(token: token, email: email);
     print('🔧 AppStorage credentials set. Token: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
+    
+    // Verify AppStorage was set correctly
+    final appStorageToken = AppStorage.accessToken;
+    print('🔍 AppStorage verification - token: ${appStorageToken != null ? "${appStorageToken.substring(0, 20)}..." : "NULL"}');
   }
 
-  Future<bool> registerUser(BuildContext context) async {
+  Future<Map<String, dynamic>?> registerUser(BuildContext context) async {
     try {
       emit(LoginLoading());
       
-      // First create Firebase account
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _email!,
-        password: _password!,
-      );
-      
-      // Update user profile with display name
-      await userCredential.user?.updateDisplayName(_username);
-      
-      // Get Firebase token
-      final firebaseToken = await userCredential.user?.getIdToken();
-      final firebaseUid = userCredential.user?.uid;
-      
-      // Register with your API using Dio (new endpoint)
+      // Register with your API using the new endpoint
       final response = await _apiClient.post(
-        '/api/v1/auth/register/firebase',
+        '/api/v1/auth/register',
         data: {
           'email_address': _email,
-          'user_name': _username ?? '',
           'password': _password,
-          // 'pronoun_code': _pronoun ?? '',
-          // 'prefer_pronoun': _pronoun ?? '',
-          // 'age_group_code': _age ?? '',
-          // 'heard_from_code': _referralSource ?? '',
-          // 'other_heard_from': '',
-          // 'is_active': true,
-        },
-        queryParameters: {
-          'firebase_uid': firebaseUid ?? '',
+          'role': 'user',
         },
       );
 
       if (response.statusCode == 200) {
-        if (_email != null) {
-          await Future.delayed(const Duration(seconds: 2));
-          await signInWithEmail(_email!, _password!);
-          await _saveEmailToPrefs(_email!, response.data['access_token'], firebaseToken ?? '');
-          
-          // Log signup event
-          await _analytics.logSignUp();
-          await _analytics.setUserProperties(
-            userId: userCredential.user?.uid ?? '',
-            userRole: 'user',
-          );
-          
+        print('🔍 Register API Response Data: ${response.data}');
+        
+        // Log signup event
+        await _analytics.logSignUp();
+        
+        SnackbarUtils.showSuccess(
+            context: context,
+            title: 'Registration Successful',
+            message: 'OTP sent to your email address');
+        
+        emit(LoginSuccess());
+        return response.data; // Return the response data containing OTP info
+      } else if (response.statusCode == 400 && 
+                 response.data['detail'] == 'Email already registered') {
+        // Handle existing user - try to login directly
+        print('🔍 Email already registered, attempting direct login...');
+        
+        final loginSuccess = await signInWithEmail(_email!, _password!);
+        
+        if (loginSuccess) {
+          print('✅ Direct login successful for existing user');
           SnackbarUtils.showSuccess(
               context: context,
-              title: 'Welcome $_username',
-              message: 'Foxx health');
+              title: 'Welcome Back!',
+              message: 'You are already registered. Logging you in...');
+          
+          // Return a special indicator that user was logged in directly
+          return {'direct_login': true};
+        } else {
+          print('❌ Direct login failed for existing user');
+          SnackbarUtils.showError(
+              context: context,
+              title: 'Login Failed',
+              message: 'Email is registered but login failed. Please check your password.');
+          return null;
         }
-        emit(LoginSuccess());
-        return true;
       } else {
         // Log error
         await _analytics.logError(
@@ -142,11 +154,11 @@ class LoginCubit extends Cubit<LoginState> {
           errorDescription: 'Status code: ${response.statusCode}',
         );
         emit(LoginError('Registration failed: ${response.data}'));
-        SnackbarUtils.showSuccess(
+        SnackbarUtils.showError(
             context: context,
-            title: 'Error status code ${response.statusCode}',
-            message: response.data);
-        return false;
+            title: 'Registration Failed',
+            message: response.data['detail'] ?? 'Registration failed');
+        return null;
       }
     } catch (e) {
       // Log error
@@ -155,62 +167,95 @@ class LoginCubit extends Cubit<LoginState> {
         errorDescription: e.toString(),
       );
       emit(LoginError('Registration failed: $e'));
-      SnackbarUtils.showSuccess(
+      SnackbarUtils.showError(
           context: context, title: 'Error', message: e.toString());
-      return true;
+      return null;
     }
   }
 
-  Future<void> signInWithEmail(String email, String password) async {
+  Future<bool> verifyRegistrationOTP(String email, String otp) async {
     try {
       emit(LoginLoading());
 
-      // First authenticate with Firebase
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      final response = await _apiClient.post(
+        '/api/v1/auth/verify-registration-otp',
+        data: {
+          'email_address': email,
+          'otp': otp,
+        },
       );
 
-      // Get Firebase token
-      final firebaseToken = await userCredential.user?.getIdToken();
+      if (response.statusCode == 200) {
+        print('🔍 OTP Verification Response: ${response.data}');
+        emit(LoginSuccess());
+        return true;
+      } else {
+        await _analytics.logError(
+          errorName: 'OTP Verification Failed',
+          errorDescription: 'Status code: ${response.statusCode}',
+        );
+        emit(LoginError('OTP verification failed: ${response.data}'));
+        return false;
+      }
+    } catch (e) {
+      await _analytics.logError(
+        errorName: 'OTP Verification Error',
+        errorDescription: e.toString(),
+      );
+      emit(LoginError('OTP verification failed: $e'));
+      return false;
+    }
+  }
 
-      // login with firebase api
+  Future<bool> signInWithEmail(String email, String password) async {
+    try {
+      emit(LoginLoading());
+
+      // Login with the new API endpoint
       final response = await _apiClient.post(
-        '/api/v1/auth/login/firebase',
-        data: {},
-        queryParameters: {
-          'firebase_token': firebaseToken ?? '',
+        '/api/v1/auth/login',
+        data: {
+          'email_address': email,
+          'password': password,
         },
       );
 
       if (response.statusCode == 200) {
         final tokenData = response.data;
-        await _saveEmailToPrefs(_email!, tokenData['access_token'], firebaseToken ?? '');
+        print('🔍 Login API Response Data: $tokenData');
+        print('🔍 Access Token from response: ${tokenData['access_token']}');
+        print('🔍 Token type: ${tokenData['access_token'].runtimeType}');
+        
+        if (tokenData['access_token'] != null) {
+          await _saveEmailToPrefs(email, tokenData['access_token'], '');
+        } else {
+          print('❌ No access_token found in response data');
+          emit(LoginError('No access token received from server'));
+          return false;
+        }
         
         // Log login event
         await _analytics.logLogin();
-        // await _analytics.setUserProperties(
-        //   userId: userCredential.user?.uid ?? '',
-        //   userRole: 'patient',
-        // );
         
-        // After successful login, set user context in Sentry
-      
-
         emit(LoginSuccess());
+        return true;
       } else {
         // Log error
         await _analytics.logError(
           errorName: 'Login Failed',
           errorDescription: 'Status code: ${response.statusCode}',
         );
-        await _auth.signOut();
         emit(LoginError('Login failed: ${response.data}'));
+        return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Log the error to Sentry with additional context
-   
+      await _analytics.logError(
+        errorName: 'Login Error',
+        errorDescription: e.toString(),
+      );
       emit(LoginError(e.toString()));
+      return false;
     }
   }
 

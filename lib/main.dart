@@ -21,7 +21,6 @@ import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_s
 import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -30,6 +29,10 @@ void main() async {
   // Replace SentryWidgetsFlutterBinding with regular Flutter initialization
   // SentryWidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Debug logging to verify logs are working
+  print('🚀 App starting...');
+  log('🚀 App starting with log()...');
 
   // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([
@@ -45,10 +48,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  print('🔥 Firebase initialized successfully');
+  log('🔥 Firebase initialized successfully');
 
   // Initialize Firebase Analytics
   final analytics = FirebaseAnalytics.instance;
   await analytics.setAnalyticsCollectionEnabled(true);
+  print('📊 Firebase Analytics enabled');
+  log('📊 Firebase Analytics enabled');
 
   await GetStorage.init();
 
@@ -86,6 +93,8 @@ void main() async {
   // );
 
   // Replace with direct app runner
+  print('🎯 Starting MyApp...');
+  log('🎯 Starting MyApp...');
   runApp(const MyApp());
 
   // Remove this line
@@ -159,6 +168,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ MyApp build() called');
+    log('🏗️ MyApp build() called');
     return ScreenUtilInit(
       designSize: const Size(360, 800),
       minTextAdapt: true,

@@ -23,12 +23,12 @@ class _SymptomDetailsBottomSheetState extends State<SymptomDetailsBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Initialize symptom details with default values
+    // Initialize symptom details with default values or pre-filled data
     for (final symptom in widget.symptoms) {
       _symptomDetails[symptom['id']] = {
         'symptom': symptom,
-        'answers': <String, String>{}, // Dynamic answers based on API response
-        'notes': '',
+        'answers': Map<String, String>.from(symptom['answers'] ?? {}), // Use pre-filled answers if available
+        'notes': symptom['notes'] ?? '', // Use pre-filled notes if available
       };
     }
   }
@@ -99,27 +99,7 @@ class _SymptomDetailsBottomSheetState extends State<SymptomDetailsBottomSheet> {
             ),
           ),
           
-          // Step Indicator
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Step 3',
-                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                    color: AppColors.davysGray,
-                  ),
-                ),
-                Text(
-                  'Details that matter',
-                  style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                    color: AppColors.primary01,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      
           
           const SizedBox(height: 20),
           

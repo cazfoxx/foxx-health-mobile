@@ -6,6 +6,7 @@ import 'package:foxxhealth/features/presentation/screens/background/foxxbackgrou
 import 'package:foxxhealth/features/presentation/screens/appointment/view/appointment_flow.dart';
 import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
+import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 
 class MyPrepScreen extends StatefulWidget {
   const MyPrepScreen({Key? key}) : super(key: key);
@@ -60,6 +61,15 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: FoxxBackButton(),
+          title: Text(
+            'My Prep',
+            style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
+          ),
+        ),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,27 +223,27 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, color: AppColors.amethystViolet, size: 48),
+            Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
-              'Failed to load appointment companions',
+              'No data available',
               style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                 color: AppColors.davysGray,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: AppOSTextStyles.osSmSemiboldBody.copyWith(
-                color: AppColors.davysGray,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadAppointmentCompanions,
-              child: const Text('Retry'),
-            ),
+            // Text(
+            //   'Unable to load appointment companions at this time',
+            //   style: AppOSTextStyles.osSmSemiboldBody.copyWith(
+            //     color: AppColors.davysGray,
+            //   ),
+            //   textAlign: TextAlign.center,
+            // ),
+            // const SizedBox(height: 16),
+            // ElevatedButton(
+            //   onPressed: _loadAppointmentCompanions,
+            //   child: const Text('Retry'),
+            // ),
           ],
         ),
       );

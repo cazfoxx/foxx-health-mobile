@@ -14,6 +14,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   List<Symptom> _allSymptoms = [];
   List<Symptom> _filteredSymptoms = [];
   Set<Symptom> _selectedSymptoms = {};
+  Map<String, Map<String, dynamic>> _symptomDetails = {}; // Store details for each symptom
   String _selectedFilter = '';
   String _searchQuery = '';
   bool _hasMore = true;
@@ -25,6 +26,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   List<Symptom> get filteredSymptoms => _filteredSymptoms;
   Set<Symptom> get selectedSymptoms => _selectedSymptoms;
   List<Symptom> get selectedSymptomsList => _selectedSymptoms.toList();
+  Map<String, Map<String, dynamic>> get symptomDetails => _symptomDetails;
   String get selectedFilter => _selectedFilter;
   String get searchQuery => _searchQuery;
   bool get hasMore => _hasMore;
@@ -192,6 +194,16 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 
   void clearSelectedSymptoms() {
     _selectedSymptoms.clear();
+    _symptomDetails.clear();
+    emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
+  }
+
+  void addSymptomWithDetails(Symptom symptom, Map<String, dynamic> details) {
+    if (!_selectedSymptoms.contains(symptom)) {
+      _selectedSymptoms.add(symptom);
+    }
+    // Store the details for this symptom
+    _symptomDetails[symptom.id] = details;
     emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
   }
 

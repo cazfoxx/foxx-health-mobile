@@ -144,6 +144,11 @@ class AppColors {
     color: Colors.white.withOpacity(0.28),
 
   );
+   static final BoxDecoration glassCardDecoration2 = BoxDecoration(
+    borderRadius: BorderRadius.circular(20),
+    color: Colors.white.withOpacity(0.48),
+
+  );
 
   static LinearGradient gradient45 = LinearGradient(
     begin: Alignment.topLeft,

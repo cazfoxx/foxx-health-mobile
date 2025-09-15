@@ -5,6 +5,8 @@ import 'package:foxxhealth/features/presentation/screens/health_profile/health_p
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
+import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/utils/app_storage.dart';
 
 class HealthProfileScreen extends StatefulWidget {
   const HealthProfileScreen({super.key});
@@ -62,12 +64,26 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      final profileData = await _symptomCubit.getUserProfile();
-      setState(() {
-        _userProfile = profileData;
-        _isLoadingProfile = false;
-      });
+      final token = AppStorage.accessToken;
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final apiClient = ApiClient();
+      final response = await apiClient.get(
+        '/api/v1/accounts/me',
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        setState(() {
+          _userProfile = response.data;
+          _isLoadingProfile = false;
+        });
+      } else {
+        throw Exception('Failed to load user profile');
+      }
     } catch (e) {
+      print('Error loading user profile: $e');
       setState(() {
         _isLoadingProfile = false;
       });
@@ -324,9 +340,10 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
   String _formatHeight(dynamic height) {
     if (height == null) return 'Not set';
     if (height is num) {
-      final totalInches = height.toDouble();
-      final feet = (totalInches / 12).floor();
-      final inches = (totalInches % 12).round();
+      // Convert cm to inches for display
+      final heightInInches = height.toDouble() / 2.54;
+      final feet = (heightInInches / 12).floor();
+      final inches = (heightInInches % 12).round();
       return '$feet ft $inches in';
     }
     return height.toString();
@@ -390,15 +407,29 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
         userProfile: _userProfile,
         onUpdate: (updatedData) async {
           try {
-            await _symptomCubit.updateUserProfile(updatedData);
-            await _loadUserProfile(); // Reload profile data
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profile updated successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+            final token = AppStorage.accessToken;
+            if (token == null) {
+              throw Exception('No authentication token found');
+            }
+
+            final apiClient = ApiClient();
+            final response = await apiClient.put(
+              '/api/v1/accounts/me',
+              data: updatedData,
+            );
+
+            if (response.statusCode == 200) {
+              await _loadUserProfile(); // Reload profile data
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Profile updated successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            } else {
+              throw Exception('Failed to update profile');
             }
           } catch (e) {
             if (mounted) {
@@ -466,7 +497,13 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         break;
       case 'height':
         _selectedHeight = widget.userProfile?['height']?.toDouble();
-        _controller.text = _selectedHeight?.toString() ?? '';
+        // Convert cm to inches for display
+        if (_selectedHeight != null) {
+          final heightInInches = _selectedHeight! / 2.54;
+          _controller.text = heightInInches.toStringAsFixed(0);
+        } else {
+          _controller.text = '';
+        }
         break;
       case 'ethnicity':
         _selectedEthnicity = widget.userProfile?['ethnicity'];
@@ -488,67 +525,83 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
+        gradient: LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFFFE6B2),
+      Color(0xFFE6D6FF)
+    ],
+  )
+
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Drag handle
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 20),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.gray300,
-              borderRadius: BorderRadius.circular(2),
+      
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: AppColors.primary01),
-                ),
-                Expanded(
-                  child: Text(
-                    'My core profile',
-                    style: AppTextStyles.heading3,
-                    textAlign: TextAlign.center,
+            
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: AppColors.primary01),
                   ),
-                ),
-                TextButton(
-                  onPressed: _handleUpdate,
-                  child: const Text(
-                    'Update',
-                    style: TextStyle(
-                      color: AppColors.amethyst,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      'My core profile',
+                      style: AppTextStyles.heading3,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-              ],
+                  TextButton(
+                    onPressed: _handleUpdate,
+                    child: const Text(
+                      'Update',
+                      style: TextStyle(
+                        color: AppColors.amethyst,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          
-          const SizedBox(height: 20),
-          
-          // Content based on field type
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: _buildFieldContent(),
-          ),
-          
-          const SizedBox(height: 20),
-        ],
+            
+            const SizedBox(height: 20),
+            
+            // Content based on field type
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: _buildFieldContent(),
+            ),
+            
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -880,7 +933,9 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
       case 'height':
         final height = double.tryParse(_controller.text);
         if (height != null) {
-          updatedData['height'] = height;
+          // Convert inches to cm for API
+          final heightInCm = height * 2.54;
+          updatedData['height'] = heightInCm;
         }
         break;
       case 'ethnicity':

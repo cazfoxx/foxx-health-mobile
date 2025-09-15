@@ -21,6 +21,7 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/medi
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/add_medications_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/life_stage_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data_privacy_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 
 class OnboardingFlow extends StatefulWidget {
@@ -151,84 +152,41 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       }
 
       // Register the user using LoginCubit
-      final loginSuccess = await loginCubit.registerUser(context);
+      final registrationResponse = await loginCubit.registerUser(context);
 
-      if (loginSuccess) {
-        print('✅ Login successful! Checking token availability...');
-        
-        // Check if token is available immediately
-        final token = AppStorage.accessToken;
-        print('🔍 Token immediately after login: ${token != null ? "Present (${token.length} chars)" : "NULL"}');
-        
-        // Add a delay to ensure the login token is properly set
-        await Future.delayed(const Duration(seconds: 2));
-        
-        // Check token again after delay
-        final tokenAfterDelay = AppStorage.accessToken;
-        print('🔍 Token after 2s delay: ${tokenAfterDelay != null ? "Present (${tokenAfterDelay.length} chars)" : "NULL"}');
-
-        // After successful login, set all onboarding data and submit to onboarding API
-        onboardingCubit.setOnboardingData(
-          userName: username,
-          gender: genderIdentity,
-          age: age,
-          weight: weight,
-          height: height?['feet'] != null
-              ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
-              : null,
-          ethnicity: ethnicity,
-          address: location,
-          householdIncomeRange: income,
-          healthConcerns: healthConcerns?.toList() ?? [],
-          healthHistory: diagnoses?.toList() ?? [],
-          medicationsOrSupplementsIndicator: medicationStatus,
-          medicationsOrSupplements: medications ?? [],
-          currentStageInLife: lifeStage != null ? [lifeStage!] : [],
-          privacyPolicyAccepted: dataPrivacyAccepted ?? false,
-          sixteenAndOver: true,
-          isActive: true,
-          denPrivacy: ['posts'], // Default value as per API spec
-          profileIconUrl: null, // Can be set later if needed
-        );
-
-        // Print the data being sent to API
-        print('=== API PAYLOAD DATA ===');
-        final apiData = onboardingCubit.getOnboardingData();
-        apiData.forEach((key, value) {
-          print('$key: $value');
+      if (registrationResponse != null) {
+        setState(() {
+          _isCreatingAccount = false;
         });
-        print('========================');
 
-        // Submit onboarding data to API
-        final onboardingSuccess = await onboardingCubit.submitOnboardingData();
-
-        if (onboardingSuccess) {
-          print('✅ Onboarding API call successful!');
-          // Navigate to main navigation screen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainNavigationScreen(),
-            ),
-          );
+        // Check if this was a direct login (existing user)
+        if (registrationResponse['direct_login'] == true) {
+          print('✅ Existing user logged in directly! Proceeding with onboarding...');
+          
+          // For existing users, proceed directly to onboarding completion
+          await _completeOnboardingAfterLogin(onboardingCubit);
         } else {
-          print('❌ Onboarding API call failed!');
-          // Onboarding API failed but login was successful
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Account created successfully! Onboarding data will be saved later.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Still navigate to main navigation screen since account was created
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainNavigationScreen(),
+          print('✅ Registration successful! Showing OTP verification...');
+          
+          // Show OTP verification bottom sheet for new users
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => OTPVerificationSheet(
+              email: widget.email,
+              onSuccess: () async {
+                // Close the bottom sheet
+                Navigator.of(context).pop();
+                
+                // After successful OTP verification and login, proceed with onboarding
+                await _completeOnboardingAfterLogin(onboardingCubit);
+              },
             ),
           );
         }
       } else {
-        print('❌ Login failed!');
+        print('❌ Registration failed!');
         // Error is already handled by LoginCubit and shown via Snackbar
         setState(() {
           _isCreatingAccount = false;
@@ -245,6 +203,97 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       setState(() {
         _isCreatingAccount = false;
       });
+    }
+  }
+
+  Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+    try {
+      // Check if token is available immediately
+      final token = AppStorage.accessToken;
+      print('🔍 Token immediately after login: ${token != null ? "Present (${token.length} chars)" : "NULL"}');
+      
+      // If token is null, try to reload credentials
+      if (token == null) {
+        print('⚠️ Token is null, reloading credentials...');
+        await AppStorage.loadCredentials();
+        print('🔍 Token after reload: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
+      }
+      
+      // Add a delay to ensure the login token is properly set
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Check token again after delay
+      final tokenAfterDelay = AppStorage.accessToken;
+      print('🔍 Token after 2s delay: ${tokenAfterDelay != null ? "Present (${tokenAfterDelay.length} chars)" : "NULL"}');
+
+      // After successful login, set all onboarding data and submit to onboarding API
+      onboardingCubit.setOnboardingData(
+        userName: username,
+        gender: genderIdentity,
+        age: age,
+        weight: weight,
+        height: height?['feet'] != null
+            ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
+            : null,
+        ethnicity: ethnicity,
+        address: location,
+        householdIncomeRange: income,
+        healthConcerns: healthConcerns?.toList() ?? [],
+        healthHistory: diagnoses?.toList() ?? [],
+        medicationsOrSupplementsIndicator: medicationStatus,
+        medicationsOrSupplements: medications ?? [],
+        currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+        privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+        sixteenAndOver: true,
+        isActive: true,
+        denPrivacy: ['posts'], // Default value as per API spec
+        profileIconUrl: null, // Can be set later if needed
+      );
+
+      // Print the data being sent to API
+      print('=== API PAYLOAD DATA ===');
+      final apiData = onboardingCubit.getOnboardingData();
+      apiData.forEach((key, value) {
+        print('$key: $value');
+      });
+      print('========================');
+
+      // Submit onboarding data to API
+      final onboardingSuccess = await onboardingCubit.submitOnboardingData();
+
+      if (onboardingSuccess) {
+        print('✅ Onboarding API call successful!');
+        // Navigate to main navigation screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const MainNavigationScreen(),
+          ),
+        );
+      } else {
+        print('❌ Onboarding API call failed!');
+        // Onboarding API failed but login was successful
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Account created successfully! Onboarding data will be saved later.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Still navigate to main navigation screen since account was created
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const MainNavigationScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Error completing onboarding: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error completing onboarding: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

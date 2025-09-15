@@ -211,8 +211,17 @@ class _AppointmentFlowState extends State<AppointmentFlow> {
       if (response != null && response['companions'] != null && (response['companions'] as List).isNotEmpty) {
         // Add API response to appointment data
         final companion = response['companions'][0];
+        
+        // Debug: Print the response and companion data
+        print('🔍 Debug - Full API response: $response');
+        print('🔍 Debug - Companion data: $companion');
+        print('🔍 Debug - Companion ID: ${companion['id']}');
+        print('🔍 Debug - Companion ID type: ${companion['id'].runtimeType}');
+        
         appointmentData['companionId'] = companion['id'];
         appointmentData['companionStatus'] = companion['status'];
+        
+        print('🔍 Debug - Updated appointmentData: $appointmentData');
         
         // Navigate to companion screen
         if (mounted) {

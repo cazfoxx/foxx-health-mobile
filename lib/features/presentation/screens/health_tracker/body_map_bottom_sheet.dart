@@ -5,6 +5,7 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_details_bottom_sheet.dart';
+import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
 /*
 MANUAL POSITIONING GUIDE FOR BODY PARTS:
@@ -51,6 +52,8 @@ class BodyMapBottomSheet extends StatefulWidget {
 class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
   Set<String> _selectedBodyParts = {};
   bool _showFrontView = true;
+  bool _isLoadingSymptoms = false;
+  String? _errorMessage;
 
   // Body parts positioning guide:
   // - Use absolute pixel values for precise control
@@ -150,6 +153,48 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
           // Step Indicator
           _buildStepIndicator(),
           
+          // Error Message Display
+          if (_errorMessage != null) ...[
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _clearErrorMessage,
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
           // Selected Body Parts Tags - Fixed height container to prevent UI shifting
           Container(
             height: 60, // Fixed height for chips area
@@ -236,6 +281,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                                   } else {
                                     _selectedBodyParts.add('Body Back');
                                   }
+                                  _errorMessage = null; // Clear error when body part is selected
                                 });
                               },
                               child: SvgPicture.asset(
@@ -290,22 +336,43 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
             ),
           ),
           GestureDetector(
-            onTap: _selectedBodyParts.isEmpty 
+            onTap: _selectedBodyParts.isEmpty || _isLoadingSymptoms
                 ? null 
                 : () async {
                     // Fetch symptoms for selected body parts
                     await _fetchSymptomsForBodyParts();
                   },
-            child: Text(
-              _selectedBodyParts.isEmpty 
-                  ? 'Save' 
-                  : 'Save (${_selectedBodyParts.length})',
-              style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                color: _selectedBodyParts.isEmpty 
-                    ? AppColors.davysGray 
-                    : AppColors.amethyst,
-              ),
-            ),
+            child: _isLoadingSymptoms
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.amethyst),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Loading...',
+                        style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                          color: AppColors.amethyst,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    _selectedBodyParts.isEmpty 
+                        ? 'Save' 
+                        : 'Save (${_selectedBodyParts.length})',
+                    style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                      color: _selectedBodyParts.isEmpty 
+                          ? AppColors.davysGray 
+                          : AppColors.amethyst,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -362,6 +429,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                   onTap: () {
                     setState(() {
                       _selectedBodyParts.remove(bodyPart);
+                      _errorMessage = null; // Clear error when body part is removed
                     });
                   },
                   child: Icon(
@@ -406,6 +474,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                 } else {
                   _selectedBodyParts.add(bodyPart);
                 }
+                _errorMessage = null; // Clear error when body part is selected
               });
             },
             child: SvgPicture.asset(
@@ -437,6 +506,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
               _selectedBodyParts.clear();
               _selectedBodyParts.add('Skin & Whole Body');
             }
+            _errorMessage = null; // Clear error when body part is selected
           });
         },
         child: Container(
@@ -467,38 +537,28 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
     );
   }
 
-  // Helper method to easily adjust body part positions
-  // Call this method to get current positions for debugging
-  void _printCurrentPositions() {
-    print('Current body part positions:');
-    _bodyParts.forEach((bodyPart, data) {
-      final frontPos = data['frontPosition'] as Offset;
-      final backPos = data['backPosition'] as Offset;
-      print('$bodyPart: Front(${frontPos.dx}, ${frontPos.dy}), Back(${backPos.dx}, ${backPos.dy})');
-    });
-  }
 
-  // Helper method to adjust a specific body part position
-  void _adjustBodyPartPosition(String bodyPart, Offset newFrontPosition, Offset newBackPosition) {
+  // Clear error message
+  void _clearErrorMessage() {
     setState(() {
-      if (_bodyParts.containsKey(bodyPart)) {
-        _bodyParts[bodyPart]!['frontPosition'] = newFrontPosition;
-        _bodyParts[bodyPart]!['backPosition'] = newBackPosition;
-      }
+      _errorMessage = null;
     });
   }
 
   // Fetch symptoms for selected body parts
   Future<void> _fetchSymptomsForBodyParts() async {
     if (_selectedBodyParts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one body part'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      setState(() {
+        _errorMessage = 'Please select at least one body part';
+      });
       return;
     }
+
+    // Clear any previous error and set loading state
+    setState(() {
+      _errorMessage = null;
+      _isLoadingSymptoms = true;
+    });
 
     try {
       final symptomCubit = context.read<SymptomSearchCubit>();
@@ -513,24 +573,26 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
       // Fetch symptoms for the body part
       final symptoms = await symptomCubit.getSymptomsByBodyPart(apiBodyPart);
       
+      // Clear loading state
+      setState(() {
+        _isLoadingSymptoms = false;
+      });
+      
       if (symptoms.isNotEmpty) {
         // Show symptoms bottom sheet
         _showSymptomsBottomSheet(symptoms);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No symptoms found for selected body parts'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        // Show error message in sheet for empty data
+        setState(() {
+          _errorMessage = 'No symptoms found for the selected body part. Please try a different area.';
+        });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error fetching symptoms: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Clear loading state on error
+      setState(() {
+        _isLoadingSymptoms = false;
+        _errorMessage = 'Error fetching symptoms: $e';
+      });
     }
   }
 
@@ -567,42 +629,12 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
       builder: (context) => _SymptomsBottomSheet(
         symptoms: symptoms,
         onSymptomsSelected: (selectedSymptomIds) {
-          // Show symptom details bottom sheet
-          _showSymptomDetailsBottomSheet(symptoms, selectedSymptomIds);
+          // This callback is no longer used since we handle selection individually
         },
       ),
     );
   }
 
-  // Show symptom details bottom sheet
-  void _showSymptomDetailsBottomSheet(List<Map<String, dynamic>> allSymptoms, List<String> selectedSymptomIds) {
-    // Filter symptoms to only show selected ones
-    final selectedSymptoms = allSymptoms.where((symptom) => 
-      selectedSymptomIds.contains(symptom['id'])
-    ).toList();
-
-    // Store context before async operation
-    final currentContext = context;
-
-    showModalBottomSheet(
-      context: currentContext,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SymptomDetailsBottomSheet(
-        symptoms: selectedSymptoms,
-        onDetailsSaved: (symptomDetails) {
-          // Close all bottom sheets and return data to main screen
-          print('🔍 DEBUG: onDetailsSaved called with ${symptomDetails.length} items');
-          print('🔍 DEBUG: First item: ${symptomDetails.isNotEmpty ? symptomDetails.first : 'No items'}');
-
-          
-
-          Navigator.of(currentContext).pop(symptomDetails);
-          Navigator.of(currentContext).pop(symptomDetails); 
-        },
-      ),
-    );
-  }
 }
 
 // Symptoms Bottom Sheet Widget
@@ -620,7 +652,6 @@ class _SymptomsBottomSheet extends StatefulWidget {
 }
 
 class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
-  Set<String> _selectedSymptomIds = {};
 
   @override
   Widget build(BuildContext context) {
@@ -653,63 +684,35 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
                     size: 24,
                   ),
                 ),
+
+                 Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Step 2',
+                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                    color: AppColors.davysGray,
+                  ),
+                ),
                 Text(
                   'Select symptoms',
                   style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                     color: AppColors.primary01,
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    if (_selectedSymptomIds.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select at least one symptom'),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
-                      return;
-                    }
-                    // Call the callback with selected symptoms to show symptom details
-                    widget.onSymptomsSelected(_selectedSymptomIds.toList());
-                    // Don't navigate back here - let the callback handle navigation
-                  },
-                  child: Text(
-                    _selectedSymptomIds.isEmpty 
-                        ? 'Save' 
-                        : 'Save (${_selectedSymptomIds.length})',
-                    style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                      color: _selectedSymptomIds.isEmpty 
-                          ? AppColors.davysGray 
-                          : AppColors.amethyst,
-                    ),
-                  ),
-                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10),
+                // Save button removed - symptoms are now handled individually when tapped
               ],
             ),
           ),
           
           // Step Indicator
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Text(
-                //   'Step 2',
-                //   style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                //     color: AppColors.davysGray,
-                //   ),
-                // ),
-                // Text(
-                //   'Select symptoms',
-                //   style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                //     color: AppColors.primary01,
-                //   ),
-                // ),
-              ],
-            ),
-          ),
+        
           
           const SizedBox(height: 20),
           
@@ -720,9 +723,7 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
               itemCount: widget.symptoms.length,
               itemBuilder: (context, index) {
                 final symptom = widget.symptoms[index];
-                final symptomId = symptom['id'] as String;
                 final symptomName = symptom['info']?['name'] as String? ?? 'Unknown Symptom';
-                final isSelected = _selectedSymptomIds.contains(symptomId);
                 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -730,25 +731,16 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
                     color: Colors.white.withOpacity(0.28),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
-                      color: isSelected ? AppColors.amethyst : AppColors.mauve50,
-                      width: isSelected ? 2 : 1,
+                      color: AppColors.mauve50,
+                      width: 1,
                     ),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                    leading: Radio<String>(
-                      value: symptomId,
-                      groupValue: isSelected ? symptomId : null,
-                      onChanged: (value) {
-                        setState(() {
-                          if (isSelected) {
-                            _selectedSymptomIds.remove(symptomId);
-                          } else {
-                            _selectedSymptomIds.add(symptomId);
-                          }
-                        });
-                      },
-                      activeColor: AppColors.amethyst,
+                    leading: Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppColors.amethyst,
+                      size: 16,
                     ),
                     title: Text(
                       symptomName,
@@ -757,13 +749,9 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
                       ),
                     ),
                     onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedSymptomIds.remove(symptomId);
-                        } else {
-                          _selectedSymptomIds.add(symptomId);
-                        }
-                      });
+                      // Show details sheet when symptom is selected
+
+                      _showSymptomDetailsFromBodyMap(symptom);
                     },
                   ),
                 );
@@ -775,6 +763,98 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
         ],
       ),
     );
+  }
+
+  void _showSymptomDetailsFromBodyMap(Map<String, dynamic> symptom) async {
+    try {
+      // Get symptom details from API
+      final cubit = context.read<SymptomSearchCubit>();
+      final symptomDetails = await cubit.getSymptomDetails(symptom['id']);
+      
+      if (symptomDetails != null) {
+        // Convert symptom to the format expected by the details sheet
+        final symptomData = {
+          'id': symptom['id'],
+          'info': {
+            'name': symptom['info']?['name'] ?? 'Unknown Symptom',
+            'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+          },
+        };
+        
+        // Show the details sheet
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => SymptomDetailsBottomSheet(
+            symptoms: [symptomData],
+            onDetailsSaved: (details) {
+              // Add the symptom with details to selected symptoms
+              // Convert the symptom data to Symptom model
+              final symptomModel = Symptom.fromJson(symptom);
+              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+            },
+          ),
+        ).then((_) {
+          // Refresh the state when the sheet is closed
+          context.read<SymptomSearchCubit>().refreshSymptoms();
+        });
+      } else {
+        // Fallback if API fails - show details sheet with basic symptom info
+        final symptomData = {
+          'id': symptom['id'],
+          'info': {
+            'name': symptom['info']?['name'] ?? 'Unknown Symptom',
+            'question_map': null,
+          },
+        };
+        
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => SymptomDetailsBottomSheet(
+            symptoms: [symptomData],
+            onDetailsSaved: (details) {
+              // Add the symptom with details to selected symptoms
+              final symptomModel = Symptom.fromJson(symptom);
+              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+            },
+          ),
+        ).then((_) {
+          // Refresh the state when the sheet is closed
+          context.read<SymptomSearchCubit>().refreshSymptoms();
+        });
+      }
+    } catch (e) {
+      // Show error and fallback to basic details sheet
+      print('Error loading symptom details: $e');
+      
+      final symptomData = {
+        'id': symptom['id'],
+        'info': {
+          'name': symptom['info']?['name'] ?? 'Unknown Symptom',
+          'question_map': null,
+        },
+      };
+      
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => SymptomDetailsBottomSheet(
+          symptoms: [symptomData],
+          onDetailsSaved: (details) {
+            // Add the symptom with details to selected symptoms
+            final symptomModel = Symptom.fromJson(symptom);
+            context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+          },
+        ),
+      ).then((_) {
+        // Refresh the state when the sheet is closed
+        context.read<SymptomSearchCubit>().refreshSymptoms();
+      });
+    }
   }
 }
 

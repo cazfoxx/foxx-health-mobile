@@ -586,68 +586,95 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
   void _showSymptomDetails(Symptom symptom, SymptomSearchCubit symptomCubit) async {
     if (!mounted) return;
     
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    // Check if we have stored details for this symptom
+    final storedDetails = symptomCubit.symptomDetails[symptom.id];
     
-    try {
-      // Fetch symptom details from API
-      Map<String, dynamic>? symptomDetails;
-      
-      // Try to get from API first
-      try {
-        symptomDetails = await symptomCubit.getSymptomDetails(symptom.id);
-      } catch (apiError) {
-        print('API Error: $apiError');
-        // For now, just show a message that details couldn't be loaded
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not load symptom details. Please try again.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-      
-      if (!mounted) return;
-      
-      // Close loading dialog
-      Navigator.of(context).pop();
-      
-      // Show symptom details bottom sheet
-      // Store context before async operation
-      final currentContext = context;
+    if (storedDetails != null) {
+      // Show details sheet with pre-filled data
+      final symptomData = {
+        'id': symptom.id,
+        'info': {
+          'name': symptom.name,
+          'question_map': storedDetails['symptom']?['info']?['question_map'],
+        },
+        'answers': storedDetails['answers'] ?? {},
+        'notes': storedDetails['notes'] ?? '',
+      };
       
       showModalBottomSheet(
-        context: currentContext,
+        context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (context) => SymptomDetailsBottomSheet(
-          symptoms: [symptomDetails!],
-          onDetailsSaved: (symptomDetails) {
-            // Handle saved symptom details
-            print('Symptom details saved: $symptomDetails');
+          symptoms: [symptomData],
+          onDetailsSaved: (details) {
+            // Update the stored details
+            symptomCubit.addSymptomWithDetails(symptom, details.first);
           },
         ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      
-      // Close loading dialog
-      Navigator.of(context).pop();
-      
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading symptom details: $e'),
-          backgroundColor: Colors.red,
+      ).then((_) {
+        // Refresh the state when the sheet is closed
+        symptomCubit.refreshSymptoms();
+      });
+    } else {
+      // No stored details, fetch from API
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
         ),
       );
+      
+      try {
+        final symptomDetails = await symptomCubit.getSymptomDetails(symptom.id);
+        
+        if (!mounted) return;
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        if (symptomDetails != null) {
+          final symptomData = {
+            'id': symptom.id,
+            'info': {
+              'name': symptom.name,
+              'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+            },
+          };
+          
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => SymptomDetailsBottomSheet(
+              symptoms: [symptomData],
+              onDetailsSaved: (details) {
+                // Store the details
+                symptomCubit.addSymptomWithDetails(symptom, details.first);
+              },
+            ),
+          ).then((_) {
+            // Refresh the state when the sheet is closed
+            symptomCubit.refreshSymptoms();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not load symptom details. Please try again.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        Navigator.of(context).pop(); // Close loading dialog
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading symptom details: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
