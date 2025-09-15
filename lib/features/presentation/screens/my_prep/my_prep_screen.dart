@@ -111,7 +111,9 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const AppointmentFlow(),
+                                builder: (context) => AppointmentFlow(
+                                  onRefresh: _loadAppointmentCompanions,
+                                ),
                               ),
                             );
                           },
@@ -303,6 +305,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                 'createdAt': companion.createdAt.toIso8601String(),
                 'updatedAt': companion.updatedAt.toIso8601String(),
               },
+              onRefresh: _loadAppointmentCompanions,
             ),
           ),
         );

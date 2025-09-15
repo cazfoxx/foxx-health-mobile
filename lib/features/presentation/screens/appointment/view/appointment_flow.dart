@@ -24,7 +24,9 @@ import 'package:foxxhealth/features/presentation/screens/appointment/widgets/dat
 import 'package:foxxhealth/features/presentation/screens/appointment/view/appointment_companion_screen.dart';
 
 class AppointmentFlow extends StatefulWidget {
-  const AppointmentFlow({super.key});
+  final VoidCallback? onRefresh;
+  
+  const AppointmentFlow({super.key, this.onRefresh});
 
   @override
   State<AppointmentFlow> createState() => _AppointmentFlowState();
@@ -203,6 +205,11 @@ class _AppointmentFlowState extends State<AppointmentFlow> {
       final symptomCubit = SymptomSearchCubit();
       final response = await symptomCubit.createAppointmentCompanion(request.toJson());
       
+      // Debug: Print the raw response
+      print('🔍 Debug - Raw API response: $response');
+      print('🔍 Debug - Response type: ${response.runtimeType}');
+      print('🔍 Debug - Response keys: ${response?.keys.toList()}');
+      
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
@@ -229,11 +236,40 @@ class _AppointmentFlowState extends State<AppointmentFlow> {
             MaterialPageRoute(
               builder: (context) => AppointmentCompanionScreen(
                 appointmentData: appointmentData,
+                onRefresh: widget.onRefresh,
+              ),
+            ),
+          );
+        }
+      } else if (response != null && response['id'] != null) {
+        // Fallback: Handle case where response contains companion data directly
+        print('🔍 Debug - Using fallback: response contains companion data directly');
+        print('🔍 Debug - Companion ID from direct response: ${response['id']}');
+        print('🔍 Debug - Companion ID type: ${response['id'].runtimeType}');
+        
+        appointmentData['companionId'] = response['id'];
+        appointmentData['companionStatus'] = response['status'] ?? 'active';
+        
+        print('🔍 Debug - Updated appointmentData (fallback): $appointmentData');
+        
+        // Navigate to companion screen
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => AppointmentCompanionScreen(
+                appointmentData: appointmentData,
+                onRefresh: widget.onRefresh,
               ),
             ),
           );
         }
       } else {
+        // Debug: Print why the condition failed
+        print('🔍 Debug - Condition failed:');
+        print('🔍 Debug - response != null: ${response != null}');
+        print('🔍 Debug - response[companions] != null: ${response?['companions'] != null}');
+        print('🔍 Debug - companions is not empty: ${response?['companions'] != null ? (response!['companions'] as List).isNotEmpty : false}');
+        
         // Show error message but still navigate to companion screen
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -247,6 +283,7 @@ class _AppointmentFlowState extends State<AppointmentFlow> {
             MaterialPageRoute(
               builder: (context) => AppointmentCompanionScreen(
                 appointmentData: appointmentData,
+                onRefresh: widget.onRefresh,
               ),
             ),
           );

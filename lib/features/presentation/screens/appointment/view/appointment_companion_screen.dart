@@ -9,10 +9,12 @@ import 'dart:convert';
 
 class AppointmentCompanionScreen extends StatefulWidget {
   final Map<String, dynamic> appointmentData;
+  final VoidCallback? onRefresh;
 
   const AppointmentCompanionScreen({
     super.key,
     required this.appointmentData,
+    this.onRefresh,
   });
 
   @override
@@ -101,21 +103,54 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     
     if (companionId == null) {
       print('❌ Error - companionId is null, cannot load companion details');
+      print('🔍 Debug - Available keys in appointmentData: ${widget.appointmentData.keys.toList()}');
+      
+      // Try to find companionId in different possible formats
+      final possibleCompanionId = widget.appointmentData['companionId'] ?? 
+                                 widget.appointmentData['companion_id'] ?? 
+                                 widget.appointmentData['id'];
+      
+      if (possibleCompanionId != null) {
+        print('🔍 Debug - Found alternative companionId: $possibleCompanionId');
+        print('🔍 Debug - Alternative companionId type: ${possibleCompanionId.runtimeType}');
+        
+        // Try to convert to int if it's a string
+        int? convertedId;
+        if (possibleCompanionId is String) {
+          convertedId = int.tryParse(possibleCompanionId);
+        } else if (possibleCompanionId is int) {
+          convertedId = possibleCompanionId;
+        }
+        
+        if (convertedId != null) {
+          print('🔍 Debug - Successfully converted companionId to int: $convertedId');
+          // Recursively call with the converted ID
+          widget.appointmentData['companionId'] = convertedId;
+          await _loadCompanionDetails();
+          return;
+        }
+      }
+      
       setState(() => _isLoading = false);
       return;
     }
 
     try {
+      print('🔍 Debug - Calling getAppointmentCompanionDetails with ID: $companionId');
       final appointmentCubit = AppointmentCompanionCubit();
       final details = await appointmentCubit.getAppointmentCompanionDetails(companionId);
+      
+      print('🔍 Debug - Received companion details: $details');
       
       setState(() {
         _companionDetails = details;
         _isLoading = false;
       });
       
+      print('🔍 Debug - Calling _generateAIResponse with ID: $companionId');
       await _generateAIResponse(companionId);
     } catch (e) {
+      print('❌ Error - Failed to load companion details: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -124,6 +159,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   }
 
   Future<void> _generateAIResponse(int companionId) async {
+    print('🔍 Debug - Starting _generateAIResponse with ID: $companionId');
     setState(() {
       _isLoadingAIResponse = true;
       _error = null;
@@ -131,7 +167,10 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
     try {
       final appointmentCubit = AppointmentCompanionCubit();
+      print('🔍 Debug - Calling generateAIResponse API');
       final aiResponse = await appointmentCubit.generateAIResponse(companionId);
+      
+      print('🔍 Debug - Received AI response: $aiResponse');
       
       setState(() {
         _aiResponseData = aiResponse;
@@ -144,6 +183,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       print('🔄 History List: ${_historyList}');
       print('🔄 Conditions List: ${_conditionsList}');
     } catch (e) {
+      print('❌ Error - Failed to generate AI response: $e');
       setState(() {
         _error = e.toString();
         _isLoadingAIResponse = false;
@@ -1282,7 +1322,13 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: AppColors.primary01),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () {
+          // Call refresh callback if provided
+          if (widget.onRefresh != null) {
+            widget.onRefresh!();
+          }
+          Navigator.of(context).pop();
+        },
       ),
       title: Text(
         'Appointment Companion',
