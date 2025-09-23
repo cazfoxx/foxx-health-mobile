@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -13,12 +14,12 @@ import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_s
 import 'package:foxxhealth/features/data/models/health_tracker_model.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
-
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
+
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
@@ -193,7 +194,7 @@ class _TrackerTabState extends State<TrackerTab> {
   DateTime _selectedDate = DateTime.now();
   bool _feelingGood = true;
   String? _selectedRecentSymptom;
-  
+
   // Health tracker data
   List<HealthTrackerResponse> _healthTrackers = [];
   bool _isLoading = false;
@@ -220,10 +221,13 @@ class _TrackerTabState extends State<TrackerTab> {
 
     try {
       final symptomCubit = context.read<SymptomSearchCubit>();
-      final healthTrackersData = await symptomCubit.getHealthTrackersByDate(_selectedDate);
-      
+      final healthTrackersData =
+          await symptomCubit.getHealthTrackersByDate(_selectedDate);
+
       setState(() {
-        _healthTrackers = healthTrackersData.map((data) => HealthTrackerResponse.fromJson(data)).toList();
+        _healthTrackers = healthTrackersData
+            .map((data) => HealthTrackerResponse.fromJson(data))
+            .toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -241,7 +245,8 @@ class _TrackerTabState extends State<TrackerTab> {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +254,7 @@ class _TrackerTabState extends State<TrackerTab> {
                   // Date Selector
                   _buildDateSelector(),
                   const SizedBox(height: 24),
-              
+
                   // My Health - Symptoms Section
                   Text(
                     'My Health',
@@ -265,11 +270,11 @@ class _TrackerTabState extends State<TrackerTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
-              
+
                   // Feeling Good Card
                   _buildFeelingGoodCard(),
                   const SizedBox(height: 24),
-              
+
                   // Recent Symptoms Section
                   Text(
                     'Recent symptoms',
@@ -278,11 +283,11 @@ class _TrackerTabState extends State<TrackerTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
-              
+
                   // Recent Symptoms Cards
                   _buildRecentSymptomsCards(),
                   const SizedBox(height: 24),
-              
+
                   // Add Symptoms Section
                   // Text(
                   //   'Add symptoms',
@@ -291,11 +296,11 @@ class _TrackerTabState extends State<TrackerTab> {
                   //   ),
                   // ),
                   // const SizedBox(height: 16),
-              
+
                   // // Search Bar
                   // _buildSearchBar(),
                   // const SizedBox(height: 12),
-              
+
                   // // Symptom Input Field
                   // _buildSymptomInputField(),
                 ],
@@ -349,19 +354,21 @@ class _TrackerTabState extends State<TrackerTab> {
               final date = DateTime.now().subtract(Duration(days: 3 - index));
               final isSelected = date.day == _selectedDate.day;
               final dayAbbreviation = _getDayAbbreviation(date.weekday);
-              
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
                     _selectedDate = date;
                   });
-                  _loadHealthTrackers(); 
+                  _loadHealthTrackers();
                 },
                 child: Container(
                   width: 50,
                   margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.amethyst : Colors.white.withOpacity(0.7),
+                    color: isSelected
+                        ? AppColors.amethyst
+                        : Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -377,13 +384,15 @@ class _TrackerTabState extends State<TrackerTab> {
                       Text(
                         dayAbbreviation,
                         style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                          color: isSelected ? Colors.white : AppColors.primary01,
+                          color:
+                              isSelected ? Colors.white : AppColors.primary01,
                         ),
                       ),
                       Text(
                         '${date.day}',
                         style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                          color: isSelected ? Colors.white : AppColors.primary01,
+                          color:
+                              isSelected ? Colors.white : AppColors.primary01,
                         ),
                       ),
                     ],
@@ -405,7 +414,7 @@ class _TrackerTabState extends State<TrackerTab> {
         .toList();
 
     final hasSymptoms = activeSymptoms.isNotEmpty;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -441,7 +450,7 @@ class _TrackerTabState extends State<TrackerTab> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              hasSymptoms 
+              hasSymptoms
                   ? 'Experiencing: ${activeSymptoms.take(2).map((s) => s.info.name).join(', ')}'
                   : 'I feel good, no symptoms',
               style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
@@ -463,12 +472,13 @@ class _TrackerTabState extends State<TrackerTab> {
 
                   // Get the symptom cubit to call API
                   final symptomCubit = context.read<SymptomSearchCubit>();
-                  
+
                   // Convert SelectedSymptom to Map<String, dynamic> format
                   final symptomsData = activeSymptoms.map((symptom) {
                     // Check if we have existing details for this symptom in the cubit
-                    final existingDetails = symptomCubit.symptomDetails[symptom.info.id];
-                    
+                    final existingDetails =
+                        symptomCubit.symptomDetails[symptom.info.id];
+
                     return {
                       'id': symptom.info.id,
                       'name': symptom.info.name,
@@ -488,11 +498,13 @@ class _TrackerTabState extends State<TrackerTab> {
                   final enhancedSymptomsData = <Map<String, dynamic>>[];
                   for (final symptom in symptomsData) {
                     final symptomId = symptom['id'] as String;
-                    final apiDetails = await symptomCubit.getSymptomDetails(symptomId);
-                    
+                    final apiDetails =
+                        await symptomCubit.getSymptomDetails(symptomId);
+
                     if (apiDetails != null) {
                       // Merge API data with existing data
-                      final enhancedSymptom = Map<String, dynamic>.from(symptom);
+                      final enhancedSymptom =
+                          Map<String, dynamic>.from(symptom);
                       enhancedSymptom.addAll(apiDetails);
                       enhancedSymptomsData.add(enhancedSymptom);
                     } else {
@@ -511,7 +523,7 @@ class _TrackerTabState extends State<TrackerTab> {
                         symptoms: enhancedSymptomsData,
                         onDetailsSaved: (symptomDetails) {
                           print('Symptom details saved: $symptomDetails');
-                          
+
                           // Store the details back in the cubit for future use
                           for (final detail in symptomDetails) {
                             final symptomId = detail['symptom']['id'] as String;
@@ -520,21 +532,29 @@ class _TrackerTabState extends State<TrackerTab> {
                               Symptom(
                                 id: symptomId,
                                 name: detail['symptom']['name'] as String,
-                                filterGrouping: List<String>.from(detail['symptom']['filter_grouping'] ?? []),
-                                bodyParts: List<String>.from(detail['symptom']['body_parts'] ?? []),
-                                tags: List<String>.from(detail['symptom']['tags'] ?? []),
-                                visualInsights: List<String>.from(detail['symptom']['visual_insights'] ?? []),
-                                questionMap: List<Map<String, dynamic>>.from(detail['symptom']['question_map'] ?? []),
+                                filterGrouping: List<String>.from(
+                                    detail['symptom']['filter_grouping'] ?? []),
+                                bodyParts: List<String>.from(
+                                    detail['symptom']['body_parts'] ?? []),
+                                tags: List<String>.from(
+                                    detail['symptom']['tags'] ?? []),
+                                visualInsights: List<String>.from(
+                                    detail['symptom']['visual_insights'] ?? []),
+                                questionMap: List<Map<String, dynamic>>.from(
+                                    detail['symptom']['question_map'] ?? []),
                                 notes: detail['notes'] as String? ?? '',
-                                needHelpPopup: detail['symptom']['need_help_popup'] as bool? ?? false,
+                                needHelpPopup: detail['symptom']
+                                        ['need_help_popup'] as bool? ??
+                                    false,
                               ),
                               detail,
                             );
                           }
-                          
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Symptom details saved successfully!'),
+                              content:
+                                  Text('Symptom details saved successfully!'),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -603,7 +623,7 @@ class _TrackerTabState extends State<TrackerTab> {
         ),
       );
     }
-    
+
     return Column(
       children: allSymptoms.take(5).map((symptom) {
         return Container(
@@ -616,14 +636,17 @@ class _TrackerTabState extends State<TrackerTab> {
               GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedRecentSymptom = _selectedRecentSymptom == symptom ? null : symptom;
+                    _selectedRecentSymptom =
+                        _selectedRecentSymptom == symptom ? null : symptom;
                   });
                 },
                 child: Container(
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: _selectedRecentSymptom == symptom ? AppColors.amethyst : Colors.transparent,
+                    color: _selectedRecentSymptom == symptom
+                        ? AppColors.amethyst
+                        : Colors.transparent,
                     border: Border.all(
                       color: AppColors.amethyst,
                       width: 2,
@@ -743,8 +766,18 @@ class _TrackerTabState extends State<TrackerTab> {
 
   String _formatDateString(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${months[date.month - 1]} ${date.day}';
   }
@@ -794,6 +827,46 @@ class _InsightTabState extends State<InsightTab> {
   DateTime _selectedDate = DateTime(2025, 4, 10); // April 10, 2025
   DateTime _currentMonth = DateTime(2025, 4, 1); // April 2025
 
+  // Health tracker data
+  List<Symptom> _symptoms = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHealthTrackers();
+  }
+
+  Future<void> _loadHealthTrackers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final symptomCubit = context.read<SymptomSearchCubit>();
+      final healthTrackersData =
+          await symptomCubit.getHealthTrackersByDate(_selectedDate);
+
+      // Extract symptoms from trackers
+      final symptoms = healthTrackersData
+          .expand((data) => (data['selected_symptoms'] as List? ?? [])
+              .map((s) => Symptom.fromJson(s)))
+          .toList();
+
+      setState(() {
+        _symptoms = symptoms;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
@@ -802,7 +875,8 @@ class _InsightTabState extends State<InsightTab> {
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -908,7 +982,8 @@ class _InsightTabState extends State<InsightTab> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
+                        _currentMonth = DateTime(
+                            _currentMonth.year, _currentMonth.month - 1, 1);
                       });
                     },
                     child: Icon(
@@ -921,7 +996,8 @@ class _InsightTabState extends State<InsightTab> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+                        _currentMonth = DateTime(
+                            _currentMonth.year, _currentMonth.month + 1, 1);
                       });
                     },
                     child: Icon(
@@ -957,12 +1033,41 @@ class _InsightTabState extends State<InsightTab> {
     );
   }
 
+  //symptom colors map
+  final Map<String, Color> symptomColors = {
+    "Headache": Colors.red,
+    "Fatigue": Colors.orange,
+    "Nausea": Colors.green,
+    "Stress": Colors.purple,
+  };
+
+//making symptom color dots
+  Widget buildSymptomDots(List<Symptom> symptoms) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: symptoms.map((symptom) {
+        final color = symptomColors[symptom.name] ?? Colors.grey; // fallback
+        return Container(
+          width: 6,
+          height: 6,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildCalendarGrid() {
-    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final lastDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
+    final firstDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final lastDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
     final firstWeekday = firstDayOfMonth.weekday;
     final daysInMonth = lastDayOfMonth.day;
-    
+
     // Calculate total cells needed (including empty cells for days before month starts)
     final totalCells = firstWeekday - 1 + daysInMonth;
     final weeks = (totalCells / 7).ceil();
@@ -974,7 +1079,7 @@ class _InsightTabState extends State<InsightTab> {
           children: List.generate(7, (dayIndex) {
             final cellIndex = weekIndex * 7 + dayIndex;
             final dayOfMonth = cellIndex - (firstWeekday - 1) + 1;
-            
+
             if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
               // Empty cell
               return Container(
@@ -984,10 +1089,11 @@ class _InsightTabState extends State<InsightTab> {
               );
             }
 
-            final date = DateTime(_currentMonth.year, _currentMonth.month, dayOfMonth);
-            final isSelected = date.day == _selectedDate.day && 
-                             date.month == _selectedDate.month && 
-                             date.year == _selectedDate.year;
+            final date =
+                DateTime(_currentMonth.year, _currentMonth.month, dayOfMonth);
+            final isSelected = date.day == _selectedDate.day &&
+                date.month == _selectedDate.month &&
+                date.year == _selectedDate.year;
 
             return GestureDetector(
               onTap: () {
@@ -1012,30 +1118,34 @@ class _InsightTabState extends State<InsightTab> {
                         color: isSelected ? Colors.white : AppColors.primary01,
                       ),
                     ),
-                    if (dayOfMonth != 1) // Show dots for all days except day 1
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 4,
-                            margin: const EdgeInsets.symmetric(horizontal: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.lightBlue,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Container(
-                            width: 4,
-                            height: 4,
-                            margin: const EdgeInsets.symmetric(horizontal: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ),
+                    if (dayOfMonth != 1 &&
+                        _symptoms
+                            .isNotEmpty) // Show dots for all days except day 1
+                      buildSymptomDots(_symptoms),
+                    // if (dayOfMonth != 1) // Show dots for all days except day 1
+                    //   Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       Container(
+                    //         width: 4,
+                    //         height: 4,
+                    //         margin: const EdgeInsets.symmetric(horizontal: 1),
+                    //         decoration: const BoxDecoration(
+                    //           color: Colors.lightBlue,
+                    //           shape: BoxShape.circle,
+                    //         ),
+                    //       ),
+                    //       Container(
+                    //         width: 4,
+                    //         height: 4,
+                    //         margin: const EdgeInsets.symmetric(horizontal: 1),
+                    //         decoration: const BoxDecoration(
+                    //           color: Colors.orange,
+                    //           shape: BoxShape.circle,
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
                   ],
                 ),
               ),
@@ -1048,7 +1158,7 @@ class _InsightTabState extends State<InsightTab> {
 
   Widget _buildSymptomInsightsList() {
     final symptoms = ['Cramps', 'Fatigue', 'Headaches', 'Sleep'];
-    
+
     return Column(
       children: symptoms.map((symptom) {
         return GestureDetector(
@@ -1056,7 +1166,8 @@ class _InsightTabState extends State<InsightTab> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SymptomInsightsScreen(symptomName: symptom),
+                builder: (context) =>
+                    SymptomInsightsScreen(symptomName: symptom),
               ),
             );
           },
@@ -1090,8 +1201,18 @@ class _InsightTabState extends State<InsightTab> {
 
   String _formatMonthYear(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return '${months[date.month - 1]} ${date.year}';
   }

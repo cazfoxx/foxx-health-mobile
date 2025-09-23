@@ -9,6 +9,8 @@ abstract class HealthTrackerState extends Equatable {
 
 class HealthTrackerInitial extends HealthTrackerState {}
 
+class HealthTrackerLoading extends HealthTrackerState {}
+
 class HealthTrackerSymptomsUpdated extends HealthTrackerState {
   final List<Symptom> symptoms;
   const HealthTrackerSymptomsUpdated(this.symptoms);

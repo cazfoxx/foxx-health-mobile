@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -64,6 +61,16 @@ class DefaultFirebaseOptions {
     projectId: 'arcane-shape-449219-v0',
     storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
     iosBundleId: 'com.beta.foxxhealth',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDldRkMYOn8uyhWcDzM3t80MEyUVZPoL5o',
+    appId: '1:788993188947:web:999ca2b9fcb88243f2d2a6',
+    messagingSenderId: '788993188947',
+    projectId: 'arcane-shape-449219-v0',
+    authDomain: 'arcane-shape-449219-v0.firebaseapp.com',
+    storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
+    measurementId: 'G-H9VKNVCV52',
   );
 
 }

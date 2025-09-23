@@ -1,12 +1,16 @@
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
 part 'health_tracker_state.dart';
 
 class HealthTrackerCubit extends Cubit<HealthTrackerState> {
+  final ApiClient _apiClient = ApiClient();
+
   List<Symptom> _selectedSymptoms = [];
   DateTime _selectedDate = DateTime.now();
   DateTime? _startDate;
@@ -73,5 +77,40 @@ class HealthTrackerCubit extends Cubit<HealthTrackerState> {
       _endDate = null;
     }
     emit(HealthTrackerModeChanged(_isDateRangeMode));
+  }
+
+  Future<void> fetchSymptomsByDate(DateTime date) async {
+    try {
+      emit(HealthTrackerLoading());
+
+      final response = await _apiClient.dio.get(
+        '/api/v1/health-trackers/me',
+        options: Options(headers: {"accept": "application/json"}),
+      );
+
+      final List<dynamic> data = response.data;
+      final String targetDate = date.toIso8601String().split("T").first;
+
+      final List<Symptom> symptomsForDate = [];
+
+      for (final record in data) {
+        final String fromDate = record['from_date'];
+        final String toDate = record['to_date'];
+
+        // Check if targetDate is between from_date and to_date
+        if (targetDate.compareTo(fromDate) >= 0 &&
+            targetDate.compareTo(toDate) <= 0) {
+          final List<dynamic> selected = record['selected_symptoms'] ?? [];
+          symptomsForDate.addAll(
+            selected.map((s) => Symptom.fromJson(s)).toList(),
+          );
+        }
+      }
+
+      emit(HealthTrackerSymptomsUpdated(symptomsForDate));
+    } catch (e) {
+      print("❌ Error fetching symptoms: $e");
+      emit(const HealthTrackerSymptomsUpdated([])); // fallback: empty list
+    }
   }
 }
