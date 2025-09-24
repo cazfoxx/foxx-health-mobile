@@ -48,7 +48,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDLJ-FJswpGGhoHKHORbKGpGy_XBI2JLIA',
-    appId: '1:788993188947:android:66fd3ae16b69c6f6f2d2a6',
+    appId: '1:788993188947:android:3b3a13855d8f70c7f2d2a6',
     messagingSenderId: '788993188947',
     projectId: 'arcane-shape-449219-v0',
     storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
@@ -56,11 +56,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCzbtvlK84cadaNGXmTNZXBHRDdxdVjuU8',
-    appId: '1:788993188947:ios:578a99ccccd9a7c8f2d2a6',
+    appId: '1:788993188947:ios:375df4c8f51def7af2d2a6',
     messagingSenderId: '788993188947',
     projectId: 'arcane-shape-449219-v0',
     storageBucket: 'arcane-shape-449219-v0.firebasestorage.app',
-    iosBundleId: 'com.beta.foxxhealth',
+    iosBundleId: 'com.foxxhealth.foxxapp',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
