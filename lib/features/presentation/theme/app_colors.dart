@@ -45,6 +45,20 @@ class AppColors {
   static const orange = Color(0xFFE7931D);
   static const yellow = Color(0xFFFFCD04);
 
+  // Insight Colors
+  static const insightDarkRed = Color(0xFFBF0F0F);
+  static const insightRed = Color(0xFFEB3C3C);
+  static const insightOrange = Color(0xFFFF9F1C);
+  static const insightYellow = Color(0xFFFFF156);
+  static const insightTeal = Color(0xFF04BFDA);
+  static const insightMidnightTeal = Color(0xFF046E7D);
+  static const insightCoralPink = Color(0xFFFF6F61);
+  static const insightSkyBlue = Color(0xFF4DC9F6);
+  static const insightMintGreen = Color(0xFF4DD599);
+  static const insightIceBlue = Color(0xFFA8E6FF);
+  static const insightOliveGreen = Color(0xFFA3B18A);
+  static const insightCoolNavy = Color(0xFF264653);
+
   // Semantic Colors (from Figma)
 
   static const primary01 = gray900;
