@@ -824,7 +824,7 @@ class InsightTab extends StatefulWidget {
 }
 
 class _InsightTabState extends State<InsightTab> {
-  DateTime _selectedDate = DateTime(2025, 4, 10); // April 10, 2025
+  DateTime _selectedDate = DateTime(2025, 9, 24); // April 10, 2025
   DateTime _currentMonth = DateTime(2025, 4, 1); // April 2025
 
   // Health tracker data
@@ -1036,6 +1036,9 @@ class _InsightTabState extends State<InsightTab> {
   //symptom colors map
   final Map<String, Color> symptomColors = {
     "Headache": Colors.red,
+    "Acid reflux (a burning feeling in the throat or mouth)":Colors.blue,
+    "Aches and pains": Colors.black,
+    "Abdominal pain": Colors.pink,
     "Fatigue": Colors.orange,
     "Nausea": Colors.green,
     "Stress": Colors.purple,
