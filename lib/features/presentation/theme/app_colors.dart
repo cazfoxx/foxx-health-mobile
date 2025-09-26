@@ -58,6 +58,8 @@ class AppColors {
   static const insightIceBlue = Color(0xFFA8E6FF);
   static const insightOliveGreen = Color(0xFFA3B18A);
   static const insightCoolNavy = Color(0xFF264653);
+  static const insightPurple = Color(0xFF9966CC);
+  static const insightGray = gray600;
 
   // Semantic Colors (from Figma)
 

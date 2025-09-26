@@ -838,35 +838,6 @@ class _InsightTabState extends State<InsightTab> {
     _loadHealthTrackers();
   }
 
-  Future<void> _loadHealthTrackers() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final symptomCubit = context.read<SymptomSearchCubit>();
-      final healthTrackersData =
-          await symptomCubit.getHealthTrackersByDate(_selectedDate);
-
-      // Extract symptoms from trackers
-      final symptoms = healthTrackersData
-          .expand((data) => (data['selected_symptoms'] as List? ?? [])
-              .map((s) => Symptom.fromJson(s)))
-          .toList();
-
-      setState(() {
-        _symptoms = symptoms;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
@@ -1034,22 +1005,64 @@ class _InsightTabState extends State<InsightTab> {
   }
 
   //symptom colors map
-  final Map<String, Color> symptomColors = {
-    "Headache": Colors.red,
-    "Acid reflux (a burning feeling in the throat or mouth)":Colors.blue,
-    "Aches and pains": Colors.black,
-    "Abdominal pain": Colors.pink,
-    "Fatigue": Colors.orange,
-    "Nausea": Colors.green,
-    "Stress": Colors.purple,
+  final Map<int, Color> symptomColors = {
+    0: AppColors.insightPurple,
+    1: AppColors.insightTeal,
+    2: AppColors.insightCoralPink,
+    3: AppColors.insightMintGreen,
+    4: AppColors.insightYellow,
+    5: AppColors.insightCoolNavy,
+    6: AppColors.insightOliveGreen,
+    7: AppColors.insightGray,
+    8: AppColors.insightIceBlue,
+    9: AppColors.insightDarkRed,
   };
 
-//making symptom color dots
+  Future<void> _loadHealthTrackers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final symptomCubit = context.read<SymptomSearchCubit>();
+      final healthTrackersData =
+          await symptomCubit.getHealthTrackersByDate(_selectedDate);
+
+      // Extract symptoms from trackers
+      final symptoms = healthTrackersData
+          .expand((data) => (data['selected_symptoms'] as List? ?? [])
+              .map((s) => Symptom.fromJson(s)))
+          .toList();
+
+      setState(() {
+        _symptoms = symptoms;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+// making symptom color dots
   Widget buildSymptomDots(List<Symptom> symptoms) {
+    // Take the 10 most recent symptoms
+    final recentSymptoms = symptoms.length > 10
+        ? symptoms.sublist(symptoms.length - 10)
+        : symptoms;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: symptoms.map((symptom) {
-        final color = symptomColors[symptom.name] ?? Colors.grey; // fallback
+      children: recentSymptoms.asMap().entries.map((entry) {
+        final index = entry.key;
+        final symptom = entry.value;
+
+        // Use index from the sliced list, not the original one
+        final color = symptomColors[index] ?? Colors.grey; // fallback
+
         return Container(
           width: 6,
           height: 6,
@@ -1124,7 +1137,7 @@ class _InsightTabState extends State<InsightTab> {
                     if (dayOfMonth != 1 &&
                         _symptoms
                             .isNotEmpty) // Show dots for all days except day 1
-                      buildSymptomDots(_symptoms),
+                      buildSymptomDots(_symptoms),//symptoms of one day
                     // if (dayOfMonth != 1) // Show dots for all days except day 1
                     //   Row(
                     //     mainAxisAlignment: MainAxisAlignment.center,
