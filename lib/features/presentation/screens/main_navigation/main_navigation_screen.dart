@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
@@ -824,18 +825,19 @@ class InsightTab extends StatefulWidget {
 }
 
 class _InsightTabState extends State<InsightTab> {
-  DateTime _selectedDate = DateTime(2025, 9, 24); // April 10, 2025
-  DateTime _currentMonth = DateTime(2025, 4, 1); // April 2025
+  DateTime _selectedDate = DateTime.now(); //  (2025, 9, 24); // April 10, 2025
+  DateTime _currentMonth = DateTime.now(); //(2025, 4, 1); // April 2025
 
-  // Health tracker data
-  List<Symptom> _symptoms = [];
+  // Insight data
+  Map<DateTime, List<Symptom>> _symptomsOfTheMonth = {};
+  List<String> _tenRecentSymptoms = [];
   bool _isLoading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadHealthTrackers();
+    _getSymptomsForMonth();
   }
 
   @override
@@ -860,11 +862,11 @@ class _InsightTabState extends State<InsightTab> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: AppColors.mauve50,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.chat_bubble_outline,
                               color: AppColors.amethyst,
                               size: 20,
@@ -873,11 +875,11 @@ class _InsightTabState extends State<InsightTab> {
                           const SizedBox(width: 12),
                           Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: AppColors.mauve50,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.person_outline,
                               color: AppColors.amethyst,
                               size: 20,
@@ -918,9 +920,51 @@ class _InsightTabState extends State<InsightTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Column(
+                    children: [
+                      _symptomsOfTheMonth.isEmpty
+                          ? Column(
+                              children: [
+                                const SizedBox(height: 12),
+                                Text(
+                                  "You have not recorded any symptom",
+                                  style: AppOSTextStyles.osMd.copyWith(
+                                    color: AppColors.davysGray,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HealthTrackerScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 40,
+                                    decoration:
+                                        AppColors.glassCardDecoration.copyWith(
+                                      color: AppColors.amethystViolet,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Log Symptoms",
+                                        style: AppOSTextStyles.osMdSemiboldTitle
+                                            .copyWith(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : _buildSymptomInsightsList(),
+                    ],
+                  ),
 
-                  // Symptom List
-                  _buildSymptomInsightsList(),
                   const SizedBox(height: 100), // Bottom padding for navigation
                 ],
               ),
@@ -955,9 +999,10 @@ class _InsightTabState extends State<InsightTab> {
                       setState(() {
                         _currentMonth = DateTime(
                             _currentMonth.year, _currentMonth.month - 1, 1);
+                        _getSymptomsForMonth();
                       });
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.arrow_back_ios,
                       color: AppColors.amethyst,
                       size: 20,
@@ -969,9 +1014,10 @@ class _InsightTabState extends State<InsightTab> {
                       setState(() {
                         _currentMonth = DateTime(
                             _currentMonth.year, _currentMonth.month + 1, 1);
+                        _getSymptomsForMonth();
                       });
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.arrow_forward_ios,
                       color: AppColors.amethyst,
                       size: 20,
@@ -1018,35 +1064,6 @@ class _InsightTabState extends State<InsightTab> {
     9: AppColors.insightDarkRed,
   };
 
-  Future<void> _loadHealthTrackers() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final symptomCubit = context.read<SymptomSearchCubit>();
-      final healthTrackersData =
-          await symptomCubit.getHealthTrackersByDate(_selectedDate);
-
-      // Extract symptoms from trackers
-      final symptoms = healthTrackersData
-          .expand((data) => (data['selected_symptoms'] as List? ?? [])
-              .map((s) => Symptom.fromJson(s)))
-          .toList();
-
-      setState(() {
-        _symptoms = symptoms;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
 // making symptom color dots
   Widget buildSymptomDots(List<Symptom> symptoms) {
     // Take the 10 most recent symptoms
@@ -1058,7 +1075,6 @@ class _InsightTabState extends State<InsightTab> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: recentSymptoms.asMap().entries.map((entry) {
         final index = entry.key;
-        final symptom = entry.value;
 
         // Use index from the sliced list, not the original one
         final color = symptomColors[index] ?? Colors.grey; // fallback
@@ -1074,6 +1090,51 @@ class _InsightTabState extends State<InsightTab> {
         );
       }).toList(),
     );
+  }
+
+  Future<void> _getSymptomsForMonth() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final symptomCubit = context.read<SymptomSearchCubit>();
+      final symptomsMap = await symptomCubit.getSymptomsByMonth(_currentMonth);
+
+      // Flatten into a list with dates
+      final allEntries = symptomsMap.entries.expand((entry) {
+        final date = entry.key;
+        return entry.value.map((s) => MapEntry(date, s));
+      }).toList();
+
+      // Sort by date descending
+      allEntries.sort((a, b) => b.key.compareTo(a.key));
+
+      // Use a set to track uniqueness (by symptom.id or symptom.name)
+      final seen = <String>{};
+      final uniqueSymptoms = <String>[];
+      // Flatten all symptoms in the month
+      final allSymptoms =
+          symptomsMap.entries.expand((entry) => entry.value).toList();
+
+      for (final symptom in allSymptoms) {
+        if (seen.add(symptom.id)) {
+          uniqueSymptoms.add(symptom.name);
+        }
+        if (uniqueSymptoms.length == 10) break;
+      }
+
+      setState(() {
+        _symptomsOfTheMonth = symptomsMap;
+        _tenRecentSymptoms = uniqueSymptoms;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   Widget _buildCalendarGrid() {
@@ -1110,6 +1171,7 @@ class _InsightTabState extends State<InsightTab> {
             final isSelected = date.day == _selectedDate.day &&
                 date.month == _selectedDate.month &&
                 date.year == _selectedDate.year;
+            final symptomsOfTheDay = _symptomsOfTheMonth[date] ?? [];
 
             return GestureDetector(
               onTap: () {
@@ -1134,34 +1196,12 @@ class _InsightTabState extends State<InsightTab> {
                         color: isSelected ? Colors.white : AppColors.primary01,
                       ),
                     ),
+
                     if (dayOfMonth != 1 &&
-                        _symptoms
+                        symptomsOfTheDay
                             .isNotEmpty) // Show dots for all days except day 1
-                      buildSymptomDots(_symptoms),//symptoms of one day
-                    // if (dayOfMonth != 1) // Show dots for all days except day 1
-                    //   Row(
-                    //     mainAxisAlignment: MainAxisAlignment.center,
-                    //     children: [
-                    //       Container(
-                    //         width: 4,
-                    //         height: 4,
-                    //         margin: const EdgeInsets.symmetric(horizontal: 1),
-                    //         decoration: const BoxDecoration(
-                    //           color: Colors.lightBlue,
-                    //           shape: BoxShape.circle,
-                    //         ),
-                    //       ),
-                    //       Container(
-                    //         width: 4,
-                    //         height: 4,
-                    //         margin: const EdgeInsets.symmetric(horizontal: 1),
-                    //         decoration: const BoxDecoration(
-                    //           color: Colors.orange,
-                    //           shape: BoxShape.circle,
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
+
+                      buildSymptomDots(symptomsOfTheDay), //symptoms of one day
                   ],
                 ),
               ),
@@ -1172,11 +1212,44 @@ class _InsightTabState extends State<InsightTab> {
     );
   }
 
+  Widget buildSymptomDotsd(List<Symptom> symptoms) {
+    // Take the 10 most recent symptoms
+    final recentSymptoms = symptoms.length > 10
+        ? symptoms.sublist(symptoms.length - 10)
+        : symptoms;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: recentSymptoms.asMap().entries.map((entry) {
+        final index = entry.key;
+
+        // Use index from the sliced list, not the original one
+        final color = symptomColors[index] ?? Colors.grey; // fallback
+
+        return Container(
+          width: 6,
+          height: 6,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildSymptomInsightsList() {
-    final symptoms = ['Cramps', 'Fatigue', 'Headaches', 'Sleep'];
+    final symptoms = _tenRecentSymptoms;
 
     return Column(
-      children: symptoms.map((symptom) {
+      children: symptoms.asMap().entries.map((entry) {
+        final index = entry.key;
+        final symptom = entry.value;
+
+        // pick color by index, fallback to gray if > 9
+        final color = symptomColors[index] ?? Colors.grey;
+
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -1194,6 +1267,18 @@ class _InsightTabState extends State<InsightTab> {
             decoration: AppColors.glassCardDecoration,
             child: Row(
               children: [
+                // colored circle
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // symptom name
                 Expanded(
                   child: Text(
                     symptom,
@@ -1202,7 +1287,8 @@ class _InsightTabState extends State<InsightTab> {
                     ),
                   ),
                 ),
-                Icon(
+
+                const Icon(
                   Icons.arrow_forward_ios,
                   color: AppColors.amethyst,
                   size: 16,
