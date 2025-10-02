@@ -14,13 +14,16 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // Configurable JDK version via gradle.properties (defaults to 17)
+    def jdkVersion = (findProperty("JDK_VERSION") ?: "17") as String
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.toVersion(jdkVersion)
+        targetCompatibility = JavaVersion.toVersion(jdkVersion)
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+        jvmTarget = jdkVersion
     }
 
     defaultConfig {
@@ -60,4 +63,14 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     
     // ... other dependencies
+}
+
+// Suppress warnings about obsolete -source/-target options from transitive Java compilation tasks
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:-options"
+}
+
+// Align Kotlin JVM target across all Kotlin compile tasks in this module
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions { jvmTarget = (findProperty("JDK_VERSION") ?: "17") as String }
 }
