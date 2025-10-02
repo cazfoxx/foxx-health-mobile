@@ -146,7 +146,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                       Text(
                         'Tell us what you\'re loving about FoXX, and what you\'d like to see more of. Your feedback helps us make FoXX even better, for you, and for every woman who uses it.',
                         style: AppTextStyles.bodyOpenSans.copyWith(
-                          color: AppColors.secondaryTxt,
+                          color: AppColors.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -172,7 +172,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                             decoration: InputDecoration(
                               hintText: 'Share your thoughts here...',
                               hintStyle: AppTextStyles.bodyOpenSans.copyWith(
-                                color: AppColors.inputTxtPlaceholder,
+                                color: AppColors.textInputPlaceholder,
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.all(20),
