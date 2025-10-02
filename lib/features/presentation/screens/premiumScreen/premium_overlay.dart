@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -176,16 +177,94 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   }
 
   Future<void> _verifyPurchase(PurchaseDetails purchaseDetails) async {
-    // Here you would typically verify the purchase with your backend
-    // For now, we'll just show a success message
-    log('Purchase successful: ${purchaseDetails.productID}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Purchase successful! Welcome to Premium!')),
-    );
-    
-    // Close the premium overlay
-    if (mounted) {
-      Navigator.pop(context);
+    try {
+      log('Starting purchase verification for: ${purchaseDetails.productID}');
+      
+      String? verificationData;
+      String platform = Platform.isIOS ? 'ios' : 'android';
+      
+      if (Platform.isIOS) {
+        // iOS: Get receipt data
+        if (purchaseDetails.verificationData.serverVerificationData.isNotEmpty) {
+          verificationData = purchaseDetails.verificationData.serverVerificationData;
+        } else if (purchaseDetails.verificationData.localVerificationData.isNotEmpty) {
+          verificationData = purchaseDetails.verificationData.localVerificationData;
+        }
+        
+        if (verificationData == null || verificationData.isEmpty) {
+          throw Exception('No receipt data available for verification');
+        }
+      } else {
+        // Android: Get purchase token
+        verificationData = purchaseDetails.purchaseID;
+        if (verificationData == null || verificationData.isEmpty) {
+          throw Exception('No purchase token available for verification');
+        }
+      }
+      
+      // Send verification data to backend
+      final verificationSuccess = await _verifyPurchaseWithBackend(
+        verificationData: verificationData,
+        productId: purchaseDetails.productID,
+        platform: platform,
+        transactionId: purchaseDetails.purchaseID ?? '',
+      );
+      
+      if (verificationSuccess) {
+        log('Purchase verification successful: ${purchaseDetails.productID}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase successful! Welcome to Premium!')),
+        );
+        
+        // Close the premium overlay
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } else {
+        throw Exception('Purchase verification failed');
+      }
+      
+    } catch (e) {
+      log('Purchase verification error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Purchase verification failed: $e')),
+      );
+    }
+  }
+  
+  Future<bool> _verifyPurchaseWithBackend({
+    required String verificationData,
+    required String productId,
+    required String platform,
+    required String transactionId,
+  }) async {
+    try {
+      // TODO: Replace with your actual API client
+      // final response = await _apiClient.post(
+      //   '/api/v1/subscriptions/verify-purchase',
+      //   data: {
+      //     if (platform == 'ios') 
+      //       'receipt_data': verificationData
+      //     else 
+      //       'purchase_token': verificationData,
+      //     'platform': platform,
+      //     'product_id': productId,
+      //     'transaction_id': transactionId,
+      //     if (platform == 'android') 'package_name': 'com.foxxhealth',
+      //   },
+      // );
+      
+      // For now, simulate successful verification
+      // In production, replace this with actual API call
+      log('Simulating ${platform} purchase verification...');
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // return response.statusCode == 200;
+      return true; // Temporary - replace with actual API response check
+      
+    } catch (e) {
+      log('Backend verification error: $e');
+      return false;
     }
   }
 
