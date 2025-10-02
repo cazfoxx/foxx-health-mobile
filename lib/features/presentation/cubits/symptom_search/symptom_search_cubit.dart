@@ -450,69 +450,109 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 //   }
 // }
 
-Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(DateTime month) async {
-  try {
-    final year = month.year;
-    final monthNumber = month.month;
+  Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(
+      DateTime month) async {
+    try {
+      final year = month.year;
+      final monthNumber = month.month;
 
-    final startDate = DateTime(year, monthNumber, 1);
-    final endDate = DateTime(year, monthNumber + 1, 0);
+      final startDate = DateTime(year, monthNumber, 1);
+      final endDate = DateTime(year, monthNumber + 1, 0);
 
-    print("📡 Fetching symptoms from $startDate to $endDate");
+      print("📡 Fetching symptoms from $startDate to $endDate");
 
-    final response = await _apiClient.get(
-      '/api/v1/health-trackers/me',
-      queryParameters: {
-        'from_date': startDate.toIso8601String().split("T").first,
-        'to_date': endDate.toIso8601String().split("T").first,
-      },
-      options: Options(
-        headers: {
-          'accept': 'application/json',
-          'Authorization': 'Bearer ${AppStorage.accessToken}',
+      final response = await _apiClient.get(
+        '/api/v1/health-trackers/me',
+        queryParameters: {
+          'from_date': startDate.toIso8601String().split("T").first,
+          'to_date': endDate.toIso8601String().split("T").first,
         },
-        validateStatus: (status) => status! < 400,
-      ),
-    );
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Authorization': 'Bearer ${AppStorage.accessToken}',
+          },
+          validateStatus: (status) => status! < 400,
+        ),
+      );
 
-    if (response.data is! List) {
-      throw Exception("Unexpected response format: ${response.data}");
-    }
-
-    final List<dynamic> trackers = response.data;
-    final Map<DateTime, List<Symptom>> symptomMap = {};
-
-    for (final tracker in trackers) {
-      final fromDate = DateTime.parse(tracker['from_date']);
-      final toDate = DateTime.parse(tracker['to_date']);
-
-      // Skip trackers outside the current month
-      if (toDate.isBefore(startDate) || fromDate.isAfter(endDate)) continue;
-
-      final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
-      final List<Symptom> symptoms =
-          selected.map((s) => Symptom.fromJson(s)).toList();
-
-      for (DateTime d = fromDate;
-          !d.isAfter(toDate);
-          d = d.add(const Duration(days: 1))) {
-        if (d.month != monthNumber) continue; // filter strictly to current month
-
-        final key = DateTime(d.year, d.month, d.day);
-        symptomMap.putIfAbsent(key, () => []);
-        symptomMap[key]!.addAll(symptoms);
+      if (response.data is! List) {
+        throw Exception("Unexpected response format: ${response.data}");
       }
+
+      final List<dynamic> trackers = response.data;
+      final Map<DateTime, List<Symptom>> symptomMap = {};
+
+      for (final tracker in trackers) {
+        final fromDate = DateTime.parse(tracker['from_date']);
+        final toDate = DateTime.parse(tracker['to_date']);
+
+        // Skip trackers outside the current month
+        if (toDate.isBefore(startDate) || fromDate.isAfter(endDate)) continue;
+
+        final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
+        final List<Symptom> symptoms =
+            selected.map((s) => Symptom.fromJson(s)).toList();
+
+        for (DateTime d = fromDate;
+            !d.isAfter(toDate);
+            d = d.add(const Duration(days: 1))) {
+          if (d.month != monthNumber)
+            continue; // filter strictly to current month
+
+          final key = DateTime(d.year, d.month, d.day);
+          symptomMap.putIfAbsent(key, () => []);
+          symptomMap[key]!.addAll(symptoms);
+        }
+      }
+
+      print("✅ Returning symptom map: ${symptomMap.keys}");
+      return symptomMap;
+    } catch (e, st) {
+      print("❌ Error fetching symptoms for month: $e\n$st");
+      return {};
     }
-
-    print("✅ Returning symptom map: ${symptomMap.keys}");
-    return symptomMap;
-  } catch (e, st) {
-    print("❌ Error fetching symptoms for month: $e\n$st");
-    return {};
   }
-}
 
+  Future<List<String>> getAllUserSymptomNames() async {
+    try {
+      final response = await _apiClient.get(
+        '/api/v1/health-trackers/me',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Authorization': 'Bearer ${AppStorage.accessToken}',
+          },
+          validateStatus: (status) => status! < 400,
+        ),
+      );
 
+      if (response.data is! List) {
+        throw Exception("Unexpected response format: ${response.data}");
+      }
+
+      final List<dynamic> trackers = response.data;
+
+      // Collect unique symptom names
+      final Set<String> symptomNames = {};
+
+      for (final tracker in trackers) {
+        final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
+
+        for (final symptomJson in selected) {
+          final info = symptomJson['info'];
+          if (info != null && info['name'] != null) {
+            symptomNames.add(info['name']);
+          }
+        }
+      }
+
+      return symptomNames.toList();
+    } catch (e) {
+      print("❌ Error fetching symptom names: $e");
+      return [];
+    }
+  }
 
   Future<String?> uploadProfileIcon(String filePath) async {
     try {

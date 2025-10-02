@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_dialog.dart';
+// import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
@@ -327,7 +329,7 @@ class _TrackerTabState extends State<TrackerTab> {
             decoration: AppColors.glassCardDecoration,
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.calendar_today,
                   color: AppColors.amethyst,
                   size: 20,
@@ -440,7 +442,7 @@ class _TrackerTabState extends State<TrackerTab> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: _feelingGood
-                  ? Icon(
+                  ? const Icon(
                       Icons.check,
                       color: Colors.white,
                       size: 16,
@@ -465,7 +467,7 @@ class _TrackerTabState extends State<TrackerTab> {
                 try {
                   // Show loading indicator
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Loading symptom details...'),
                       backgroundColor: Colors.blue,
                     ),
@@ -553,7 +555,7 @@ class _TrackerTabState extends State<TrackerTab> {
                           }
 
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content:
                                   Text('Symptom details saved successfully!'),
                               backgroundColor: Colors.green,
@@ -575,14 +577,14 @@ class _TrackerTabState extends State<TrackerTab> {
                 }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('No symptoms to show details for'),
                     backgroundColor: Colors.orange,
                   ),
                 );
               }
             },
-            child: Text('details'),
+            child: const Text('details'),
           ),
         ],
       ),
@@ -655,7 +657,7 @@ class _TrackerTabState extends State<TrackerTab> {
                     shape: BoxShape.circle,
                   ),
                   child: _selectedRecentSymptom == symptom
-                      ? Icon(
+                      ? const Icon(
                           Icons.check,
                           color: Colors.white,
                           size: 12,
@@ -693,7 +695,7 @@ class _TrackerTabState extends State<TrackerTab> {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.search,
             color: AppColors.amethyst,
             size: 20,
@@ -797,7 +799,7 @@ class _TrackerTabState extends State<TrackerTab> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: AppColors.amethyst,
               onPrimary: Colors.white,
               surface: Colors.white,
@@ -825,12 +827,13 @@ class InsightTab extends StatefulWidget {
 }
 
 class _InsightTabState extends State<InsightTab> {
-  DateTime _selectedDate = DateTime.now(); //  (2025, 9, 24); // April 10, 2025
-  DateTime _currentMonth = DateTime.now(); //(2025, 4, 1); // April 2025
+  DateTime _selectedDate = DateTime.now();
+  DateTime _currentMonth = DateTime.now();
 
   // Insight data
   Map<DateTime, List<Symptom>> _symptomsOfTheMonth = {};
   List<String> _tenRecentSymptoms = [];
+  List<String> _userRecentSymptoms = [];
   bool _isLoading = false;
   String? _error;
 
@@ -838,6 +841,7 @@ class _InsightTabState extends State<InsightTab> {
   void initState() {
     super.initState();
     _getSymptomsForMonth();
+    _getUserSymptoms();
   }
 
   @override
@@ -936,12 +940,17 @@ class _InsightTabState extends State<InsightTab> {
                                 const SizedBox(height: 12),
                                 GestureDetector(
                                   onTap: () {
-                                    Navigator.of(context).push(
+                                    Navigator.of(context)
+                                        .push(
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             const HealthTrackerScreen(),
                                       ),
-                                    );
+                                    )
+                                        .then((_) {
+                                      _getSymptomsForMonth();
+                                      _getUserSymptoms();
+                                    });
                                   },
                                   child: Container(
                                     width: double.infinity,
@@ -1000,6 +1009,7 @@ class _InsightTabState extends State<InsightTab> {
                         _currentMonth = DateTime(
                             _currentMonth.year, _currentMonth.month - 1, 1);
                         _getSymptomsForMonth();
+                        _getUserSymptoms();
                       });
                     },
                     child: const Icon(
@@ -1015,6 +1025,7 @@ class _InsightTabState extends State<InsightTab> {
                         _currentMonth = DateTime(
                             _currentMonth.year, _currentMonth.month + 1, 1);
                         _getSymptomsForMonth();
+                        _getUserSymptoms();
                       });
                     },
                     child: const Icon(
@@ -1137,6 +1148,107 @@ class _InsightTabState extends State<InsightTab> {
     }
   }
 
+  Future<void> _getUserSymptoms() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final symptomCubit = context.read<SymptomSearchCubit>();
+      final symptomsList = await symptomCubit.getAllUserSymptomNames();
+
+      // Sort by date descending
+      symptomsList.sort((a, b) => b.compareTo(a));
+
+      // Use a set to track uniqueness (by symptom.id or symptom.name)
+      final seen = <String>{};
+      final uniqueSymptoms = <String>[];
+
+      for (final symptom in symptomsList) {
+        if (seen.add(symptom)) {
+          uniqueSymptoms.add(symptom);
+        }
+        if (uniqueSymptoms.length == 30) break;
+      }
+
+      setState(() {
+        _userRecentSymptoms = uniqueSymptoms;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showSymptomsDialogm(BuildContext context, List<String> symptoms) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // tap outside to dismiss
+      builder: (context) {
+        return Dialog(
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height * 0.7, // 70% of screen
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFE9D3FF),
+                  Color(0xFFFFE5AA),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                const Text(
+                  "Symptoms",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3E3D48),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Symptoms List
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: symptoms.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final symptom = symptoms[index];
+                      return ListTile(
+                        title: Text(symptom),
+                        trailing: Checkbox(
+                          value: false, // TODO: bind with state
+                          onChanged: (val) {},
+                          shape: const CircleBorder(), // Circle checkbox
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCalendarGrid() {
     final firstDayOfMonth =
         DateTime(_currentMonth.year, _currentMonth.month, 1);
@@ -1177,34 +1289,58 @@ class _InsightTabState extends State<InsightTab> {
               onTap: () {
                 setState(() {
                   _selectedDate = date;
+                  _getUserSymptoms();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true, // allows full-height
+                    backgroundColor:
+                        Colors.transparent, // so your custom container shows
+                    barrierColor: Colors.black54, // dimmed background
+                    builder: (context) {
+                      return FractionallySizedBox(
+                        widthFactor: 0.7,
+                        heightFactor: 0.9, // 80% of screen height
+                        child: DaySymptomsDialog(
+                          symptoms: _userRecentSymptoms, // pass your list
+                          date: _selectedDate,
+                        ),
+                      );
+                    },
+                  );
                 });
               },
-              child: Container(
-                width: 32,
-                height: 40,
-                margin: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.amethyst : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Day circle
+                  Container(
+                    width: 36,
+                    height: 36,
+                    margin: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected ? AppColors.amethyst : Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
                       '$dayOfMonth',
                       style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
                         color: isSelected ? Colors.white : AppColors.primary01,
                       ),
                     ),
+                  ),
 
-                    if (dayOfMonth != 1 &&
-                        symptomsOfTheDay
-                            .isNotEmpty) // Show dots for all days except day 1
-
-                      buildSymptomDots(symptomsOfTheDay), //symptoms of one day
-                  ],
-                ),
+                  // Symptom dots (shown below circle)
+                  if (dayOfMonth != 1 && symptomsOfTheDay.isNotEmpty)
+                    SizedBox(height: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: buildSymptomDots(symptomsOfTheDay),
+                  ),
+                ],
               ),
+              // ),
             );
           }),
         );
@@ -1267,16 +1403,16 @@ class _InsightTabState extends State<InsightTab> {
             decoration: AppColors.glassCardDecoration,
             child: Row(
               children: [
-                // colored circle
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                // // colored circle
+                // Container(
+                //   width: 24,
+                //   height: 24,
+                //   decoration: BoxDecoration(
+                //     color: color,
+                //     shape: BoxShape.circle,
+                //   ),
+                // ),
+                // const SizedBox(width: 12),
 
                 // symptom name
                 Expanded(
