@@ -1,4 +1,4 @@
-package com.beta.foxxhealth
+package com.foxxhealth.foxxapp
 
 import io.flutter.embedding.android.FlutterActivity
 

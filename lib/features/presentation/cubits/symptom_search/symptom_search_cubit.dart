@@ -10,11 +10,12 @@ part 'symptom_search_state.dart';
 
 class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   final ApiClient _apiClient = ApiClient();
-  
+
   List<Symptom> _allSymptoms = [];
   List<Symptom> _filteredSymptoms = [];
   Set<Symptom> _selectedSymptoms = {};
-  Map<String, Map<String, dynamic>> _symptomDetails = {}; // Store details for each symptom
+  Map<String, Map<String, dynamic>> _symptomDetails =
+      {}; // Store details for each symptom
   String _selectedFilter = '';
   String _searchQuery = '';
   bool _hasMore = true;
@@ -30,21 +31,22 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   String get selectedFilter => _selectedFilter;
   String get searchQuery => _searchQuery;
   bool get hasMore => _hasMore;
-  List<String> get filterOptions => ['All', 'Period', 'Behavioral Changes', 'Body Image'];
+  List<String> get filterOptions =>
+      ['All', 'Period', 'Behavioral Changes', 'Body Image'];
 
   Future<void> loadInitialSymptoms() async {
     try {
       print('🔄 Loading initial symptoms...');
       emit(SymptomSearchLoading());
-      
+
       final result = await _getAllSymptoms(skip: 0, limit: _limit);
-      
+
       _allSymptoms = result['symptoms'];
       _hasMore = result['hasMore'];
       _currentSkip = _limit;
-      
+
       print('✅ Loaded ${_allSymptoms.length} symptoms');
-      
+
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
@@ -58,16 +60,16 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 
     try {
       emit(SymptomSearchLoadingMore());
-      
+
       final result = await _getAllSymptoms(
         skip: _currentSkip,
         limit: _limit,
       );
-      
+
       _allSymptoms.addAll(result['symptoms']);
       _hasMore = result['hasMore'];
       _currentSkip += _limit;
-      
+
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
@@ -78,22 +80,22 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> loadSymptomsByFilter(String filterGroup) async {
     try {
       emit(SymptomSearchLoading());
-      
+
       _selectedFilter = filterGroup;
       _allSymptoms.clear();
       _currentSkip = 0;
       _hasMore = true;
-      
+
       final result = await _getSymptomsByFilter(
         filterGroup: filterGroup,
         skip: 0,
         limit: _limit,
       );
-      
+
       _allSymptoms = result['symptoms'];
       _hasMore = result['hasMore'];
       _currentSkip = _limit;
-      
+
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
@@ -104,21 +106,21 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> clearFilter() async {
     try {
       emit(SymptomSearchLoading());
-      
+
       _selectedFilter = '';
       _allSymptoms.clear();
       _currentSkip = 0;
       _hasMore = true;
-      
+
       final result = await _getAllSymptoms(
         skip: 0,
         limit: _limit,
       );
-      
+
       _allSymptoms = result['symptoms'];
       _hasMore = result['hasMore'];
       _currentSkip = _limit;
-      
+
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
@@ -131,17 +133,17 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 
     try {
       emit(SymptomSearchLoadingMore());
-      
+
       final result = await _getSymptomsByFilter(
         filterGroup: _selectedFilter,
         skip: _currentSkip,
         limit: _limit,
       );
-      
+
       _allSymptoms.addAll(result['symptoms']);
       _hasMore = result['hasMore'];
       _currentSkip += _limit;
-      
+
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
@@ -160,9 +162,8 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       _filteredSymptoms = List.from(_allSymptoms);
     } else {
       _filteredSymptoms = _allSymptoms
-          .where((symptom) => symptom.name
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()))
+          .where((symptom) =>
+              symptom.name.toLowerCase().contains(_searchQuery.toLowerCase()))
           .toList();
     }
   }
@@ -182,9 +183,10 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
     }
 
     log('selected symptoms: ${_selectedSymptoms.length}');
-    
+
     emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
   }
+
   void refreshSymptoms() {
     emit(SymptomSearchLoading());
     log('selected symptoms: ${_selectedSymptoms.length}');
@@ -220,7 +222,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }) async {
     try {
       print('🌐 API Call: getAllSymptoms(skip: $skip, limit: $limit)');
-      
+
       final response = await _apiClient.get(
         '/api/v1/symptom/',
         queryParameters: {
@@ -236,7 +238,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       );
 
       print('✅ API Response: ${response.data.length} symptoms');
-      
+
       final List<Symptom> symptoms = (response.data as List)
           .map((json) => Symptom.fromJson(json))
           .toList();
@@ -258,8 +260,9 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
     required int limit,
   }) async {
     try {
-      print('🌐 API Call: getSymptomsByFilter(filterGroup: $filterGroup, skip: $skip, limit: $limit)');
-      
+      print(
+          '🌐 API Call: getSymptomsByFilter(filterGroup: $filterGroup, skip: $skip, limit: $limit)');
+
       final response = await _apiClient.get(
         '/api/v1/symptom/filter-group/$filterGroup',
         queryParameters: {
@@ -276,7 +279,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       );
 
       print('✅ API Response: ${response.data.length} symptoms');
-      
+
       final List<Symptom> symptoms = (response.data as List)
           .map((json) => Symptom.fromJson(json))
           .toList();
@@ -296,7 +299,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<Map<String, dynamic>?> getSymptomDetails(String symptomId) async {
     try {
       print('🌐 API Call: getSymptomDetails(symptomId: $symptomId)');
-      
+
       final response = await _apiClient.get(
         '/api/v1/symptom/$symptomId',
         options: Options(
@@ -315,10 +318,11 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
     }
   }
 
-  Future<Map<String, dynamic>?> createHealthTracker(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>?> createHealthTracker(
+      Map<String, dynamic> data) async {
     try {
       print('🌐 API Call: createHealthTracker');
-      
+
       final response = await _apiClient.post(
         '/api/v1/health-trackers/',
         data: data,
@@ -340,13 +344,15 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getHealthTrackersByDate(DateTime date) async {
+  Future<List<Map<String, dynamic>>> getHealthTrackersByDate(
+      DateTime date) async {
     try {
       print('🌐 API Call: getHealthTrackersByDate(date: $date)');
-      
+
       // Format date as YYYY-MM-DD without time component to avoid API validation error
-      final dateString = '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      
+      final dateString =
+          '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
       final response = await _apiClient.get(
         '/api/v1/health-trackers/me',
         queryParameters: {
@@ -363,7 +369,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       );
 
       print('✅ API Response: Health trackers by date received');
-      
+
       // Handle the response data properly to avoid type errors
       if (response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -377,8 +383,173 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
     } catch (e) {
       print('❌ API Error: $e');
       if (e.toString().contains('422')) {
-        print('⚠️ Validation error: Date format issue. Please check the date parameter.');
+        print(
+            '⚠️ Validation error: Date format issue. Please check the date parameter.');
       }
+      return [];
+    }
+  }
+
+//   Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(DateTime month) async {
+//   try {
+//     final year = month.year;
+//     final monthNumber = month.month;
+
+//     // First day of the month
+//     final startDate = DateTime(year, monthNumber, 1);
+//     // Last day of the month
+//     final endDate = DateTime(year, monthNumber + 1, 0);
+
+//     final response = await _apiClient.get(
+//       '/api/v1/health-trackers/me',
+//       queryParameters: {
+//         'from_date': startDate.toIso8601String().split("T").first,
+//         'to_date': endDate.toIso8601String().split("T").first,
+//       },
+//       options: Options(
+//         headers: {
+//           'accept': 'application/json',
+//           'Authorization': 'Bearer ${AppStorage.accessToken}',
+//         },
+//         validateStatus: (status) => status! < 400,
+//       ),
+//     );
+
+//     if (response.data is! List) {
+//       throw Exception("Unexpected response format: ${response.data}");
+//     }
+
+//     final List<dynamic> trackers = response.data;
+//     final Map<DateTime, List<Symptom>> symptomMap = {};
+
+//     for (final tracker in trackers) {
+//       final String fromDateStr = tracker['from_date'];
+//       final String toDateStr = tracker['to_date'];
+
+//       final fromDate = DateTime.parse(fromDateStr);
+//       final toDate = DateTime.parse(toDateStr);
+
+//       final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
+//       final List<Symptom> symptoms =
+//           selected.map((s) => Symptom.fromJson(s)).toList();
+
+//       // Assign symptoms to each date in the range
+//       for (DateTime d = fromDate;
+//           !d.isAfter(toDate);
+//           d = d.add(const Duration(days: 1))) {
+//         final key = DateTime(d.year, d.month, d.day); // normalize
+//         symptomMap.putIfAbsent(key, () => []);
+//         symptomMap[key]!.addAll(symptoms);
+//       }
+//     }
+
+//     return symptomMap;
+//   } catch (e) {
+//     print("❌ Error fetching symptoms for month: $e");
+//     return {};
+//   }
+// }
+
+  Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(
+      DateTime month) async {
+    try {
+      final year = month.year;
+      final monthNumber = month.month;
+
+      final startDate = DateTime(year, monthNumber, 1);
+      final endDate = DateTime(year, monthNumber + 1, 0);
+
+      print("📡 Fetching symptoms from $startDate to $endDate");
+
+      final response = await _apiClient.get(
+        '/api/v1/health-trackers/me',
+        queryParameters: {
+          'from_date': startDate.toIso8601String().split("T").first,
+          'to_date': endDate.toIso8601String().split("T").first,
+        },
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Authorization': 'Bearer ${AppStorage.accessToken}',
+          },
+          validateStatus: (status) => status! < 400,
+        ),
+      );
+
+      if (response.data is! List) {
+        throw Exception("Unexpected response format: ${response.data}");
+      }
+
+      final List<dynamic> trackers = response.data;
+      final Map<DateTime, List<Symptom>> symptomMap = {};
+
+      for (final tracker in trackers) {
+        final fromDate = DateTime.parse(tracker['from_date']);
+        final toDate = DateTime.parse(tracker['to_date']);
+
+        // Skip trackers outside the current month
+        if (toDate.isBefore(startDate) || fromDate.isAfter(endDate)) continue;
+
+        final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
+        final List<Symptom> symptoms =
+            selected.map((s) => Symptom.fromJson(s)).toList();
+
+        for (DateTime d = fromDate;
+            !d.isAfter(toDate);
+            d = d.add(const Duration(days: 1))) {
+          if (d.month != monthNumber)
+            continue; // filter strictly to current month
+
+          final key = DateTime(d.year, d.month, d.day);
+          symptomMap.putIfAbsent(key, () => []);
+          symptomMap[key]!.addAll(symptoms);
+        }
+      }
+
+      print("✅ Returning symptom map: ${symptomMap.keys}");
+      return symptomMap;
+    } catch (e, st) {
+      print("❌ Error fetching symptoms for month: $e\n$st");
+      return {};
+    }
+  }
+
+  Future<List<String>> getAllUserSymptomNames() async {
+    try {
+      final response = await _apiClient.get(
+        '/api/v1/health-trackers/me',
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Authorization': 'Bearer ${AppStorage.accessToken}',
+          },
+          validateStatus: (status) => status! < 400,
+        ),
+      );
+
+      if (response.data is! List) {
+        throw Exception("Unexpected response format: ${response.data}");
+      }
+
+      final List<dynamic> trackers = response.data;
+
+      // Collect unique symptom names
+      final Set<String> symptomNames = {};
+
+      for (final tracker in trackers) {
+        final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
+
+        for (final symptomJson in selected) {
+          final info = symptomJson['info'];
+          if (info != null && info['name'] != null) {
+            symptomNames.add(info['name']);
+          }
+        }
+      }
+
+      return symptomNames.toList();
+    } catch (e) {
+      print("❌ Error fetching symptom names: $e");
       return [];
     }
   }
@@ -386,11 +557,11 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<String?> uploadProfileIcon(String filePath) async {
     try {
       print('🌐 API Call: uploadProfileIcon');
-      
+
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(filePath),
       });
-      
+
       final response = await _apiClient.post(
         '/api/v1/profile/upload-icon',
         data: formData,
@@ -412,7 +583,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<String?> getProfileIcon() async {
     try {
       print('🌐 API Call: getProfileIcon');
-      
+
       final response = await _apiClient.get(
         '/api/v1/profile/icon',
         options: Options(
@@ -434,7 +605,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<List<Map<String, dynamic>>> getGetToKnowMeQuestions() async {
     try {
       print('🌐 API Call: getGetToKnowMeQuestions');
-      
+
       final response = await _apiClient.get(
         '/api/v1/questions/get-to-know-me',
         options: Options(
@@ -456,7 +627,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> submitGetToKnowMeAnswers(Map<String, dynamic> answers) async {
     try {
       print('🌐 API Call: submitGetToKnowMeAnswers');
-      
+
       await _apiClient.post(
         '/api/v1/questions/get-to-know-me',
         data: answers,
@@ -479,7 +650,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<List<Map<String, dynamic>>> getHealthGoals() async {
     try {
       print('🌐 API Call: getHealthGoals');
-      
+
       final response = await _apiClient.get(
         '/api/v1/health-goals',
         options: Options(
@@ -501,7 +672,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> submitHealthGoals(List<String> goals) async {
     try {
       print('🌐 API Call: submitHealthGoals');
-      
+
       await _apiClient.post(
         '/api/v1/health-goals',
         data: {'goals': goals},
@@ -524,7 +695,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<List<Map<String, dynamic>>> getHealthConcerns() async {
     try {
       print('🌐 API Call: getHealthConcerns');
-      
+
       final response = await _apiClient.get(
         '/api/v1/health-concerns',
         options: Options(
@@ -546,7 +717,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> submitHealthConcerns(List<String> concerns) async {
     try {
       print('🌐 API Call: submitHealthConcerns');
-      
+
       await _apiClient.post(
         '/api/v1/health-concerns',
         data: {'concerns': concerns},
@@ -567,10 +738,11 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   // Create appointment companion
-  Future<Map<String, dynamic>?> createAppointmentCompanion(Map<String, dynamic> requestData) async {
+  Future<Map<String, dynamic>?> createAppointmentCompanion(
+      Map<String, dynamic> requestData) async {
     try {
       print('🌐 API Call: createAppointmentCompanion');
-      
+
       final response = await _apiClient.post(
         '/api/v1/appointment-companions',
         data: requestData,
@@ -595,7 +767,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<List<Map<String, dynamic>>> getAppointmentQuestions() async {
     try {
       print('🌐 API Call: getAppointmentQuestions');
-      
+
       final response = await _apiClient.get(
         '/api/v1/appointment-questions',
         options: Options(
@@ -615,10 +787,11 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   // Get symptoms by body part
-  Future<List<Map<String, dynamic>>> getSymptomsByBodyPart(String bodyPart) async {
+  Future<List<Map<String, dynamic>>> getSymptomsByBodyPart(
+      String bodyPart) async {
     try {
       print('🌐 API Call: getSymptomsByBodyPart(bodyPart: $bodyPart)');
-      
+
       final response = await _apiClient.get(
         '/api/v1/symptom/body-part/$bodyPart',
         queryParameters: {
@@ -646,7 +819,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<List<Map<String, dynamic>>> getHealthProfileQuestions() async {
     try {
       print('🌐 API Call: getHealthProfileQuestions');
-      
+
       final response = await _apiClient.get(
         '/api/v1/get-to-know-me/',
         queryParameters: {
@@ -673,7 +846,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> submitHealthProfileAnswers(Map<String, dynamic> answers) async {
     try {
       print('🌐 API Call: submitHealthProfileAnswers');
-      
+
       await _apiClient.post(
         '/api/v1/get-to-know-me/',
         data: answers,
@@ -697,7 +870,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<Map<String, dynamic>?> getUserProfile() async {
     try {
       print('🌐 API Call: getUserProfile');
-      
+
       final response = await _apiClient.get(
         '/api/v1/accounts/me',
         options: Options(
@@ -720,7 +893,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   Future<void> updateUserProfile(Map<String, dynamic> profileData) async {
     try {
       print('🌐 API Call: updateUserProfile');
-      
+
       await _apiClient.put(
         '/api/v1/accounts/me',
         data: profileData,
