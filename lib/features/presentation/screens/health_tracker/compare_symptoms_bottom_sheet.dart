@@ -76,7 +76,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
                 Text(
                   'You can layer up to $maxSelections additional symptoms to explore connections.',
                   style: AppOSTextStyles.osMd.copyWith(
-                    color: AppColors.secondaryTxt,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -143,7 +143,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
                         'Apply',
                         style: AppOSTextStyles.osMdSemiboldBody.copyWith(
                           color: selectedSymptoms.isNotEmpty 
-                              ? AppColors.primaryBtnTxt 
+                              ? AppColors.buttonTextPrimary 
                               : AppColors.gray600,
                         ),
                         textAlign: TextAlign.center,

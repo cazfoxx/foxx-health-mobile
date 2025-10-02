@@ -15,7 +15,9 @@ class AppColors {
 
 
 
-
+// ============================
+/// Primitives colors
+// ============================
 
 
   // Brand Colors
@@ -33,17 +35,30 @@ class AppColors {
   static const gray800 = Color(0xFF5E5C6C); 
   static const gray700 = Color(0xFF67646C);
   static const gray600 = Color(0xFF99989F);
+  static const gray500 = Color(0xFFCECECF); 
   static const gray400 = Color(0xFFCECECF); 
   static const gray300 = Color(0xFFD9D9D9);
   static const gray200 = Color(0xFFEFEFF0);
   static const gray100 = Color(0xFFFFFCFC); // Same as foxxWhite
   static const grayWhite = Color(0xFFFFFFFF);
 
-  // Level Colors
+
+
+// ============================
+/// Function Colots - Level Colors
+// ============================
+
+
+ // Level Colors
   static const darkRed = Color(0xFFBF0F0F);
   static const red = Color(0xFFEB3C3C);
   static const orange = Color(0xFFE7931D);
   static const yellow = Color(0xFFFFCD04);
+
+
+ // Function Colors from figma
+  static const pineGreen = Color(0xFF037720);
+ 
 
   // Insight Colors
   static const insightDarkRed = Color(0xFFBF0F0F);
@@ -61,7 +76,12 @@ class AppColors {
   static const insightPurple = Color(0xFF9966CC);
   static const insightGray = gray600;
 
-  // Semantic Colors (from Figma)
+
+// ============================
+/// Semantic Colors (from Figma)
+// ============================
+
+
 
   static const primary01 = gray900;
   static const inputFieldDisabled = gray400;
@@ -76,17 +96,38 @@ class AppColors {
   static const programBaseSolid = sunglow;
   static const backgroundHighlight = mauve;
 
-  // Figma color tokens
-  static const Color primaryTxt = Color(0xff3E3D48); // primary-txt
-  static const Color inputTxtPlaceholder = gray600; // input-txt-placeholder
-  static const Color secondaryTxt = gray700; // 2ndary-txt
-  static const Color brandTxt = amethyst; // brand-txt
-  static const Color primaryBtnTxt = foxxWhite; // primary-btn-txt
-  static const Color secondaryBtnTxt = amethyst; // 2ndary-btn-txt
-  static const Color tertiaryBtnTxt = gray700; // tertiary-btn-txt
+  // Figma Text color tokens
+  static const Color textPrimary = gray900; // primary-txt
+  static const Color textInputPlaceholder = gray600; // input-txt-placeholder
+  static const Color textSecondary = gray700; // 2ndary-txt
+  static const Color textBrand = amethyst; // brand-txt
+  static const Color textError = darkRed; // error text
+  static const Color textSuccess = pineGreen; // success text
+ 
+ // Figma color tokens
   static const Color progressBarBase = grayWhite; // progress-bar-base
   static const Color progressBarSelected = sunglow; // progress-bar-selected
   static const Color backgroundHighlighted = mauve; // background-highlighted
+
+  // Button text
+  static const Color buttonTextPrimary = foxxWhite;
+  static const Color buttonTextSecondary = amethyst;
+  static const Color buttonTextTertiary = amethyst;
+
+  // Button background colors
+  static const Color buttonPrimaryEnabled = amethyst;
+  static const Color buttonPrimaryDisabled = gray500;
+  static const Color buttonSecondaryEnabled = foxxWhite;
+  static const Color buttonSecondaryDisabled = gray500;
+
+  // Button border colors
+  static const Color buttonBorderPrimaryEnabled = amethyst;   // matches background
+  static const Color buttonBorderPrimaryDisabled = gray500;   // matches background
+  static const Color buttonBorderSecondaryEnabled = foxxWhite; // matches background
+  static const Color buttonBorderSecondaryDisabled = gray500; // matches background
+  static const Color buttonBorderTertiaryEnabled = amethyst;  // as specified
+  static const Color buttonBorderTertiaryDisabled = gray500;  // matches background
+
 
   // Surface
   static const crossGlassBase = grayWhite;
@@ -160,7 +201,7 @@ class AppColors {
     color: Colors.white.withOpacity(0.28),
 
   );
-   static final BoxDecoration glassCardDecoration2 = BoxDecoration(
+  static final BoxDecoration glassCardDecoration2 = BoxDecoration(
     borderRadius: BorderRadius.circular(20),
     color: Colors.white.withOpacity(0.48),
 
@@ -174,4 +215,11 @@ class AppColors {
       Color(0xFFE6D6FF).withOpacity(0.45),
     ],
   );
+
+  // Legacy aliases for backward compatibility
+  static const Color tertiaryBtnTxt = buttonTextTertiary;
+  static const Color secondaryTxt = textSecondary;
+  static const Color primaryBtnTxt = buttonTextPrimary;
+  static const Color primaryTxt = textPrimary;
+  static const Color inputTxtPlaceholder = textInputPlaceholder;
 }
