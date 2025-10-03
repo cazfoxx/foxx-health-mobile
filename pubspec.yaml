@@ -33,6 +33,7 @@ dependencies:
   dio: ^5.4.0
   flutter:
     sdk: flutter
+  google_fonts: ^6.2.1
   http: ^1.1.0
   logger: ^2.5.0
   get: ^4.7.2
