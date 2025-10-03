@@ -14,10 +14,10 @@ class AppColors {
   static const foxxwhite = Color(0xffFFFCFC);
 
 
+// ============================
+/// Primitive Colors
+// ============================
 
-// ============================
-/// Primitives colors
-// ============================
 
 
   // Brand Colors
@@ -29,6 +29,10 @@ class AppColors {
   static const flax = Color(0xFFFEEE99);
   static const sunglow = Color(0xFFFFCA4B); 
   static const foxxWhite = Color(0xFFFFFCFC); 
+  static const ombre20 = Color(0xFFFEEFF1);
+  static const ombre10 = Color(0xFFFBE9D1);
+
+
 
   // Gray Colors
   static const gray900 = Color(0xFF3E3D4B);
@@ -42,23 +46,14 @@ class AppColors {
   static const gray100 = Color(0xFFFFFCFC); // Same as foxxWhite
   static const grayWhite = Color(0xFFFFFFFF);
 
-
-
-// ============================
-/// Function Colots - Level Colors
-// ============================
-
-
- // Level Colors
+  // Level Colors
   static const darkRed = Color(0xFFBF0F0F);
   static const red = Color(0xFFEB3C3C);
   static const orange = Color(0xFFE7931D);
   static const yellow = Color(0xFFFFCD04);
 
-
- // Function Colors from figma
-  static const pineGreen = Color(0xFF037720);
- 
+  // Green Colors
+  static const pineGreen = Color(0xFF01796F);
 
   // Insight Colors
   static const insightDarkRed = Color(0xFFBF0F0F);
@@ -77,10 +72,10 @@ class AppColors {
   static const insightGray = gray600;
 
 
+
 // ============================
 /// Semantic Colors (from Figma)
 // ============================
-
 
 
   static const primary01 = gray900;
@@ -96,38 +91,39 @@ class AppColors {
   static const programBaseSolid = sunglow;
   static const backgroundHighlight = mauve;
 
-  // Figma Text color tokens
-  static const Color textPrimary = gray900; // primary-txt
-  static const Color textInputPlaceholder = gray600; // input-txt-placeholder
-  static const Color textSecondary = gray700; // 2ndary-txt
-  static const Color textBrand = amethyst; // brand-txt
-  static const Color textError = darkRed; // error text
-  static const Color textSuccess = pineGreen; // success text
- 
- // Figma color tokens
-  static const Color progressBarBase = grayWhite; // progress-bar-base
-  static const Color progressBarSelected = sunglow; // progress-bar-selected
-  static const Color backgroundHighlighted = mauve; // background-highlighted
+  // Canonical text tokens (use these)
+  static const Color textPrimary = gray900;
+  static const Color textSecondary = gray700;
+  static const Color textBrand = amethyst;
+  static const Color inputTextPlaceholder = gray600;
+  static const Color textSuccess = pineGreen;
+  static const Color textError = darkRed;
 
-  // Button text
+  // Progress and background tokens (non-button)
+  static const Color progressBarBase = grayWhite;
+  static const Color progressBarSelected = sunglow;
+  static const Color backgroundHighlighted = mauve;
+
+  // Canonical button text tokens
   static const Color buttonTextPrimary = foxxWhite;
-  static const Color buttonTextSecondary = amethyst;
-  static const Color buttonTextTertiary = amethyst;
+  static const Color buttonTextOutline = amethyst;
 
-  // Button background colors
-  static const Color buttonPrimaryEnabled = amethyst;
-  static const Color buttonPrimaryDisabled = gray500;
-  static const Color buttonSecondaryEnabled = foxxWhite;
-  static const Color buttonSecondaryDisabled = gray500;
+  // all related colors to buttons should use a new class AppButtonColors - see at the end of this file
 
-  // Button border colors
-  static const Color buttonBorderPrimaryEnabled = amethyst;   // matches background
-  static const Color buttonBorderPrimaryDisabled = gray500;   // matches background
-  static const Color buttonBorderSecondaryEnabled = foxxWhite; // matches background
-  static const Color buttonBorderSecondaryDisabled = gray500; // matches background
-  static const Color buttonBorderTertiaryEnabled = amethyst;  // as specified
-  static const Color buttonBorderTertiaryDisabled = gray500;  // matches background
-
+  // Deprecated legacy tokens (backward compatibility)
+  // Prefer canonical names above. Keep these for existing code paths only.
+  static const Color primaryTxt = textPrimary; // DEPRECATED: use textPrimary
+  static const Color secondaryTxt = textSecondary; // DEPRECATED: use textSecondary
+  static const Color brandTxt = textBrand; // DEPRECATED: use textBrand
+  static const Color inputTxtPlaceholder = inputTextPlaceholder; // DEPRECATED: use inputTextPlaceholder
+  static const Color primaryBtnTxt = buttonTextPrimary; // DEPRECATED: prefer AppButtonColors.buttonPrimaryTextEnabled
+  static const Color secondaryBtnTxt = amethyst; // DEPRECATED: prefer AppButtonColors.buttonSecondaryTextEnabled
+  static const Color tertiaryBtnTxt = buttonTextOutline; // DEPRECATED: prefer AppButtonColors.buttonOutlineTextEnabled
+  static const Color textInputPlaceholder = inputTextPlaceholder; // DEPRECATED: use inputTextPlaceholder
+  static const Color buttonBorderOutlineEnabled = amethyst; // DEPRECATED: prefer AppButtonColors.buttonOutlineBorderEnabled
+  static const Color buttonBorderOutlineDisabled = gray400; // DEPRECATED: prefer AppButtonColors.buttonOutlineBorderDisabled
+  static const Color brandText = textBrand; // DEPRECATED: use textBrand
+  static const Color optionBg = optionBG;
 
   // Surface
   static const crossGlassBase = grayWhite;
@@ -138,6 +134,7 @@ class AppColors {
   static const overlay = Color(0x33000000); // 20% black
   static const overlaySoft = Color(0x1A000000); // 10% black
   static const overlayLight = Color(0x0D000000); // 5% black
+  static const onSurfaceSubtle = Color(0xCCFEEFF1); // 80% ombre20
 
   // Kits
   static const kitLevel0 = gray400;
@@ -201,7 +198,7 @@ class AppColors {
     color: Colors.white.withOpacity(0.28),
 
   );
-  static final BoxDecoration glassCardDecoration2 = BoxDecoration(
+   static final BoxDecoration glassCardDecoration2 = BoxDecoration(
     borderRadius: BorderRadius.circular(20),
     color: Colors.white.withOpacity(0.48),
 
@@ -215,11 +212,53 @@ class AppColors {
       Color(0xFFE6D6FF).withOpacity(0.45),
     ],
   );
+}
 
-  // Legacy aliases for backward compatibility
-  static const Color tertiaryBtnTxt = buttonTextTertiary;
-  static const Color secondaryTxt = textSecondary;
-  static const Color primaryBtnTxt = buttonTextPrimary;
-  static const Color primaryTxt = textPrimary;
-  static const Color inputTxtPlaceholder = textInputPlaceholder;
+/// Structured button color tokens for clearer references across variants.
+/// Uses existing AppColors primitives and keeps legacy AppColors tokens intact.
+class AppButtonColors {
+  // ----------------------------
+  // Primary Button
+  // ----------------------------
+  // Backgrounds
+  static const Color buttonPrimaryBackgroundEnabled = AppColors.amethyst;
+  static const Color buttonPrimaryBackgroundDisabled = AppColors.gray500;
+
+  // Text
+  static const Color buttonPrimaryTextEnabled = AppColors.foxxWhite;
+  static const Color buttonPrimaryTextDisabled = AppColors.gray500;
+
+  // Border (usually same as background for primary buttons)
+  static const Color buttonPrimaryBorderEnabled = AppColors.amethyst;
+  static const Color buttonPrimaryBorderDisabled = AppColors.gray500;
+
+  // ----------------------------
+  // Secondary Button
+  // ----------------------------
+  // Backgrounds
+  static const Color buttonSecondaryBackgroundEnabled = AppColors.foxxWhite;
+  static const Color buttonSecondaryBackgroundDisabled = AppColors.gray500;
+
+  // Text
+  static const Color buttonSecondaryTextEnabled = AppColors.amethyst;
+  static const Color buttonSecondaryTextDisabled = AppColors.gray500;
+
+  // Border (if applicable, usually subtle)
+  static const Color buttonSecondaryBorderEnabled = AppColors.foxxWhite;
+  static const Color buttonSecondaryBorderDisabled = AppColors.gray500;
+
+  // ----------------------------
+  // Outline Button
+  // ----------------------------
+  // Backgrounds
+  static const Color buttonOutlineBackgroundEnabled = Colors.transparent;
+  static const Color buttonOutlineBackgroundDisabled = Colors.transparent;
+
+  // Text
+  static const Color buttonOutlineTextEnabled = AppColors.amethyst;
+  static const Color buttonOutlineTextDisabled = AppColors.gray400;
+
+  // Border
+  static const Color buttonOutlineBorderEnabled = AppColors.amethyst;
+  static const Color buttonOutlineBorderDisabled = AppColors.gray500;
 }

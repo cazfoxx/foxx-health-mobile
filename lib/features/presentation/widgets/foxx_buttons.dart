@@ -48,17 +48,32 @@ class PrimaryButton extends StatelessWidget {
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: isEnabled
-              ? AppColors.buttonPrimaryEnabled
-              : AppColors.buttonPrimaryDisabled,
+              ? AppButtonColors.buttonPrimaryBackgroundEnabled
+              : AppButtonColors.buttonPrimaryBackgroundDisabled,
+          side: BorderSide(
+            color: isEnabled
+                ? AppButtonColors.buttonPrimaryBorderEnabled
+                : AppButtonColors.buttonPrimaryBorderDisabled,
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignInside,
+          ),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: effectiveRadius,
           ),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.all(Colors.transparent),
+          splashFactory: NoSplash.splashFactory,
+          elevation: MaterialStateProperty.all(0),
+          shadowColor: MaterialStateProperty.all(Colors.transparent),
+          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
         ),
         child: Text(
           label,
           style: AppTypography.labelMdSemibold.copyWith(
-            color: AppColors.buttonTextPrimary,
+            color: isEnabled
+                ? AppButtonColors.buttonPrimaryTextEnabled
+                : AppButtonColors.buttonPrimaryTextDisabled,
             height: 20 / AppTypography.sizeMd, // override line-height to 20px
           ),
         ),
@@ -96,17 +111,32 @@ class SecondaryButton extends StatelessWidget {
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: isEnabled
-              ? AppColors.buttonSecondaryEnabled
-              : AppColors.buttonSecondaryDisabled,
+              ? AppButtonColors.buttonSecondaryBackgroundEnabled
+              : AppButtonColors.buttonSecondaryBackgroundDisabled,
+          side: BorderSide(
+            color: isEnabled
+                ? AppButtonColors.buttonSecondaryBorderEnabled
+                : AppButtonColors.buttonSecondaryBorderDisabled,
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignInside,
+          ),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: effectiveRadius,
           ),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.all(Colors.transparent),
+          splashFactory: NoSplash.splashFactory,
+          elevation: MaterialStateProperty.all(0),
+          shadowColor: MaterialStateProperty.all(Colors.transparent),
+          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
         ),
         child: Text(
           label,
           style: AppTypography.labelMdSemibold.copyWith(
-            color: AppColors.buttonTextSecondary,
+            color: isEnabled
+                ? AppButtonColors.buttonSecondaryTextEnabled
+                : AppButtonColors.buttonSecondaryTextDisabled,
             height: 20 / AppTypography.sizeMd,
           ),
         ),
@@ -143,22 +173,32 @@ class OutlineButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: isEnabled ? onPressed : null,
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: isEnabled
+              ? AppButtonColors.buttonOutlineBackgroundEnabled
+              : AppButtonColors.buttonOutlineBackgroundDisabled,
           side: BorderSide(
             color: isEnabled
-                ? AppColors.buttonBorderTertiaryEnabled
-                : AppColors.buttonBorderTertiaryDisabled,
+                ? AppButtonColors.buttonOutlineBorderEnabled
+                : AppButtonColors.buttonOutlineBorderDisabled,
             width: 2,
             strokeAlign: BorderSide.strokeAlignInside,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: effectiveRadius,
           ),
+        ).copyWith(
+          overlayColor: MaterialStateProperty.all(Colors.transparent),
+          splashFactory: NoSplash.splashFactory,
+          elevation: MaterialStateProperty.all(0),
+          shadowColor: MaterialStateProperty.all(Colors.transparent),
+          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
         ),
         child: Text(
           label,
           style: AppTypography.labelMdSemibold.copyWith(
-            color: AppColors.buttonTextSecondary,
+            color: isEnabled
+                ? AppButtonColors.buttonOutlineTextEnabled
+                : AppButtonColors.buttonOutlineTextDisabled,
             height: 20 / AppTypography.sizeMd, // override line-height to 20px
           ),
         ),
