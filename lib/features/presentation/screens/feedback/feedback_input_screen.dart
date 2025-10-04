@@ -1,3 +1,4 @@
+// Updated by Joy — homescreen update - not final
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -166,13 +167,13 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                             decoration: InputDecoration(
                               hintText: 'Share your thoughts here...',
                               hintStyle: AppTextStyles.bodyOpenSans.copyWith(
-                                color: AppColors.textInputPlaceholder,
+                                color: AppColors.inputTextPlaceholder,
                               ),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.all(20),
                             ),
                             style: AppTextStyles.bodyOpenSans.copyWith(
-                              color: AppColors.primary01,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),

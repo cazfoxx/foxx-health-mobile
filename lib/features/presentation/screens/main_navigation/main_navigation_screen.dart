@@ -1,4 +1,6 @@
+// Updated by Joy — homescreen update - not final
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
@@ -16,6 +18,7 @@ import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 import 'package:foxxhealth/features/data/models/health_tracker_model.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -40,12 +43,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     'Insight',
     'The Den',
   ];
-  final List<IconData> _tabIcons = [
-    Icons.home,
-    Icons.assignment,
-    Icons.timeline,
-    Icons.search,
-    Icons.group,
+  // Active/Inactive SVG icon assets for tabs
+  final List<Map<String, String>> _tabIconAssets = [
+    {
+      'inactive': 'assets/svg/main_nav_tabs/home_off.svg',
+      'active': 'assets/svg/main_nav_tabs/home_on.svg',
+    },
+    {
+      'inactive': 'assets/svg/main_nav_tabs/myprep_off.svg',
+      'active': 'assets/svg/main_nav_tabs/myprep_on.svg',
+    },
+    {
+      'inactive': 'assets/svg/main_nav_tabs/tracker_off.svg',
+      'active': 'assets/svg/main_nav_tabs/tracker_on.svg',
+    },
+    {
+      'inactive': 'assets/svg/main_nav_tabs/insight_off.svg',
+      'active': 'assets/svg/main_nav_tabs/insight_on.svg',
+    },
+    {
+      'inactive': 'assets/svg/main_nav_tabs/den_off.svg',
+      'active': 'assets/svg/main_nav_tabs/den_on.svg',
+    },
   ];
   @override
   void initState() {
@@ -113,7 +132,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Widget _buildBottomNavigationBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 16),
+      padding: const EdgeInsets.only(top: 12, bottom: 32, left: 16, right: 16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(25),
@@ -128,9 +147,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(
-          _tabIcons.length,
+          _tabLabels.length,
           (index) => _buildNavItem(
-            _tabIcons[index],
+            index,
             _tabLabels[index],
             _currentIndex == index,
             () => _onTabTapped(index),
@@ -141,23 +160,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildNavItem(
-      IconData icon, String label, bool isActive, VoidCallback onTap) {
+      int index, String label, bool isActive, VoidCallback onTap) {
+    final assetPath = isActive
+        ? _tabIconAssets[index]['active']!
+        : _tabIconAssets[index]['inactive']!;
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isActive ? AppColors.primary01 : AppColors.gray600,
-            size: 24,
+          SvgPicture.asset(
+            assetPath,
+            width: 28,
+            height: 28,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label,
-            style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-              color: isActive ? AppColors.primary01 : AppColors.gray600,
-            ),
+            style: isActive
+                ? AppTypography.labelSmBold.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontVariations: const [ui.FontVariation('wght', 700)],
+                  )
+                : AppTypography.labelSmSemibold.copyWith(
+                    color: AppColors.textSecondary,
+                    fontVariations: const [ui.FontVariation('wght', 600)],
+                  ),
           ),
         ],
       ),
