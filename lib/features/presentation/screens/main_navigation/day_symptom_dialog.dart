@@ -43,6 +43,26 @@ class _DaySymptomsDialogState extends State<DaySymptomsDialog> {
     7: AppColors.insightGray,
     8: AppColors.insightIceBlue,
     9: AppColors.insightDarkRed,
+    10: AppColors.insightOrange,
+    11: AppColors.mauve,
+    12: AppColors.insightEmerald,
+    13: AppColors.insightPeachPastel,
+    14: AppColors.insightLakeBlue,
+    15: AppColors.insightHotPink,
+    16: AppColors.insightRed,
+    17: AppColors.insightLimeGreen,
+    18: AppColors.insightCamelBrown,
+    19: AppColors.insightBrightBlue,
+    20: AppColors.insightMintGreen,
+    21: AppColors.insightBrown,
+    22: AppColors.insightBubblegumPink,
+    23: AppColors.insightPineGreen,
+    24: AppColors.insightColumbiaBlue,
+    25: AppColors.insightNeonGreen,
+    26: AppColors.insightBrightCayan,
+    27: AppColors.foxxWhite,
+    28: AppColors.insightSageGreen,
+    29: AppColors.insightMustard
   };
 
   @override
@@ -128,10 +148,10 @@ class _DaySymptomsDialogState extends State<DaySymptomsDialog> {
                                   final symptom = widget.symptoms[index];
                                   final isChecked =
                                       _selectedMap[symptom] ?? false;
-                                  // pick color by index, fallback to gray if > 9
-                                  final color = index < 10
+                                  // pick color by index, fallback to gray if > 29
+                                  final color = index < 30
                                       ? symptomColors[index]
-                                      : symptomColors[index - 10];
+                                      : symptomColors[index - 30];
 
                                   return ListTile(
                                     leading: Container(
