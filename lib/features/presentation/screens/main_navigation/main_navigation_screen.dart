@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Icons.assignment,
     Icons.timeline,
     Icons.search,
-    Icons.group,
+    // Icons.group,
   ];
   @override
   void initState() {
@@ -1315,17 +1315,10 @@ class _InsightTabState extends State<InsightTab> {
                     isScrollControlled: true, // allows full-height
                     backgroundColor:
                         Colors.transparent, // so your custom container shows
-                    barrierColor: Colors.black54, // dimmed background
-                    builder: (context) {
-                      return FractionallySizedBox(
-                        widthFactor: 0.7,
-                        heightFactor: 0.9, // 80% of screen height
-                        child: DaySymptomsDialog(
-                          symptoms: _userRecentSymptoms, // pass your list
-                          date: _selectedDate,
-                        ),
-                      );
-                    },
+                    builder: (context) => DaySymptomsDialog(
+                      symptoms: _userRecentSymptoms, // pass your list
+                      date: _selectedDate,
+                    ),
                   );
                 });
               },

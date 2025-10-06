@@ -9,7 +9,7 @@ import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 
 class FeedbackInputScreen extends StatefulWidget {
   final List<String> selectedPreferences;
-  
+
   const FeedbackInputScreen({
     Key? key,
     required this.selectedPreferences,
@@ -24,6 +24,14 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
   final FocusNode _feedbackFocusNode = FocusNode();
   final FeedbackService _feedbackService = FeedbackService();
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _feedbackController.addListener(() {
+      setState(() {}); // rebuilds UI when text changes
+    });
+  }
 
   @override
   void dispose() {
@@ -48,7 +56,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
 
       // Submit feedback via API
       final success = await _feedbackService.submitFeedback(feedback);
-      
+
       if (success) {
         // Navigate to thank you screen
         if (mounted) {
@@ -62,7 +70,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
         // Show error message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Failed to submit feedback. Please try again.'),
               backgroundColor: Colors.red,
             ),
@@ -99,14 +107,12 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
               // Header with gradient
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-              
-                ),
+                decoration: BoxDecoration(),
                 child: Row(
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
+                      child: const Icon(
                         Icons.arrow_back_ios,
                         color: AppColors.amethyst,
                         size: 24,
@@ -122,7 +128,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                   ],
                 ),
               ),
-              
+
               // Main content
               Expanded(
                 child: Padding(
@@ -145,7 +151,7 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Text input area
                       Expanded(
                         child: Container(
@@ -177,19 +183,21 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 32),
-                      
+
                       // Submit button
                       SizedBox(
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                                                  onPressed: (_feedbackController.text.trim().isNotEmpty && !_isSubmitting)
-                            ? () async {
-                                await _submitFeedback();
-                              }
-                            : null,
+                          onPressed:
+                              (_feedbackController.text.trim().isNotEmpty &&
+                                      !_isSubmitting)
+                                  ? () async {
+                                      await _submitFeedback();
+                                    }
+                                  : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.amethyst,
                             foregroundColor: AppColors.foxxWhite,
@@ -198,33 +206,36 @@ class _FeedbackInputScreenState extends State<FeedbackInputScreen> {
                             ),
                             elevation: 0,
                           ),
-                                                  child: _isSubmitting
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.foxxWhite),
+                          child: _isSubmitting
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.foxxWhite),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Submitting...',
-                                    style: AppTextStyles.buttonOpenSans.copyWith(
-                                      color: AppColors.foxxWhite,
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Submitting...',
+                                      style:
+                                          AppTextStyles.buttonOpenSans.copyWith(
+                                        color: AppColors.foxxWhite,
+                                      ),
                                     ),
+                                  ],
+                                )
+                              : Text(
+                                  'Submit Feedback',
+                                  style: AppTextStyles.buttonOpenSans.copyWith(
+                                    color: AppColors.foxxWhite,
                                   ),
-                                ],
-                              )
-                            : Text(
-                                'Submit Feedback',
-                                style: AppTextStyles.buttonOpenSans.copyWith(
-                                  color: AppColors.foxxWhite,
                                 ),
-                              ),
                         ),
                       ),
                     ],
