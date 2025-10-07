@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Icons.assignment,
     Icons.timeline,
     Icons.search,
-    Icons.group,
+    // Icons.group,
   ];
   @override
   void initState() {
@@ -832,7 +832,7 @@ class _InsightTabState extends State<InsightTab> {
 
   // Insight data
   Map<DateTime, List<Symptom>> _symptomsOfTheMonth = {};
-  List<String> _tenRecentSymptoms = [];
+  List<Symptom> _tenRecentSymptoms = [];
   List<String> _userRecentSymptoms = [];
   bool _isLoading = false;
   String? _error;
@@ -1073,6 +1073,26 @@ class _InsightTabState extends State<InsightTab> {
     7: AppColors.insightGray,
     8: AppColors.insightIceBlue,
     9: AppColors.insightDarkRed,
+    10: AppColors.insightOrange,
+    11: AppColors.mauve,
+    12: AppColors.insightEmerald,
+    13: AppColors.insightPeachPastel,
+    14: AppColors.insightLakeBlue,
+    15: AppColors.insightHotPink,
+    16: AppColors.insightRed,
+    17: AppColors.insightLimeGreen,
+    18: AppColors.insightCamelBrown,
+    19: AppColors.insightBrightBlue,
+    20: AppColors.insightMintGreen,
+    21: AppColors.insightBrown,
+    22: AppColors.insightBubblegumPink,
+    23: AppColors.insightPineGreen,
+    24: AppColors.insightColumbiaBlue,
+    25: AppColors.insightNeonGreen,
+    26: AppColors.insightBrightCayan,
+    27: AppColors.foxxWhite,
+    28: AppColors.insightSageGreen,
+    29: AppColors.insightMustard
   };
 
 // making symptom color dots
@@ -1123,14 +1143,14 @@ class _InsightTabState extends State<InsightTab> {
 
       // Use a set to track uniqueness (by symptom.id or symptom.name)
       final seen = <String>{};
-      final uniqueSymptoms = <String>[];
+      final uniqueSymptoms = <Symptom>[];
       // Flatten all symptoms in the month
       final allSymptoms =
           symptomsMap.entries.expand((entry) => entry.value).toList();
 
       for (final symptom in allSymptoms) {
         if (seen.add(symptom.id)) {
-          uniqueSymptoms.add(symptom.name);
+          uniqueSymptoms.add(symptom);
         }
         if (uniqueSymptoms.length == 10) break;
       }
@@ -1295,17 +1315,10 @@ class _InsightTabState extends State<InsightTab> {
                     isScrollControlled: true, // allows full-height
                     backgroundColor:
                         Colors.transparent, // so your custom container shows
-                    barrierColor: Colors.black54, // dimmed background
-                    builder: (context) {
-                      return FractionallySizedBox(
-                        widthFactor: 0.7,
-                        heightFactor: 0.9, // 80% of screen height
-                        child: DaySymptomsDialog(
-                          symptoms: _userRecentSymptoms, // pass your list
-                          date: _selectedDate,
-                        ),
-                      );
-                    },
+                    builder: (context) => DaySymptomsDialog(
+                      symptoms: _userRecentSymptoms, // pass your list
+                      date: _selectedDate,
+                    ),
                   );
                 });
               },
@@ -1392,7 +1405,7 @@ class _InsightTabState extends State<InsightTab> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    SymptomInsightsScreen(symptomName: symptom),
+                    SymptomInsightsScreen(symptom: symptom),
               ),
             );
           },
@@ -1417,7 +1430,7 @@ class _InsightTabState extends State<InsightTab> {
                 // symptom name
                 Expanded(
                   child: Text(
-                    symptom,
+                    symptom.name,
                     style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                       color: AppColors.primary01,
                     ),
