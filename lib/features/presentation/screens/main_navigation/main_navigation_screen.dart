@@ -29,6 +29,16 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
+  final bool _showDenTab = false;
+
+  List<Widget> get _visibleScreens =>
+      _showDenTab ? _screens : _screens.take(4).toList();
+
+  List<String> get _visibleTabLabels =>
+      _showDenTab ? _tabLabels : _tabLabels.take(4).toList();
+
+  List<Map<String, String>> get _visibleTabIconAssets =>
+      _showDenTab ? _tabIconAssets : _tabIconAssets.take(4).toList();
   final List<Widget> _screens = [
     const HomeTab(),
     const MyPrepTab(),
@@ -83,6 +93,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onTabTapped(int index) {
+    if (index >= _visibleScreens.length) return;
     setState(() {
       _currentIndex = index;
     });
@@ -121,7 +132,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   _currentIndex = index;
                 });
               },
-              children: _screens,
+              children: _visibleScreens,
             ),
             bottomNavigationBar: _buildBottomNavigationBar(),
           ),
@@ -147,10 +158,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(
-          _tabLabels.length,
+          _visibleTabLabels.length,
           (index) => _buildNavItem(
             index,
-            _tabLabels[index],
+            _visibleTabLabels[index],
             _currentIndex == index,
             () => _onTabTapped(index),
           ),
@@ -162,8 +173,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget _buildNavItem(
       int index, String label, bool isActive, VoidCallback onTap) {
     final assetPath = isActive
-        ? _tabIconAssets[index]['active']!
-        : _tabIconAssets[index]['inactive']!;
+        ? _visibleTabIconAssets[index]['active']!
+        : _visibleTabIconAssets[index]['inactive']!;
     return GestureDetector(
       onTap: onTap,
       child: Column(
