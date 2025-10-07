@@ -14,7 +14,8 @@ class PersonalInfoReviewScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<PersonalInfoReviewScreen> createState() => _PersonalInfoReviewScreenState();
+  State<PersonalInfoReviewScreen> createState() =>
+      _PersonalInfoReviewScreenState();
 }
 
 class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
@@ -44,16 +45,17 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
           _userProfile = response.data;
           _isLoadingProfile = false;
         });
-        
+
         // Update data after the widget is fully built
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Map<String, String> personalInfo = {
             'age': _userProfile?['age']?.toString() ?? 'Not specified',
             'gender': _userProfile?['gender'] ?? 'Not specified',
-            'height': _formatHeight(_userProfile?['height']),
+            'height': _formatHeightInchToFeet(_userProfile?['height']),
             'weight': '${_userProfile?['weight'] ?? 'Not specified'} lbs',
             'ethnicity': _userProfile?['ethnicity'] ?? 'Not specified',
-            'income': UserProfileConstants.householdIncomeRange ?? 'Not specified',
+            'income':
+                UserProfileConstants.householdIncomeRange ?? 'Not specified',
           };
           widget.onDataUpdate(personalInfo);
         });
@@ -68,7 +70,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
     }
   }
 
-  String _formatHeight(dynamic height) {
+  String _formatHeightInchToFeet(dynamic height) {
     if (height == null) return 'Not set';
     if (height is num) {
       // Convert cm to inches for display
@@ -88,7 +90,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          
+
           // Title
           Text(
             'Let\'s make sure everything looks right:',
@@ -97,7 +99,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Description paragraphs
           Text(
             'Before we prep for your appointment, take a moment to review your personal info.',
@@ -107,7 +109,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           Text(
             'Little things, like your age, weight, or health background, can make a big difference in how we support you. If anything\'s changed, it\'s easy to update.',
             style: AppOSTextStyles.osMd.copyWith(
@@ -116,7 +118,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Personal information cards
           Expanded(
             child: SingleChildScrollView(
@@ -125,29 +127,47 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
                   if (_isLoadingProfile)
                     const Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.amethyst),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColors.amethyst),
                       ),
                     )
                   else if (_userProfile != null) ...[
-                    _buildInfoCard('Gender', _userProfile!['gender'] ?? 'Not set', 'gender'),
+                    _buildInfoCard('Gender',
+                        _userProfile!['gender'] ?? 'Not set', 'gender'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Age', '${_userProfile!['age'] ?? 'Not set'} years', 'age'),
+                    _buildInfoCard('Age',
+                        '${_userProfile!['age'] ?? 'Not set'} years', 'age'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Weight', '${_userProfile!['weight'] ?? 'Not set'} lbs', 'weight'),
+                    _buildInfoCard(
+                        'Weight',
+                        '${_userProfile!['weight'] ?? 'Not set'} lbs',
+                        'weight'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Height', _formatHeight(_userProfile!['height']), 'height'),
+                    _buildInfoCard(
+                        'Height',
+                        _formatHeightInchToFeet(_userProfile!['height']),
+                        'height'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Ethnicity', _userProfile!['ethnicity'] ?? 'Not set', 'ethnicity'),
+                    _buildInfoCard('Ethnicity',
+                        _userProfile!['ethnicity'] ?? 'Not set', 'ethnicity'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Location', _userProfile!['address'] ?? 'Not set', 'address'),
+                    _buildInfoCard('Location',
+                        _userProfile!['address'] ?? 'Not set', 'address'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Income', UserProfileConstants.householdIncomeRange ?? 'Not specified', 'income'),
+                    _buildInfoCard(
+                        'Income',
+                        UserProfileConstants.householdIncomeRange ??
+                            'Not specified',
+                        'income'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Health Concerns', _formatHealthConcerns(), 'health_concerns'),
+                    _buildInfoCard('Health Concerns', _formatHealthConcerns(),
+                        'health_concerns'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Health History', _formatHealthHistory(), 'health_history'),
+                    _buildInfoCard('Health History', _formatHealthHistory(),
+                        'health_history'),
                     const SizedBox(height: 12),
-                    _buildInfoCard('Medications', _formatMedications(), 'medications'),
+                    _buildInfoCard(
+                        'Medications', _formatMedications(), 'medications'),
                   ] else
                     const Text(
                       'Failed to load profile data',
@@ -157,7 +177,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
               ),
             ),
           ),
-          
+
           // Data update on mount
           const SizedBox(height: 20),
         ],
@@ -212,7 +232,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
   }
 
   String _formatHealthConcerns() {
-    if (UserProfileConstants.healthConcerns == null || 
+    if (UserProfileConstants.healthConcerns == null ||
         UserProfileConstants.healthConcerns!.isEmpty) {
       return 'None specified';
     }
@@ -220,7 +240,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
   }
 
   String _formatHealthHistory() {
-    if (UserProfileConstants.healthHistory == null || 
+    if (UserProfileConstants.healthHistory == null ||
         UserProfileConstants.healthHistory!.isEmpty) {
       return 'None specified';
     }
@@ -228,7 +248,7 @@ class _PersonalInfoReviewScreenState extends State<PersonalInfoReviewScreen> {
   }
 
   String _formatMedications() {
-    if (UserProfileConstants.medicationsOrSupplements == null || 
+    if (UserProfileConstants.medicationsOrSupplements == null ||
         UserProfileConstants.medicationsOrSupplements!.isEmpty) {
       return 'None specified';
     }
@@ -303,11 +323,14 @@ class _EditProfileBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_EditProfileBottomSheet> createState() => _EditProfileBottomSheetState();
+  State<_EditProfileBottomSheet> createState() =>
+      _EditProfileBottomSheetState();
 }
 
 class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
   late TextEditingController _controller;
+  late TextEditingController _feetController;
+  late TextEditingController _inchesController;
   String? _selectedGender;
   int? _selectedAge;
   double? _selectedWeight;
@@ -319,6 +342,8 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _feetController = TextEditingController();
+    _inchesController = TextEditingController();
     _initializeValues();
   }
 
@@ -359,85 +384,88 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
   @override
   void dispose() {
     _controller.dispose();
+    _feetController.dispose();
+    _inchesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return FractionallySizedBox(
+      heightFactor: 0.9, // 90% of screen height
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFE6B2), Color(0xFFE6D6FF)],
+          ),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFFE6B2),
-            Color(0xFFE6D6FF)
-          ],
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 20),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.gray300,
-                borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 20),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.gray300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
-            
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.primary01),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Update ${widget.title}',
-                      style: AppTextStyles.heading3,
-                      textAlign: TextAlign.center,
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: AppColors.primary01),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: _handleUpdate,
-                    child: const Text(
-                      'Update',
-                      style: TextStyle(
-                        color: AppColors.amethyst,
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Text(
+                        'Update ${widget.title}',
+                        style: AppTextStyles.heading3,
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ),
-                ],
+                    TextButton(
+                      onPressed: _handleUpdate,
+                      child: const Text(
+                        'Update',
+                        style: TextStyle(
+                          color: AppColors.amethyst,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Content based on field type
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildFieldContent(),
-            ),
-            
-            const SizedBox(height: 20),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Field content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: _buildFieldContent(),
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
@@ -492,42 +520,42 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         ),
         const SizedBox(height: 20),
         ...genderOptions.map((gender) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedGender = gender;
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _selectedGender == gender 
-                    ? AppColors.amethyst.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _selectedGender == gender 
-                      ? AppColors.amethyst
-                      : Colors.grey.withOpacity(0.3),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = gender;
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _selectedGender == gender
+                        ? AppColors.amethyst.withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _selectedGender == gender
+                          ? AppColors.amethyst
+                          : Colors.grey.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    gender,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: _selectedGender == gender
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: _selectedGender == gender
+                          ? AppColors.amethyst
+                          : AppColors.primary01,
+                    ),
+                  ),
                 ),
               ),
-              child: Text(
-                gender,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: _selectedGender == gender 
-                      ? FontWeight.w600 
-                      : FontWeight.normal,
-                  color: _selectedGender == gender 
-                      ? AppColors.amethyst
-                      : AppColors.primary01,
-                ),
-              ),
-            ),
-          ),
-        )),
+            )),
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
@@ -650,19 +678,34 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        TextField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: 'Enter your height in inches',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _feetController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Feet',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
-            suffixIcon: IconButton(
-              onPressed: () => _controller.clear(),
-              icon: const Icon(Icons.clear),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _inchesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Inches',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -744,6 +787,14 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
     );
   }
 
+  int _updateTotalHeighToInches() {
+    final feet = int.tryParse(_feetController.text) ?? 0;
+    final inches = int.tryParse(_inchesController.text) ?? 0;
+    final total = feet * 12 + inches;
+
+    return total;
+  }
+
   void _handleUpdate() {
     if (widget.userProfile == null) return;
 
@@ -768,7 +819,8 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         }
         break;
       case 'height':
-        final height = double.tryParse(_controller.text);
+        final height =
+            _updateTotalHeighToInches();
         if (height != null) {
           // Convert inches to cm for API
           final heightInCm = height * 2.54;

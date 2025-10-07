@@ -832,7 +832,7 @@ class _InsightTabState extends State<InsightTab> {
 
   // Insight data
   Map<DateTime, List<Symptom>> _symptomsOfTheMonth = {};
-  List<String> _tenRecentSymptoms = [];
+  List<Symptom> _tenRecentSymptoms = [];
   List<String> _userRecentSymptoms = [];
   bool _isLoading = false;
   String? _error;
@@ -1143,14 +1143,14 @@ class _InsightTabState extends State<InsightTab> {
 
       // Use a set to track uniqueness (by symptom.id or symptom.name)
       final seen = <String>{};
-      final uniqueSymptoms = <String>[];
+      final uniqueSymptoms = <Symptom>[];
       // Flatten all symptoms in the month
       final allSymptoms =
           symptomsMap.entries.expand((entry) => entry.value).toList();
 
       for (final symptom in allSymptoms) {
         if (seen.add(symptom.id)) {
-          uniqueSymptoms.add(symptom.name);
+          uniqueSymptoms.add(symptom);
         }
         if (uniqueSymptoms.length == 10) break;
       }
@@ -1405,7 +1405,7 @@ class _InsightTabState extends State<InsightTab> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    SymptomInsightsScreen(symptomName: symptom),
+                    SymptomInsightsScreen(symptom: symptom),
               ),
             );
           },
@@ -1430,7 +1430,7 @@ class _InsightTabState extends State<InsightTab> {
                 // symptom name
                 Expanded(
                   child: Text(
-                    symptom,
+                    symptom.name,
                     style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                       color: AppColors.primary01,
                     ),

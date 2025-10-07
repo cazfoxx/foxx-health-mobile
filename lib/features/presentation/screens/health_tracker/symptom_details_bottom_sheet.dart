@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -87,6 +88,12 @@ class _SymptomDetailsBottomSheetState extends State<SymptomDetailsBottomSheet> {
                     
                     widget.onDetailsSaved(detailsList);
                     Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const HealthTrackerScreen(),
+                                  ),
+                                );
+                    // Navigator.of(context).pop();
                   },
                   child: Text(
                     'Save',

@@ -36,24 +36,55 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
 
   Future<void> loadInitialSymptoms() async {
     try {
-      print('🔄 Loading initial symptoms...');
+      print('🔄 Loading all symptoms in chunks...');
       emit(SymptomSearchLoading());
 
-      final result = await _getAllSymptoms(skip: 0, limit: _limit);
+      _allSymptoms.clear();
+      _hasMore = true;
+      _currentSkip = 0;
 
-      _allSymptoms = result['symptoms'];
-      _hasMore = result['hasMore'];
-      _currentSkip = _limit;
+      // Keep fetching until no more data
+      while (_hasMore) {
+        final result = await _getAllSymptoms(skip: _currentSkip, limit: 200);
 
-      print('✅ Loaded ${_allSymptoms.length} symptoms');
+        final List<Symptom> newSymptoms = result['symptoms'];
+        _allSymptoms.addAll(newSymptoms);
+        _hasMore = result['hasMore'];
+        _currentSkip += 200;
 
+        print('✅ Loaded ${_allSymptoms.length} symptoms so far...');
+      }
+
+      print('🎉 Finished loading all symptoms: ${_allSymptoms.length}');
       _applySearchAndFilter();
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
-    } catch (e) {
-      print('❌ Error loading symptoms: $e');
+    } catch (e, stack) {
+      print('❌ Error loading all symptoms: $e');
+      print(stack);
       emit(SymptomSearchError(e.toString()));
     }
   }
+
+// Future<void> loadInitialSymptoms() async {
+  //   try {
+  //     print('🔄 Loading initial symptoms...');
+  //     emit(SymptomSearchLoading());
+
+  //     final result = await _getAllSymptoms(skip: 0, limit: _limit);
+
+  //     _allSymptoms = result['symptoms'];
+  //     _hasMore = result['hasMore'];
+  //     _currentSkip = _limit;
+
+  //     print('✅ Loaded ${_allSymptoms.length} symptoms');
+
+  //     _applySearchAndFilter();
+  //     emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
+  //   } catch (e) {
+  //     print('❌ Error loading symptoms: $e');
+  //     emit(SymptomSearchError(e.toString()));
+  //   // }
+  // }
 
   Future<void> loadMoreSymptoms() async {
     if (!_hasMore || state is SymptomSearchLoading) return;
