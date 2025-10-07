@@ -73,13 +73,15 @@ class AppTypography {
   );
   static TextStyle bodyMdSemibold = bodyMd.copyWith(fontWeight: AppTypography.semibold);
   static TextStyle bodyMdBold = bodyMd.copyWith(fontWeight: AppTypography.bold);
+  // Bullet body style: regular weight variant of bodyMd for list items
+  static TextStyle bulletBodyMd = bodyMd.copyWith(fontWeight: AppTypography.regular);
 
   static TextStyle bodySm = TextStyle(
     fontFamily: AppTypography.fontOs,
     fontWeight: AppTypography.semibold,
     fontSize: AppTypography.sizeSm,
     height: AppTypography.lhXs / AppTypography.sizeSm,
-    letterSpacing: AppTypography.lsSm,
+    letterSpacing: AppTypography.lsLg,
     color: AppTypography.textPrimary,
   );
   static TextStyle bodySmSemibold = bodySm.copyWith(fontWeight: AppTypography.semibold);

@@ -7,6 +7,7 @@ import 'package:foxxhealth/features/presentation/screens/appointment/view/appoin
 import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/screens/my_prep/appointment_companion_details_screen.dart';
 
 class MyPrepScreen extends StatefulWidget {
   const MyPrepScreen({Key? key}) : super(key: key);
@@ -61,6 +62,15 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: FoxxBackButton(),
+          title: Text(
+            'My Prep',
+            style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
+          ),
+        ),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,8 +112,8 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => AppointmentFlow(
-                                  onRefresh: _loadAppointmentCompanions,
+                                builder: (context) => const AppointmentCompanionDetailsScreen(
+                                  origin: 'myprep',
                                 ),
                               ),
                             );
