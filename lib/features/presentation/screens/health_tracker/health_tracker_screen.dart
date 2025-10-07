@@ -42,12 +42,13 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
           return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
             builder: (context, symptomState) {
               final symptomCubit = context.read<SymptomSearchCubit>();
-              
+
               return Foxxbackground(
                 child: Scaffold(
                   bottomNavigationBar: symptomCubit.selectedSymptoms.isNotEmpty
                       ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 16.0),
                           height: 84,
                           color: Colors.white,
                           child: ElevatedButton(
@@ -57,7 +58,15 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                                 borderRadius: BorderRadius.circular(30),
                               ),
                             ),
-                            onPressed: () => _logSymptom(symptomCubit, healthCubit),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const HealthTrackerScreen(),
+                                ),
+                              );
+                              _logSymptom(symptomCubit, healthCubit);
+                            },
                             child: Text(
                               'Log Symptom',
                               style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
@@ -74,15 +83,16 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                   ),
                   body: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 16.0),
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Top Navigation Bar
-                           
+
                             const SizedBox(height: 24),
-                        
+
                             // Header Section
                             Text(
                               'Health Tracker',
@@ -99,16 +109,17 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                        
+
                             // Date Selection Card
                             _buildDateSelectionCard(healthCubit),
                             const SizedBox(height: 24),
-                            
+
                             // Selected Symptoms Section
                             if (symptomCubit.selectedSymptoms.isNotEmpty) ...[
                               Text(
                                 'My Symptoms',
-                                style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                                style:
+                                    AppOSTextStyles.osMdSemiboldTitle.copyWith(
                                   color: AppColors.primary01,
                                 ),
                               ),
@@ -116,7 +127,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                               _buildSelectedSymptomsList(symptomCubit),
                             ],
                             const SizedBox(height: 24),
-                            
+
                             // Saved Symptoms Section
                             if (_savedSymptoms.isNotEmpty) ...[
                               SavedSymptomsWidget(
@@ -125,7 +136,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                               ),
                               const SizedBox(height: 24),
                             ],
-                        
+
                             // Add symptoms section header
                             Text(
                               'Add symptoms',
@@ -134,15 +145,15 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                        
+
                             // Search by Symptom Card
-                            _buildSearchBySymptomCard(healthCubit, symptomCubit),
+                            _buildSearchBySymptomCard(
+                                healthCubit, symptomCubit),
                             const SizedBox(height: 16),
-                        
+
                             // Area of the Body Card
                             _buildAreaOfBodyCard(),
                             const SizedBox(height: 24),
-                            
                           ],
                         ),
                       ),
@@ -312,7 +323,8 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     );
   }
 
-  Widget _buildSearchBySymptomCard(HealthTrackerCubit cubit, SymptomSearchCubit symptomCubit) {
+  Widget _buildSearchBySymptomCard(
+      HealthTrackerCubit cubit, SymptomSearchCubit symptomCubit) {
     return GestureDetector(
       onTap: () async {
         await Navigator.of(context).push(
@@ -387,16 +399,18 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
           backgroundColor: Colors.transparent,
           builder: (context) => const BodyMapBottomSheet(),
         );
-        
+
         // Handle the returned symptom details
         print('🔍 DEBUG: Result received from BodyMapBottomSheet: $result');
         print('🔍 DEBUG: Result type: ${result.runtimeType}');
         print('🔍 DEBUG: Result is null: ${result == null}');
         print('🔍 DEBUG: Result is List: ${result is List}');
         if (result != null) {
-          print('🔍 DEBUG: Result is List<Map<String, dynamic>>: ${result is List<Map<String, dynamic>>}');
+          print(
+              '🔍 DEBUG: Result is List<Map<String, dynamic>>: ${result is List<Map<String, dynamic>>}');
           if (result is List<Map<String, dynamic>>) {
-            print('🔍 DEBUG: Setting _savedSymptoms with ${result.length} symptoms');
+            print(
+                '🔍 DEBUG: Setting _savedSymptoms with ${result.length} symptoms');
             setState(() {
               _savedSymptoms = result;
             });
@@ -465,8 +479,18 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
 
   String _formatDateString(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -496,15 +520,18 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     }
   }
 
-  void _showDateRangePicker(HealthTrackerCubit cubit, {required bool isStartDate}) {
+  void _showDateRangePicker(HealthTrackerCubit cubit,
+      {required bool isStartDate}) {
     showCalendarDatePicker2Dialog(
       context: context,
       config: CalendarDatePicker2WithActionButtonsConfig(
         calendarType: CalendarDatePicker2Type.range,
         selectedDayHighlightColor: AppColors.amethyst,
         dayTextStyle: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
-        selectedDayTextStyle: AppOSTextStyles.osMd.copyWith(color: Colors.white),
-        todayTextStyle: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+        selectedDayTextStyle:
+            AppOSTextStyles.osMd.copyWith(color: Colors.white),
+        todayTextStyle:
+            AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
         calendarViewMode: DatePickerMode.day,
         firstDate: DateTime(2020),
         lastDate: DateTime.now().add(const Duration(days: 365)),
@@ -553,7 +580,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Symptom Name
               Expanded(
                 child: Text(
@@ -563,7 +590,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                   ),
                 ),
               ),
-              
+
               // Details Button
               GestureDetector(
                 onTap: () {
@@ -583,12 +610,13 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     );
   }
 
-  void _showSymptomDetails(Symptom symptom, SymptomSearchCubit symptomCubit) async {
+  void _showSymptomDetails(
+      Symptom symptom, SymptomSearchCubit symptomCubit) async {
     if (!mounted) return;
-    
+
     // Check if we have stored details for this symptom
     final storedDetails = symptomCubit.symptomDetails[symptom.id];
-    
+
     if (storedDetails != null) {
       // Show details sheet with pre-filled data
       final symptomData = {
@@ -600,7 +628,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
         'answers': storedDetails['answers'] ?? {},
         'notes': storedDetails['notes'] ?? '',
       };
-      
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -625,22 +653,23 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
           child: CircularProgressIndicator(),
         ),
       );
-      
+
       try {
         final symptomDetails = await symptomCubit.getSymptomDetails(symptom.id);
-        
+
         if (!mounted) return;
         Navigator.of(context).pop(); // Close loading dialog
-        
+
         if (symptomDetails != null) {
           final symptomData = {
             'id': symptom.id,
             'info': {
               'name': symptom.name,
-              'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+              'question_map': symptomDetails['info']?['question_map'] ??
+                  symptomDetails['question_map'],
             },
           };
-          
+
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -659,7 +688,8 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Could not load symptom details. Please try again.'),
+              content:
+                  Text('Could not load symptom details. Please try again.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -667,7 +697,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
       } catch (e) {
         if (!mounted) return;
         Navigator.of(context).pop(); // Close loading dialog
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading symptom details: $e'),
@@ -678,7 +708,8 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     }
   }
 
-  void _logSymptom(SymptomSearchCubit symptomCubit, HealthTrackerCubit healthCubit) async {
+  void _logSymptom(
+      SymptomSearchCubit symptomCubit, HealthTrackerCubit healthCubit) async {
     if (symptomCubit.selectedSymptoms.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -701,7 +732,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
     try {
       // Fetch symptom details for each selected symptom
       final selectedSymptoms = <SelectedSymptom>[];
-      
+
       for (final symptom in symptomCubit.selectedSymptoms) {
         // Try to get symptom details from API
         Map<String, dynamic>? symptomDetails;
@@ -712,16 +743,17 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
           // Skip this symptom if details can't be loaded
           continue;
         }
-        
+
         // Extract question map from symptom details
         List<Map<String, dynamic>> questionMap = [];
         if (symptomDetails != null) {
-          final questions = symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'];
+          final questions = symptomDetails['info']?['question_map'] ??
+              symptomDetails['question_map'];
           if (questions != null && questions is List) {
             questionMap = questions.cast<Map<String, dynamic>>();
           }
         }
-        
+
         selectedSymptoms.add(SelectedSymptom(
           id: symptom.id,
           info: SymptomInfo(
@@ -765,7 +797,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Clear selected symptoms after successful logging
         symptomCubit.clearSelectedSymptoms();
       } else {

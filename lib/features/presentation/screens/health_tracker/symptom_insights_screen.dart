@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:foxxhealth/features/data/models/symptom_model.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'compare_symptoms_bottom_sheet.dart';
 
 class SymptomInsightsScreen extends StatefulWidget {
-  final String symptomName;
+  final Symptom symptom;
   
   const SymptomInsightsScreen({
     Key? key,
-    required this.symptomName,
+    required this.symptom,
   }) : super(key: key);
 
   @override
@@ -98,7 +99,7 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              widget.symptomName,
+              widget.symptom.name,
               style: AppOSTextStyles.osXlSemibold.copyWith(
                 color: AppColors.primary01,
               ),
@@ -372,7 +373,7 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
 
   Widget _buildLegend() {
     List<Widget> legendItems = [
-      _buildLegendItem(const Color(0xFF805EC9), widget.symptomName),
+      _buildLegendItem(const Color(0xFF805EC9), widget.symptom.name),
     ];
     
     // Add selected symptoms to legend
@@ -441,7 +442,7 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Understand your headache patterns',
+            'Understand your ${widget.symptom.name} patterns',
             style: AppOSTextStyles.osLgSemibold.copyWith(
               color: AppColors.primary01,
             ),
@@ -496,14 +497,14 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Headache Care',
+            '${widget.symptom.name} Care',
             style: AppOSTextStyles.osLgSemibold.copyWith(
               color: AppColors.primary01,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'You should consider speaking with your healthcare provider if your headache:',
+            'You should consider speaking with your healthcare provider if your ${widget.symptom.name}:',
             style: AppOSTextStyles.osMd.copyWith(
               color: AppColors.primary01,
             ),
@@ -550,7 +551,7 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CompareSymptomsBottomSheet(
-        currentSymptom: widget.symptomName,
+        currentSymptom: widget.symptom.name,
         availableSymptoms: availableSymptoms,
         onApply: (symptoms) {
           setState(() {
@@ -567,10 +568,10 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
     // Always show the main symptom
     lineBars.add(LineChartBarData(
       spots: chartData.asMap().entries.map((e) {
-        return FlSpot(e.key.toDouble(), _getSymptomValue(e.value, widget.symptomName).toDouble());
+        return FlSpot(e.key.toDouble(), _getSymptomValue(e.value, widget.symptom.name).toDouble());
       }).toList(),
       isCurved: true,
-      color: _getSymptomColor(widget.symptomName),
+      color: _getSymptomColor(widget.symptom.name),
       barWidth: 3,
       isStrokeCapRound: true,
       dotData: FlDotData(show: true),
@@ -603,8 +604,8 @@ class _SymptomInsightsScreenState extends State<SymptomInsightsScreen> {
       
       // Always show the main symptom
       barRods.add(BarChartRodData(
-        toY: _getSymptomValue(chartData[i], widget.symptomName).toDouble(),
-        color: _getSymptomColor(widget.symptomName),
+        toY: _getSymptomValue(chartData[i], widget.symptom.name).toDouble(),
+        color: _getSymptomColor(widget.symptom.name),
         width: selectedSymptoms.isNotEmpty ? 6 : 8,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),

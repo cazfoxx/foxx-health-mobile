@@ -15,10 +15,12 @@ class CompareSymptomsBottomSheet extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CompareSymptomsBottomSheet> createState() => _CompareSymptomsBottomSheetState();
+  State<CompareSymptomsBottomSheet> createState() =>
+      _CompareSymptomsBottomSheetState();
 }
 
-class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet> {
+class _CompareSymptomsBottomSheetState
+    extends State<CompareSymptomsBottomSheet> {
   final Set<String> selectedSymptoms = <String>{};
   final int maxSelections = 3;
 
@@ -59,7 +61,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           // Header
           Padding(
             padding: const EdgeInsets.all(20),
@@ -82,7 +84,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
               ],
             ),
           ),
-          
+
           // Symptoms list
           Flexible(
             child: ListView.builder(
@@ -92,8 +94,9 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
               itemBuilder: (context, index) {
                 final symptom = widget.availableSymptoms[index];
                 final isSelected = selectedSymptoms.contains(symptom);
-                final canSelect = selectedSymptoms.length < maxSelections || isSelected;
-                
+                final canSelect =
+                    selectedSymptoms.length < maxSelections || isSelected;
+
                 return _buildSymptomItem(
                   symptom: symptom,
                   isSelected: isSelected,
@@ -102,7 +105,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
               },
             ),
           ),
-          
+
           // Action buttons
           Padding(
             padding: const EdgeInsets.all(20),
@@ -134,16 +137,16 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: selectedSymptoms.isNotEmpty 
-                            ? AppColors.primaryTint 
+                        color: selectedSymptoms.isNotEmpty
+                            ? AppColors.primaryTint
                             : AppColors.gray300,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'Apply',
                         style: AppOSTextStyles.osMdSemiboldBody.copyWith(
-                          color: selectedSymptoms.isNotEmpty 
-                              ? AppColors.buttonTextPrimary 
+                          color: selectedSymptoms.isNotEmpty
+                              ? AppColors.primaryBtnTxt
                               : AppColors.gray600,
                         ),
                         textAlign: TextAlign.center,
@@ -165,7 +168,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
     required bool canSelect,
   }) {
     final color = symptomColors[symptom] ?? AppColors.gray400;
-    
+
     return GestureDetector(
       onTap: canSelect ? () => _toggleSymptom(symptom) : null,
       child: Container(
@@ -191,7 +194,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
               ),
             ),
             const SizedBox(width: 12),
-            
+
             // Symptom name
             Expanded(
               child: Text(
@@ -201,7 +204,7 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
                 ),
               ),
             ),
-            
+
             // Selection indicator
             Container(
               width: 24,
@@ -210,7 +213,9 @@ class _CompareSymptomsBottomSheetState extends State<CompareSymptomsBottomSheet>
                 color: isSelected ? AppColors.primaryTint : Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primaryTint : AppColors.primaryTint,
+                  color: isSelected
+                      ? AppColors.primaryTint
+                      : AppColors.primaryTint,
                   width: 2,
                 ),
               ),

@@ -17,7 +17,6 @@ import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.da
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -795,19 +794,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        _buildSettingsItem(
-                          icon: Icons.star,
-                          title: 'My subscription',
-                          onTap: () {
-                            // TODO: Navigate to subscription screen
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Subscription functionality coming soon'),
-                                backgroundColor: Colors.blue,
-                              ),
-                            );
-                          },
-                        ),
+                        // _buildSettingsItem(
+                        //   icon: Icons.star,
+                        //   title: 'My subscription',
+                        //   onTap: () {
+                        //     // TODO: Navigate to subscription screen
+                        //     ScaffoldMessenger.of(context).showSnackBar(
+                        //       const SnackBar(
+                        //         content: Text('Subscription functionality coming soon'),
+                        //         backgroundColor: Colors.blue,
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
                         const SizedBox(height: 12),
                         _buildSettingsItem(
                           icon: Icons.person_remove,
@@ -1027,9 +1026,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildNavItem(Icons.search, 'Insight', false, () {
             // TODO: Navigate to Insight
           }),
-          _buildNavItem(Icons.group, 'The Den', false, () {
-            // TODO: Navigate to The Den
-          }),
+       
         ],
       ),
     );

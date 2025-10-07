@@ -70,6 +70,22 @@ class AppColors {
   static const insightCoolNavy = Color(0xFF264653);
   static const insightPurple = Color(0xFF9966CC);
   static const insightGray = gray600;
+  static const insightPeachPastel = Color(0xFFFFD3B6);
+  static const insightBrickRed = Color(0xFFF30000);
+  static const insightHotPink = Color(0xFFEC34DF);
+  static const insightEmerald = Color(0xFF27AE60);
+  static const insightLakeBlue = Color(0xFF2980B9);
+  static const insightColumbiaBlue = Color(0xFF87AFC7);
+  static const insightCamelBrown = Color(0xFFC19A6B);
+  static const insightBrightBlue = Color(0xFF0F5BFF);
+  static const insightBrightCayan = Color(0xFF21DEFF);
+  static const insightBrown = Color(0xFF885920);
+  static const insightBubblegumPink = Color(0xFFFF9EF8);
+  static const insightPineGreen = Color(0xFF037720);
+  static const insightLimeGreen = Color(0xFFBEE659);
+  static const insightNeonGreen = Color(0xFF23FF36);
+  static const insightSageGreen = Color(0xFF749C8D);
+  static const insightMustard = Color(0xFFE0CC5F);
 
 
 

@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/core/services/analytics_service.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/forgot_password/forgot_password_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_heading_container_widget.dart';
@@ -119,32 +120,34 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: _buildAppBar(),
-          body: Stack(
-            children: [
-              SafeArea(
-                child: SingleChildScrollView(
-                  child: SizedBox(
-                    height: 710,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(),
-                        _buildCurrentStep(),
-                      ],
+        return Foxxbackground(
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: _buildAppBar(),
+            body: Stack(
+              children: [
+                SafeArea(
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                      height: 710,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildHeader(),
+                          _buildCurrentStep(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (state is ForgotPasswordLoading)
-                const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.amethystViolet,
+                if (state is ForgotPasswordLoading)
+                  const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.amethystViolet,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -157,7 +160,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Navigator.pop(context),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       elevation: 0,
     );
   }
@@ -165,7 +168,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -209,7 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 32),
           Expanded(
             child: Container(
-              color: AppColors.background,
+              
               child: Column(
                 children: [
                   OnboardingHeadingContainer(
@@ -283,7 +286,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 32),
           Expanded(
             child: Container(
-              color: AppColors.background,
+              
               child: Column(
                 children: [
                   OnboardingHeadingContainer(
@@ -361,7 +364,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 32),
           Expanded(
             child: Container(
-              color: AppColors.background,
+
               child: Column(
                 children: [
                   OnboardingHeadingContainer(

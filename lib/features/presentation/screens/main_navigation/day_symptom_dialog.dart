@@ -43,152 +43,179 @@ class _DaySymptomsDialogState extends State<DaySymptomsDialog> {
     7: AppColors.insightGray,
     8: AppColors.insightIceBlue,
     9: AppColors.insightDarkRed,
+    10: AppColors.insightOrange,
+    11: AppColors.mauve,
+    12: AppColors.insightEmerald,
+    13: AppColors.insightPeachPastel,
+    14: AppColors.insightLakeBlue,
+    15: AppColors.insightHotPink,
+    16: AppColors.insightRed,
+    17: AppColors.insightLimeGreen,
+    18: AppColors.insightCamelBrown,
+    19: AppColors.insightBrightBlue,
+    20: AppColors.insightMintGreen,
+    21: AppColors.insightBrown,
+    22: AppColors.insightBubblegumPink,
+    23: AppColors.insightPineGreen,
+    24: AppColors.insightColumbiaBlue,
+    25: AppColors.insightNeonGreen,
+    26: AppColors.insightBrightCayan,
+    27: AppColors.foxxWhite,
+    28: AppColors.insightSageGreen,
+    29: AppColors.insightMustard
   };
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor:
-          AppColors.gray100, // dimmed background for "dialog" effect
-      body: Center(
-        child: Container(
-          height: 1200,
-          width: 600,
-          margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              )
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Gradient header
-              Container(
-                height: 44,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment(-0.86, -0.5),
-                    end: Alignment(0.86, 0.5),
-                    colors: [
-                      Color(0xFFE9D3FF),
-                      Color(0xFFFFE5AA),
-                    ],
-                    stops: [0.0022, 0.9528],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                alignment: Alignment.center,
-              ),
-
-              // Body
-              Expanded(
-                child: widget.symptoms.isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: Text("No symptoms recorded"),
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16.0),
-                              child: Text(
-                                "${DateFormat.MMMM().format(widget.date)} ${widget.date.day}",
-                                style: const TextStyle(
-                                  color: Color(0xFF3E3D48),
-                                  fontSize: 20,
-                                  fontFamily: 'Merriweather',
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.2,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Symptoms list
-                            Expanded(
-                              child: ListView.separated(
-                                itemCount: widget.symptoms.length,
-                                separatorBuilder: (_, __) => const Divider(),
-                                itemBuilder: (context, index) {
-                                  final symptom = widget.symptoms[index];
-                                  final isChecked =
-                                      _selectedMap[symptom] ?? false;
-                                  // pick color by index, fallback to gray if > 9
-                                  final color = index < 10
-                                      ? symptomColors[index]
-                                      : symptomColors[index - 10];
-
-                                  return ListTile(
-                                    leading: Container(
-                                      width: 24,
-                                      height: 24,
-                                      decoration: BoxDecoration(
-                                        color: color,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      symptom,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    trailing: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedMap[symptom] = !isChecked;
-                                        });
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const TrackerTab(),
-                                          ),
-                                        );
-                                      },
-                                      child: Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 24,
-                                          height: 24,
-                                          decoration: const BoxDecoration(
-                                              color: Colors.transparent),
-                                          child: const Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: AppColors.amethyst,
-                                            size: 24,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ],
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          //     // Handle bar
+          // Container(
+          //   margin: const EdgeInsets.only(top: 12),
+          //   width: 40,
+          //   height: 4,
+          //   decoration: BoxDecoration(
+          //     color: AppColors.gray300,
+          //     borderRadius: BorderRadius.circular(2),
+          //   ),
+          // ),
+          // Gradient header
+          Container(
+            height: 44,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment(-0.86, -0.5),
+                end: Alignment(0.86, 0.5),
+                colors: [
+                  Color(0xFFE9D3FF),
+                  Color(0xFFFFE5AA),
+                ],
+                stops: [0.0022, 0.9528],
+              ),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            alignment: Alignment.center,
+            // Handle bar
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gray600,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+
+          // Body
+          Expanded(
+            child: widget.symptoms.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Text("No symptoms recorded"),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16.0),
+                          child: Text(
+                            "${DateFormat.MMMM().format(widget.date)} ${widget.date.day}",
+                            style: const TextStyle(
+                              color: Color(0xFF3E3D48),
+                              fontSize: 20,
+                              fontFamily: 'Merriweather',
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Symptoms list
+                        Expanded(
+                          child: ListView.separated(
+                            itemCount: widget.symptoms.length,
+                            separatorBuilder: (_, __) => const Divider(),
+                            itemBuilder: (context, index) {
+                              final symptom = widget.symptoms[index];
+                              final isChecked = _selectedMap[symptom] ?? false;
+                              // pick color by index, fallback to gray if > 29
+                              final color = index < 30
+                                  ? symptomColors[index]
+                                  : symptomColors[index - 30];
+
+                              return ListTile(
+                                leading: Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                title: Text(
+                                  symptom,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedMap[symptom] = !isChecked;
+                                    });
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TrackerTab(),
+                                      ),
+                                    );
+                                  },
+                                  child: Positioned(
+                                    left: 0,
+                                    top: 0,
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                          color: Colors.transparent),
+                                      child: const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: AppColors.amethyst,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
+      // ),
+      // ),
     );
   }
 }

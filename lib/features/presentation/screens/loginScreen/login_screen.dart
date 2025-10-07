@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/api_logger/api_logger_screen.dart';
@@ -368,7 +369,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextSpan(
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              PrivacyPolicyBottomSheet.show(context);
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const TermsOfUseScreen(),
+                                ),
+                              );
                             },
                           text: 'Terms and Conditions',
                           style: AppTypography.labelSmLink.copyWith(
