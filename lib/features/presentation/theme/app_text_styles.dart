@@ -81,7 +81,7 @@ class AppTypography {
     fontWeight: AppTypography.semibold,
     fontSize: AppTypography.sizeSm,
     height: AppTypography.lhXs / AppTypography.sizeSm,
-    letterSpacing: AppTypography.lsLg,
+    letterSpacing: AppTypography.lsBase,
     color: AppTypography.textPrimary,
   );
   static TextStyle bodySmSemibold = bodySm.copyWith(fontWeight: AppTypography.semibold);
