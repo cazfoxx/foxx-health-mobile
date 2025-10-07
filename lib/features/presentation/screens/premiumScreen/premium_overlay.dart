@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_screen.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 class PremiumOverlay extends StatefulWidget {
@@ -63,6 +65,14 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       
       if (response.notFoundIDs.isNotEmpty) {
         log('Products not found: ${response.notFoundIDs}');
+        log('This is normal during development or if app is under review');
+      }
+
+      if (response.productDetails.isEmpty) {
+        log('No products loaded. This usually means:');
+        log('1. App is still under review');
+        log('2. Products are not configured in App Store Connect/Google Play Console');
+        log('3. Testing on simulator (use real device for testing)');
       }
 
       setState(() {
@@ -87,9 +97,14 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
     try {
       final String productId = isYearlySelected ? yearlyProductId : monthlyProductId;
+      
+      if (_products.isEmpty) {
+        throw 'No products available. Please wait for app review to complete or check your product configuration.';
+      }
+      
       final ProductDetails product = _products.firstWhere(
         (p) => p.id == productId,
-        orElse: () => throw 'Product not found: $productId',
+        orElse: () => throw 'Product not found: $productId. This usually means the app is still under review.',
       );
 
       final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
@@ -102,8 +117,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
     } catch (e) {
       log('Error during purchase: $e');
+      String errorMessage = e.toString();
+      if (errorMessage.contains('Product not found')) {
+        errorMessage = 'Products are not available yet. This is normal while your app is under review.';
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text(errorMessage)),
       );
     } finally {
       if (mounted) {
@@ -336,7 +355,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                      const SizedBox(height: 48),
                 _buildTestimonial(),
                 const SizedBox(height: 16),
-                // _buildTermsOfService(),
+                _buildTermsOfService(),
                 const SizedBox(height:10),
                 
                 
@@ -459,12 +478,64 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
   Widget _buildTermsOfService() {
     return Center(
-      child: Text(
-        'Terms Of Service',
-        style: TextStyle(
-          color: Colors.black.withOpacity(0.8),
-          decoration: TextDecoration.underline,
-        ),
+      child: Column(
+        children: [
+          Text(
+            'By subscribing, you agree to our ',
+            style: TextStyle(
+              color: Colors.black.withOpacity(0.8),
+              fontSize: 12,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  // Navigate to Terms of Use
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const TermsOfUseScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Terms of Use',
+                  style: TextStyle(
+                    color: AppColors.amethystViolet,
+                    fontSize: 12,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              Text(
+                ' and ',
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.8),
+                  fontSize: 12,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  // Navigate to Privacy Policy
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Privacy Policy',
+                  style: TextStyle(
+                    color: AppColors.amethystViolet,
+                    fontSize: 12,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

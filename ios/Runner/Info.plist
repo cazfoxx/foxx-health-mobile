@@ -42,6 +42,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to camera to take profile pictures</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need access to photo library to save shared images</string>
 	<key>NSPhotoLibraryUsageDescription</key>
