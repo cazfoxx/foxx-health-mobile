@@ -1,5 +1,4 @@
 import 'package:flutter/gestures.dart';
-// Updated by Joy — homescreen update - not final
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';

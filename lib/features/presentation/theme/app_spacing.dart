@@ -45,14 +45,22 @@ class AppSpacing {
   static const double xxl = s56;
   static const double xxxl = s80;
 
-  // Component semantics
-  static const double stackedButtons = s12; // standard gap between stacked buttons
-  static const double fullWidthButtonsHorizontal = s16; // side padding for full-width buttons
-  static const double textBoxHorizontal = s20; // side padding for generic text boxes
 
   // ============================
   /// Helpers — Insets
   // ============================
+  // EdgeInsets helpers for common patterns.
+
+  // Component semantics
+  static const double stackedButtons = s12; // standard gap between stacked buttons
+  static const double fullWidthButtonsHorizontal = s16; // side padding for full-width buttons
+  static const double textBoxHorizontal = s20; // side padding for generic text boxes
+  static const double paragraphSpacing = s4; // spacing between paragraph and subsequent content
+  
+  // Bottom navigation bar padding: 16 top/left/right, 20 bottom
+  static const EdgeInsets bottomBarPadding = EdgeInsets.fromLTRB(s16, s16, s16, s20);
+
+
   // EdgeInsets helpers for common patterns.
   static EdgeInsets all(double value) => EdgeInsets.all(value);
   static EdgeInsets symmetric({double horizontal = 0, double vertical = 0}) =>

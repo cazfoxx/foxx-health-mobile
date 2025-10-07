@@ -6,6 +6,7 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/my_prep/my_prep_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/my_prep/appointment_companion_details_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/data/models/banner_model.dart';
@@ -363,7 +364,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const MyPrepScreen(),
+          builder: (context) => const AppointmentCompanionDetailsScreen(origin: 'home'),
         ));
       },
       child: Container(
