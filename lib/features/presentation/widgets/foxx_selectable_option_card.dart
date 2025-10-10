@@ -41,7 +41,7 @@ class SelectableOptionCard extends StatelessWidget {
 
   /// Text style fully uses AppTypography labelLargeSemibold token
   TextStyle get _textStyle {
-    return AppTypography.labelLgSemibold.copyWith(
+    return AppTypography.labelMdSemibold.copyWith(
       color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
     );
   }
@@ -59,8 +59,8 @@ class SelectableOptionCard extends StatelessWidget {
         children: [
           SvgPicture.asset(
             isSelected
-                ? 'assets/svg/icons/circle_check/circle_check_on-24.svg'
-                : 'assets/svg/icons/circle_check/circle_check_off-24.svg',
+                ? 'assets/svg/icons/circle_check_on-24.svg'
+                : 'assets/svg/icons/circle_check_off-24.svg',
             width: 24,
             height: 24,
             color: _iconColor,

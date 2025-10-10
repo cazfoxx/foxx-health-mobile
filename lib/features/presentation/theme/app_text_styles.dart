@@ -229,7 +229,7 @@ class AppTypography {
 
 
   // ==========================
-  // Original Code --- DO NOT DELETE
+  // Original Code --- DO NOT DELETE --- DO NOT USE -- DEPRECATED
   // ==========================
 }
 

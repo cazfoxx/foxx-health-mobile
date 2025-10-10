@@ -59,6 +59,7 @@ class AppSpacing {
 
   // Component semantics
   static const double stackedButtons = s12; // standard gap between stacked buttons
+  static const double stackedCards = s12; // standard gap between stacked cards
   static const double fullWidthButtonsHorizontal = s16; // side padding for full-width buttons
   static const double textBoxHorizontalNoSafeArea = s20; // side padding for generic text boxes on page that DO NOT use safe area
   static const double paragraphSpacing = s4; // spacing between paragraph and subsequent content
