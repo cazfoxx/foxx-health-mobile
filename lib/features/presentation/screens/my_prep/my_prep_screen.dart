@@ -17,7 +17,7 @@ class MyPrepScreen extends StatefulWidget {
 
 class _MyPrepScreenState extends State<MyPrepScreen> {
   String selectedTag = 'All';
-  final List<String> tags = ['All', 'Upcoming Visit', 'PCOS', 'Past', 'M'];
+  final List<String> tags = ['All', 'Upcoming Visit', 'Past'];
   
   final AppointmentCompanionCubit _service = AppointmentCompanionCubit();
   List<AppointmentCompanion> _companions = [];

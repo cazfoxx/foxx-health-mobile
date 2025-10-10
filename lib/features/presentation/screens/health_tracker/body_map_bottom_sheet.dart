@@ -62,33 +62,34 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
   // - Center point is around (150, 200)
   // - Adjust these values to match your body outline
   final Map<String, Map<String, dynamic>> _bodyParts = {
-    'Head & neck': {
-      'svg': 'assets/svg/body_parts_selector/Head & neck.svg',
-      'frontPosition': const Offset(184, 200),  // Center top
+    'Head & Neck': {
+      'svg': 'assets/svg/body_parts_selector/Head-neck-hair.svg',
+      //'assets/svg/body_parts_selector/Head & neck.svg',
+      'frontPosition': const Offset(188.7, 194.7),  // Center top
       'backPosition': const Offset(150, 40),
-      'size': const Size(50, 50),
+      'size': const Size(60, 60),
     },
     'Eyes': {
       'svg': 'assets/svg/body_parts_selector/Eyes.svg',
-      'frontPosition': const Offset(166, 192),// Above head
+      'frontPosition': const Offset(166, 192), // Above head
       'backPosition': const Offset(150, 25),
       'size': const Size(10, 10),
     },
     'Ear, Nose & Throat': {
       'svg': 'assets/svg/body_parts_selector/Ear, Nose & Throat.svg',
-      'frontPosition': const Offset(162.5, 198),  // Below eyes
+      'frontPosition': const Offset(162.5, 198), // Below eyes
       'backPosition': const Offset(150, 60),
       'size': const Size(15, 15),
     },
-    'Hair': {
-      'svg': 'assets/svg/body_parts_selector/Hair.svg',
-      'frontPosition': const Offset(172.5, 178),  // Top of head
-      'backPosition': const Offset(150, 15),
-      'size': const Size(30, 30),
-    },
+    // 'Hair': {
+    //   'svg': 'assets/svg/body_parts_selector/Hair.svg',
+    //   'frontPosition': const Offset(172.5, 178), // Top of head
+    //   'backPosition': const Offset(150, 15),
+    //   'size': const Size(30, 30),
+    // },
     'Mouth & Jaw': {
       'svg': 'assets/svg/body_parts_selector/Mouth & Jaw.svg',
-      'frontPosition': const Offset(168, 208),  // Below ears/nose
+      'frontPosition': const Offset(168, 208), // Below ears/nose
       'backPosition': const Offset(150, 80),
       'size': const Size(18, 18),
     },
@@ -149,10 +150,10 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
         children: [
           // Header
           _buildHeader(),
-          
+
           // Step Indicator
           _buildStepIndicator(),
-          
+
           // Error Message Display
           if (_errorMessage != null) ...[
             Container(
@@ -194,15 +195,15 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
               ),
             ),
           ],
-          
+
           // Selected Body Parts Tags - Fixed height container to prevent UI shifting
           Container(
             height: 60, // Fixed height for chips area
-            child: _selectedBodyParts.isNotEmpty 
-                ? _buildSelectedTags() 
+            child: _selectedBodyParts.isNotEmpty
+                ? _buildSelectedTags()
                 : const SizedBox.shrink(),
           ),
-          
+
           // Body Map
           Expanded(
             child: Container(
@@ -220,9 +221,12 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: _showFrontView ? AppColors.amethyst : Colors.transparent,
+                            color: _showFrontView
+                                ? AppColors.amethyst
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: AppColors.amethyst,
@@ -232,7 +236,9 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                           child: Text(
                             'Front',
                             style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                              color: _showFrontView ? Colors.white : AppColors.amethyst,
+                              color: _showFrontView
+                                  ? Colors.white
+                                  : AppColors.amethyst,
                             ),
                           ),
                         ),
@@ -245,9 +251,12 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: !_showFrontView ? AppColors.amethyst : Colors.transparent,
+                            color: !_showFrontView
+                                ? AppColors.amethyst
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: AppColors.amethyst,
@@ -257,7 +266,9 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                           child: Text(
                             'Back',
                             style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                              color: !_showFrontView ? Colors.white : AppColors.amethyst,
+                              color: !_showFrontView
+                                  ? Colors.white
+                                  : AppColors.amethyst,
                             ),
                           ),
                         ),
@@ -265,7 +276,6 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                     ],
                   ),
 
-                  
                   // Body Map Content
                   Expanded(
                     child: Stack(
@@ -276,12 +286,14 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  if (_selectedBodyParts.contains('Body Back')) {
+                                  if (_selectedBodyParts
+                                      .contains('Body Back')) {
                                     _selectedBodyParts.remove('Body Back');
                                   } else {
                                     _selectedBodyParts.add('Body Back');
                                   }
-                                  _errorMessage = null; // Clear error when body part is selected
+                                  _errorMessage =
+                                      null; // Clear error when body part is selected
                                 });
                               },
                               child: SvgPicture.asset(
@@ -297,7 +309,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                               ),
                             ),
                           ),
-                        
+
                         // Interactive body parts - only show for front view
                         if (_showFrontView) ..._buildInteractiveBodyParts(),
                       ],
@@ -307,7 +319,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
               ),
             ),
           ),
-          
+
           // Bottom Button
           _buildBottomButton(),
         ],
@@ -337,7 +349,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
           ),
           GestureDetector(
             onTap: _selectedBodyParts.isEmpty || _isLoadingSymptoms
-                ? null 
+                ? null
                 : () async {
                     // Fetch symptoms for selected body parts
                     await _fetchSymptomsForBodyParts();
@@ -351,7 +363,8 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.amethyst),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.amethyst),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -364,12 +377,12 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                     ],
                   )
                 : Text(
-                    _selectedBodyParts.isEmpty 
-                        ? 'Save' 
+                    _selectedBodyParts.isEmpty
+                        ? 'Save'
                         : 'Save (${_selectedBodyParts.length})',
                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                      color: _selectedBodyParts.isEmpty 
-                          ? AppColors.davysGray 
+                      color: _selectedBodyParts.isEmpty
+                          ? AppColors.davysGray
                           : AppColors.amethyst,
                     ),
                   ),
@@ -429,7 +442,8 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
                   onTap: () {
                     setState(() {
                       _selectedBodyParts.remove(bodyPart);
-                      _errorMessage = null; // Clear error when body part is removed
+                      _errorMessage =
+                          null; // Clear error when body part is removed
                     });
                   },
                   child: Icon(
@@ -446,22 +460,20 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
     );
   }
 
-
-
   List<Widget> _buildInteractiveBodyParts() {
     List<Widget> widgets = [];
-    
+
     _bodyParts.forEach((bodyPart, data) {
       // Skip Skin & Whole Body for individual parts
       if (bodyPart == 'Skin & Whole Body') return;
-      
+
       // Get the correct position based on view
-      final position = _showFrontView 
+      final position = _showFrontView
           ? data['frontPosition'] as Offset
           : data['backPosition'] as Offset;
       final size = data['size'] as Size;
       final isSelected = _selectedBodyParts.contains(bodyPart);
-      
+
       widgets.add(
         Positioned(
           left: position.dx - size.width / 2,
@@ -490,7 +502,7 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
         ),
       );
     });
-    
+
     return widgets;
   }
 
@@ -537,7 +549,6 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
     );
   }
 
-
   // Clear error message
   void _clearErrorMessage() {
     setState(() {
@@ -562,29 +573,30 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
 
     try {
       final symptomCubit = context.read<SymptomSearchCubit>();
-      
+
       // For now, we'll use the first selected body part
       // In a real app, you might want to fetch symptoms for all selected body parts
       final firstBodyPart = _selectedBodyParts.first;
-      
+
       // Map body part names to API body part values
       String apiBodyPart = _mapBodyPartToAPI(firstBodyPart);
-      
+
       // Fetch symptoms for the body part
       final symptoms = await symptomCubit.getSymptomsByBodyPart(apiBodyPart);
-      
+
       // Clear loading state
       setState(() {
         _isLoadingSymptoms = false;
       });
-      
+
       if (symptoms.isNotEmpty) {
         // Show symptoms bottom sheet
         _showSymptomsBottomSheet(symptoms);
       } else {
         // Show error message in sheet for empty data
         setState(() {
-          _errorMessage = 'No symptoms found for the selected body part. Please try a different area.';
+          _errorMessage =
+              'No symptoms found for the selected body part. Please try a different area.';
         });
       }
     } catch (e) {
@@ -634,7 +646,6 @@ class _BodyMapBottomSheetState extends State<BodyMapBottomSheet> {
       ),
     );
   }
-
 }
 
 // Symptoms Bottom Sheet Widget
@@ -652,7 +663,6 @@ class _SymptomsBottomSheet extends StatefulWidget {
 }
 
 class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -685,37 +695,36 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
                   ),
                 ),
 
-                 Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Step 2',
-                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                    color: AppColors.davysGray,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Step 2',
+                        style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                          color: AppColors.davysGray,
+                        ),
+                      ),
+                      Text(
+                        'Select symptoms',
+                        style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                          color: AppColors.primary01,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'Select symptoms',
-                  style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                    color: AppColors.primary01,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10),
+                SizedBox(height: 10),
                 // Save button removed - symptoms are now handled individually when tapped
               ],
             ),
           ),
-          
+
           // Step Indicator
-        
-          
+
           const SizedBox(height: 20),
-          
+
           // Symptoms List
           Expanded(
             child: ListView.builder(
@@ -723,8 +732,9 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
               itemCount: widget.symptoms.length,
               itemBuilder: (context, index) {
                 final symptom = widget.symptoms[index];
-                final symptomName = symptom['info']?['name'] as String? ?? 'Unknown Symptom';
-                
+                final symptomName =
+                    symptom['info']?['name'] as String? ?? 'Unknown Symptom';
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
@@ -736,7 +746,8 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
                     ),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     leading: Icon(
                       Icons.arrow_forward_ios,
                       color: AppColors.amethyst,
@@ -758,8 +769,6 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
               },
             ),
           ),
-          
-         
         ],
       ),
     );
@@ -770,17 +779,18 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
       // Get symptom details from API
       final cubit = context.read<SymptomSearchCubit>();
       final symptomDetails = await cubit.getSymptomDetails(symptom['id']);
-      
+
       if (symptomDetails != null) {
         // Convert symptom to the format expected by the details sheet
         final symptomData = {
           'id': symptom['id'],
           'info': {
             'name': symptom['info']?['name'] ?? 'Unknown Symptom',
-            'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+            'question_map': symptomDetails['info']?['question_map'] ??
+                symptomDetails['question_map'],
           },
         };
-        
+
         // Show the details sheet
         showModalBottomSheet(
           context: context,
@@ -792,7 +802,9 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
               // Add the symptom with details to selected symptoms
               // Convert the symptom data to Symptom model
               final symptomModel = Symptom.fromJson(symptom);
-              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+              context
+                  .read<SymptomSearchCubit>()
+                  .addSymptomWithDetails(symptomModel, details.first);
             },
           ),
         ).then((_) {
@@ -808,7 +820,7 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
             'question_map': null,
           },
         };
-        
+
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -818,7 +830,9 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
             onDetailsSaved: (details) {
               // Add the symptom with details to selected symptoms
               final symptomModel = Symptom.fromJson(symptom);
-              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+              context
+                  .read<SymptomSearchCubit>()
+                  .addSymptomWithDetails(symptomModel, details.first);
             },
           ),
         ).then((_) {
@@ -829,7 +843,7 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
     } catch (e) {
       // Show error and fallback to basic details sheet
       print('Error loading symptom details: $e');
-      
+
       final symptomData = {
         'id': symptom['id'],
         'info': {
@@ -837,7 +851,7 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
           'question_map': null,
         },
       };
-      
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -847,7 +861,9 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
           onDetailsSaved: (details) {
             // Add the symptom with details to selected symptoms
             final symptomModel = Symptom.fromJson(symptom);
-            context.read<SymptomSearchCubit>().addSymptomWithDetails(symptomModel, details.first);
+            context
+                .read<SymptomSearchCubit>()
+                .addSymptomWithDetails(symptomModel, details.first);
           },
         ),
       ).then((_) {
@@ -857,4 +873,3 @@ class _SymptomsBottomSheetState extends State<_SymptomsBottomSheet> {
     }
   }
 }
-

@@ -20,7 +20,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   String _searchQuery = '';
   bool _hasMore = true;
   int _currentSkip = 0;
-  static const int _limit = 100;
+  static const int _limit = 200;
   SymptomSearchCubit() : super(SymptomSearchInitial());
 
   List<Symptom> get allSymptoms => _allSymptoms;

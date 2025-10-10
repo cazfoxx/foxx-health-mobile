@@ -18,10 +18,12 @@ class AppointmentCompanionScreen extends StatefulWidget {
   });
 
   @override
-  State<AppointmentCompanionScreen> createState() => _AppointmentCompanionScreenState();
+  State<AppointmentCompanionScreen> createState() =>
+      _AppointmentCompanionScreenState();
 }
 
-class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen> {
+class _AppointmentCompanionScreenState
+    extends State<AppointmentCompanionScreen> {
   // State management
   bool _isCompanionTabSelected = true;
   final Map<String, bool> _expandedSections = {
@@ -30,7 +32,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     'condition': false,
     'emotionalSupport': false,
   };
-  
+
   // Hidden questions state - track which questions are hidden by section
   final Map<String, Set<String>> _hiddenQuestions = {
     'symptoms': <String>{},
@@ -39,7 +41,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     'emotionalSupport': <String>{},
     'postVisit': <String>{},
   };
-  
+
   // Tags state management
   final Set<String> _selectedTags = <String>{};
   final List<String> _availableTags = [
@@ -49,27 +51,29 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     'Custom tag 4',
     'Custom tag 5',
   ];
-  
+
   // Controllers
   final TextEditingController _newQuestionController = TextEditingController();
   final TextEditingController _newTagController = TextEditingController();
+  final TextEditingController _note1Controller = TextEditingController();
+  final TextEditingController _note2Controller = TextEditingController();
   final Map<String, TextEditingController> _customQuestionControllers = {
     'symptoms': TextEditingController(),
     'healthHistory': TextEditingController(),
     'condition': TextEditingController(),
     'emotionalSupport': TextEditingController(),
   };
-  
+
   // Data
   AppointmentCompanion? _companionDetails;
   Map<String, dynamic>? _aiResponseData;
   DateTime? _selectedDate;
-  
+
   // Loading states
   bool _isLoading = true;
   bool _isLoadingAIResponse = false;
   String? _error;
-  
+
   // Track unsaved changes
   bool _hasUnsavedChanges = false;
 
@@ -81,6 +85,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   @override
   void initState() {
     super.initState();
+    _note1Controller.addListener(_updateButtonState);
+    _note2Controller.addListener(_updateButtonState);
     _loadCompanionDetails();
   }
 
@@ -88,32 +94,39 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   void dispose() {
     _newQuestionController.dispose();
     _newTagController.dispose();
-    _customQuestionControllers.values.forEach((controller) => controller.dispose());
+    _note1Controller.removeListener(_updateButtonState);
+    _note2Controller.removeListener(_updateButtonState);
+    _note1Controller.dispose();
+    _note2Controller.dispose();
+    _customQuestionControllers.values
+        .forEach((controller) => controller.dispose());
     super.dispose();
   }
 
   // Data loading methods
   Future<void> _loadCompanionDetails() async {
     final companionId = widget.appointmentData['companionId'] as int?;
-    
+
     // Debug: Print the appointment data and companion ID
     print('🔍 Debug - appointmentData: ${widget.appointmentData}');
     print('🔍 Debug - companionId: $companionId');
     print('🔍 Debug - companionId type: ${companionId.runtimeType}');
-    
+
     if (companionId == null) {
       print('❌ Error - companionId is null, cannot load companion details');
-      print('🔍 Debug - Available keys in appointmentData: ${widget.appointmentData.keys.toList()}');
-      
+      print(
+          '🔍 Debug - Available keys in appointmentData: ${widget.appointmentData.keys.toList()}');
+
       // Try to find companionId in different possible formats
-      final possibleCompanionId = widget.appointmentData['companionId'] ?? 
-                                 widget.appointmentData['companion_id'] ?? 
-                                 widget.appointmentData['id'];
-      
+      final possibleCompanionId = widget.appointmentData['companionId'] ??
+          widget.appointmentData['companion_id'] ??
+          widget.appointmentData['id'];
+
       if (possibleCompanionId != null) {
         print('🔍 Debug - Found alternative companionId: $possibleCompanionId');
-        print('🔍 Debug - Alternative companionId type: ${possibleCompanionId.runtimeType}');
-        
+        print(
+            '🔍 Debug - Alternative companionId type: ${possibleCompanionId.runtimeType}');
+
         // Try to convert to int if it's a string
         int? convertedId;
         if (possibleCompanionId is String) {
@@ -121,32 +134,35 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         } else if (possibleCompanionId is int) {
           convertedId = possibleCompanionId;
         }
-        
+
         if (convertedId != null) {
-          print('🔍 Debug - Successfully converted companionId to int: $convertedId');
+          print(
+              '🔍 Debug - Successfully converted companionId to int: $convertedId');
           // Recursively call with the converted ID
           widget.appointmentData['companionId'] = convertedId;
           await _loadCompanionDetails();
           return;
         }
       }
-      
+
       setState(() => _isLoading = false);
       return;
     }
 
     try {
-      print('🔍 Debug - Calling getAppointmentCompanionDetails with ID: $companionId');
+      print(
+          '🔍 Debug - Calling getAppointmentCompanionDetails with ID: $companionId');
       final appointmentCubit = AppointmentCompanionCubit();
-      final details = await appointmentCubit.getAppointmentCompanionDetails(companionId);
-      
+      final details =
+          await appointmentCubit.getAppointmentCompanionDetails(companionId);
+
       print('🔍 Debug - Received companion details: $details');
-      
+
       setState(() {
         _companionDetails = details;
         _isLoading = false;
       });
-      
+
       print('🔍 Debug - Calling _generateAIResponse with ID: $companionId');
       await _generateAIResponse(companionId);
     } catch (e) {
@@ -169,14 +185,14 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       final appointmentCubit = AppointmentCompanionCubit();
       print('🔍 Debug - Calling generateAIResponse API');
       final aiResponse = await appointmentCubit.generateAIResponse(companionId);
-      
+
       print('🔍 Debug - Received AI response: $aiResponse');
-      
+
       setState(() {
         _aiResponseData = aiResponse;
         _isLoadingAIResponse = false;
       });
-      
+
       // Debug: Print updated data
       print('🔄 AI Response Updated: ${aiResponse?['symptoms_list']}');
       print('🔄 Symptoms List: ${_symptomsList}');
@@ -200,12 +216,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         _aiResponseData = {};
       }
       _hasUnsavedChanges = true;
-      
+
       // Helper function to ensure we have a List<String>
       List<String> ensureList(String key) {
         final data = _aiResponseData![key];
         if (data == null) return [];
-        
+
         if (data is List) {
           return data.cast<String>();
         } else if (data is String) {
@@ -219,7 +235,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         }
         return [];
       }
-      
+
       // Add the new question to the appropriate section
       switch (sectionKey) {
         case 'symptoms':
@@ -227,27 +243,28 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           final existingSymptoms = ensureList('symptoms_list');
           existingSymptoms.add(question);
           _aiResponseData!['symptoms_list'] = existingSymptoms;
-          
+
           // Also add to questions_symptoms for compatibility
           final existingQuestionsSymptoms = ensureList('questions_symptoms');
           existingQuestionsSymptoms.add(question);
           _aiResponseData!['questions_symptoms'] = existingQuestionsSymptoms;
-          
+
           // Debug: Print the updated lists
           print('🔄 Added custom symptom question: $question');
-          print('🔄 Updated symptoms_list: ${_aiResponseData!['symptoms_list']}');
+          print(
+              '🔄 Updated symptoms_list: ${_aiResponseData!['symptoms_list']}');
           break;
         case 'healthHistory':
           // Get existing questions and add new one
           final existingHistory = ensureList('history_list');
           existingHistory.add(question);
           _aiResponseData!['history_list'] = existingHistory;
-          
+
           // Also add to questions_history for compatibility
           final existingQuestionsHistory = ensureList('questions_history');
           existingQuestionsHistory.add(question);
           _aiResponseData!['questions_history'] = existingQuestionsHistory;
-          
+
           // Debug: Print the updated lists
           print('🔄 Added custom history question: $question');
           print('🔄 Updated history_list: ${_aiResponseData!['history_list']}');
@@ -257,15 +274,18 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           final existingConditions = ensureList('conditions_list');
           existingConditions.add(question);
           _aiResponseData!['conditions_list'] = existingConditions;
-          
+
           // Also add to questions_conditions for compatibility
-          final existingQuestionsConditions = ensureList('questions_conditions');
+          final existingQuestionsConditions =
+              ensureList('questions_conditions');
           existingQuestionsConditions.add(question);
-          _aiResponseData!['questions_conditions'] = existingQuestionsConditions;
-          
+          _aiResponseData!['questions_conditions'] =
+              existingQuestionsConditions;
+
           // Debug: Print the updated lists
           print('🔄 Added custom condition question: $question');
-          print('🔄 Updated conditions_list: ${_aiResponseData!['conditions_list']}');
+          print(
+              '🔄 Updated conditions_list: ${_aiResponseData!['conditions_list']}');
           break;
         case 'emotionalSupport':
           if (_aiResponseData!['emotional_support'] == null) {
@@ -276,25 +296,26 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           } else {
             _aiResponseData!['emotional_support'] = question;
           }
-          
+
           // Debug: Print the updated content
           print('🔄 Added custom emotional support: $question');
-          print('🔄 Updated emotional_support: ${_aiResponseData!['emotional_support']}');
+          print(
+              '🔄 Updated emotional_support: ${_aiResponseData!['emotional_support']}');
           break;
       }
     });
-    
+
     // Debug: Print the current state after adding question
     print('🔄 Current _symptomsList: ${_symptomsList}');
     print('🔄 Current _historyList: ${_historyList}');
     print('🔄 Current _conditionsList: ${_conditionsList}');
-    
+
     // Force a rebuild to ensure UI updates
     setState(() {});
-    
+
     // Clear the input field
     _customQuestionControllers[sectionKey]?.clear();
-    
+
     // Show success message
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,7 +343,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     setState(() {
       _hiddenQuestions[sectionKey]?.add(question);
     });
-    
+
     // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -339,7 +360,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         hiddenSet.clear();
       });
     });
-    
+
     // Show feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -354,8 +375,11 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     return _hiddenQuestions[sectionKey]?.contains(question) ?? false;
   }
 
-  List<String> _getVisibleQuestions(String sectionKey, List<String> allQuestions) {
-    return allQuestions.where((question) => !_isQuestionHidden(sectionKey, question)).toList();
+  List<String> _getVisibleQuestions(
+      String sectionKey, List<String> allQuestions) {
+    return allQuestions
+        .where((question) => !_isQuestionHidden(sectionKey, question))
+        .toList();
   }
 
   // Tag management methods
@@ -385,7 +409,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         _hasUnsavedChanges = true;
       });
       _newTagController.clear();
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -418,7 +442,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       default:
         return 0;
     }
-    
+
     return _hiddenQuestions[sectionKey]?.length ?? 0;
   }
 
@@ -447,7 +471,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       setState(() {
         _selectedDate = picked;
       });
-      
+
       // Update the API with the new date
       await _updateAppointmentDate(picked);
     }
@@ -466,7 +490,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Appointment date updated locally. Press Save to apply changes.'),
+          content: Text(
+              'Appointment date updated locally. Press Save to apply changes.'),
           backgroundColor: Colors.blue,
           duration: const Duration(seconds: 2),
         ),
@@ -484,10 +509,11 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       });
 
       final appointmentCubit = AppointmentCompanionCubit();
-      
+
       // Call the API to generate more like this responses
-      final moreLikeThisResponse = await appointmentCubit.generateMoreLikeThis(companionId);
-      
+      final moreLikeThisResponse =
+          await appointmentCubit.generateMoreLikeThis(companionId);
+
       if (moreLikeThisResponse != null) {
         // Update the AI response data with new content locally
         setState(() {
@@ -495,59 +521,83 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
             _aiResponseData = {};
           }
           _hasUnsavedChanges = true;
-          
+
           // Add new content to the appropriate section
           switch (sectionKey) {
             case 'symptoms':
-              final newSymptoms = moreLikeThisResponse['questions_symptoms'] ?? moreLikeThisResponse['symptoms_list'] ?? [];
+              final newSymptoms = moreLikeThisResponse['questions_symptoms'] ??
+                  moreLikeThisResponse['symptoms_list'] ??
+                  [];
               if (newSymptoms is List) {
                 final currentSymptoms = _symptomsList;
-                final allSymptoms = [...currentSymptoms, ...newSymptoms.cast<String>()];
+                final allSymptoms = [
+                  ...currentSymptoms,
+                  ...newSymptoms.cast<String>()
+                ];
                 // Update both keys to ensure compatibility
                 _aiResponseData!['symptoms_list'] = allSymptoms;
                 _aiResponseData!['questions_symptoms'] = allSymptoms;
-                
+
                 // Debug: Print the updated data
-                print('🔄 Generated more symptoms: ${newSymptoms.length} new questions');
+                print(
+                    '🔄 Generated more symptoms: ${newSymptoms.length} new questions');
                 print('🔄 Total symptoms now: ${allSymptoms.length}');
-                print('🔄 Updated symptoms_list: ${_aiResponseData!['symptoms_list']}');
+                print(
+                    '🔄 Updated symptoms_list: ${_aiResponseData!['symptoms_list']}');
               }
               break;
             case 'healthHistory':
-              final newHistory = moreLikeThisResponse['questions_history'] ?? moreLikeThisResponse['history_list'] ?? [];
+              final newHistory = moreLikeThisResponse['questions_history'] ??
+                  moreLikeThisResponse['history_list'] ??
+                  [];
               if (newHistory is List) {
                 final currentHistory = _historyList;
-                final allHistory = [...currentHistory, ...newHistory.cast<String>()];
+                final allHistory = [
+                  ...currentHistory,
+                  ...newHistory.cast<String>()
+                ];
                 // Update both keys to ensure compatibility
                 _aiResponseData!['history_list'] = allHistory;
                 _aiResponseData!['questions_history'] = allHistory;
-                
+
                 // Debug: Print the updated data
-                print('🔄 Generated more history: ${newHistory.length} new questions');
+                print(
+                    '🔄 Generated more history: ${newHistory.length} new questions');
                 print('🔄 Total history now: ${allHistory.length}');
-                print('🔄 Updated history_list: ${_aiResponseData!['history_list']}');
+                print(
+                    '🔄 Updated history_list: ${_aiResponseData!['history_list']}');
               }
               break;
             case 'condition':
-              final newConditions = moreLikeThisResponse['questions_conditions'] ?? moreLikeThisResponse['conditions_list'] ?? [];
+              final newConditions =
+                  moreLikeThisResponse['questions_conditions'] ??
+                      moreLikeThisResponse['conditions_list'] ??
+                      [];
               if (newConditions is List) {
                 final currentConditions = _conditionsList;
-                final allConditions = [...currentConditions, ...newConditions.cast<String>()];
+                final allConditions = [
+                  ...currentConditions,
+                  ...newConditions.cast<String>()
+                ];
                 // Update both keys to ensure compatibility
                 _aiResponseData!['conditions_list'] = allConditions;
                 _aiResponseData!['questions_conditions'] = allConditions;
-                
+
                 // Debug: Print the updated data
-                print('🔄 Generated more conditions: ${newConditions.length} new questions');
+                print(
+                    '🔄 Generated more conditions: ${newConditions.length} new questions');
                 print('🔄 Total conditions now: ${allConditions.length}');
-                print('🔄 Updated conditions_list: ${_aiResponseData!['conditions_list']}');
+                print(
+                    '🔄 Updated conditions_list: ${_aiResponseData!['conditions_list']}');
               }
               break;
             case 'emotionalSupport':
-              final newEmotionalSupport = moreLikeThisResponse['emotional_support'] ?? '';
+              final newEmotionalSupport =
+                  moreLikeThisResponse['emotional_support'] ?? '';
               if (newEmotionalSupport.isNotEmpty) {
                 final currentEmotionalSupport = _emotionalSupport ?? '';
-                _aiResponseData!['emotional_support'] = '$currentEmotionalSupport\n\n$newEmotionalSupport';
+                _aiResponseData!['emotional_support'] =
+                    '$currentEmotionalSupport\n\n$newEmotionalSupport';
               }
               break;
           }
@@ -556,17 +606,18 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Generated more questions for ${_getSectionDisplayName(sectionKey)}! Press Save to apply changes.'),
+              content: Text(
+                  'Generated more questions for ${_getSectionDisplayName(sectionKey)}! Press Save to apply changes.'),
               backgroundColor: Colors.blue,
               duration: const Duration(seconds: 3),
             ),
           );
         }
-        
+
         // Force a rebuild to show the new questions
         setState(() {});
       }
-      
+
       setState(() {
         _isLoading = false;
       });
@@ -574,7 +625,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -709,7 +760,10 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _selectedTags.map((tag) => _buildSelectedTagChip(tag, setModalState)).toList(),
+                      children: _selectedTags
+                          .map((tag) =>
+                              _buildSelectedTagChip(tag, setModalState))
+                          .toList(),
                     ),
                   ),
                 ],
@@ -776,7 +830,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   Widget _buildTagOption(String tag, StateSetter setModalState) {
     final isSelected = _selectedTags.contains(tag);
-    
+
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -911,6 +965,13 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     );
   }
 
+  void _updateButtonState() {
+    setState(() {
+      _hasUnsavedChanges = _note1Controller.text.trim().isNotEmpty ||
+          _note2Controller.text.trim().isNotEmpty;
+    });
+  }
+
   void _changeAppointmentName() {
     Navigator.of(context).pop(); // Close the menu
     _showChangeAppointmentNameDialog();
@@ -975,7 +1036,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                   _aiResponseData!['title'] = newName;
                   _hasUnsavedChanges = true;
                 });
-                
+
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1026,7 +1087,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => _buildTagManagementModal(setModalState),
+        builder: (context, setModalState) =>
+            _buildTagManagementModal(setModalState),
       ),
     );
   }
@@ -1090,7 +1152,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       });
 
       final appointmentCubit = AppointmentCompanionCubit();
-      final isDeleted = await appointmentCubit.deleteAppointmentCompanion(companionId);
+      final isDeleted =
+          await appointmentCubit.deleteAppointmentCompanion(companionId);
 
       setState(() {
         _isLoading = false;
@@ -1105,7 +1168,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Navigate back to previous screen after successful deletion
           Navigator.of(context).pop();
         }
@@ -1114,7 +1177,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Failed to delete appointment companion. Please try again.'),
+              content: Text(
+                  'Failed to delete appointment companion. Please try again.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -1124,11 +1188,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error deleting appointment companion: ${e.toString()}'),
+            content:
+                Text('Error deleting appointment companion: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1138,12 +1203,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   List<String> _parseDataToList(dynamic data) {
     if (data == null) return [];
-    
+
     // If it's already a List, cast it to List<String>
     if (data is List) {
       return data.cast<String>();
     }
-    
+
     // If it's a String, try to parse it as JSON
     if (data is String) {
       if (data.isEmpty) return [];
@@ -1154,7 +1219,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         return [];
       }
     }
-    
+
     return [];
   }
 
@@ -1169,54 +1234,72 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   }
 
   // Getters for AI response data
-  List<String> get _historyList => _parseDataToList(_aiResponseData?['history_list'] ?? _aiResponseData?['questions_history']);
-  List<String> get _symptomsList => _parseDataToList(_aiResponseData?['symptoms_list'] ?? _aiResponseData?['questions_symptoms']);
-  List<String> get _conditionsList => _parseDataToList(_aiResponseData?['conditions_list'] ?? _aiResponseData?['questions_conditions']);
+  List<String> get _historyList =>
+      _parseDataToList(_aiResponseData?['history_list'] ??
+          _aiResponseData?['questions_history']);
+  List<String> get _symptomsList =>
+      _parseDataToList(_aiResponseData?['symptoms_list'] ??
+          _aiResponseData?['questions_symptoms']);
+  List<String> get _conditionsList =>
+      _parseDataToList(_aiResponseData?['conditions_list'] ??
+          _aiResponseData?['questions_conditions']);
   String? get _emotionalSupport => _aiResponseData?['emotional_support'];
   String? get _appointmentDate {
     final dateStr = _aiResponseData?['appointment_date'];
     if (dateStr == null) return null;
-    
+
     // If it's already a full datetime, return as is
     if (dateStr.contains('T') || dateStr.contains(' ')) {
       return dateStr;
     }
-    
+
     // If it's just a date (YYYY-MM-DD), convert to full datetime
     if (dateStr.length == 10) {
       return '${dateStr}T00:00:00.000Z';
     }
-    
+
     return dateStr;
   }
+
   String? get _title => _aiResponseData?['title'];
 
   String _generatePersonalizedMessage() {
-    if (_aiResponseData?['introduction'] != null && _aiResponseData!['introduction'].isNotEmpty) {
+    if (_aiResponseData?['introduction'] != null &&
+        _aiResponseData!['introduction'].isNotEmpty) {
       return _aiResponseData!['introduction'];
     }
-    
+
     if (_companionDetails != null) {
-      final symptoms = _companionDetails!.importantSymptomsToDiscuss?.map((s) => s.description).toList() ?? [];
-      final stressors = _companionDetails!.lifeStressorsAffectingHealth?.map((s) => s.description).toList() ?? [];
-      
+      final symptoms = _companionDetails!.importantSymptomsToDiscuss
+              ?.map((s) => s.description)
+              .toList() ??
+          [];
+      final stressors = _companionDetails!.lifeStressorsAffectingHealth
+              ?.map((s) => s.description)
+              .toList() ??
+          [];
+
       if (symptoms.isNotEmpty || stressors.isNotEmpty) {
-        String message = "Based on your appointment companion data, here's your personalized preparation guide.";
-        
+        String message =
+            "Based on your appointment companion data, here's your personalized preparation guide.";
+
         if (symptoms.isNotEmpty) {
-          message += " You've noted concerns about ${symptoms.take(2).join(', ')}";
+          message +=
+              " You've noted concerns about ${symptoms.take(2).join(', ')}";
         }
-        
+
         if (stressors.isNotEmpty) {
-          message += " and mentioned life stressors including ${stressors.take(2).join(', ')}";
+          message +=
+              " and mentioned life stressors including ${stressors.take(2).join(', ')}";
         }
-        
-        message += ". Use the AI-generated questions below to prepare for your appointment and advocate for your health effectively.";
-        
+
+        message +=
+            ". Use the AI-generated questions below to prepare for your appointment and advocate for your health effectively.";
+
         return message;
       }
     }
-    
+
     return "Welcome to your appointment preparation guide. The AI has generated personalized questions to help you make the most of your medical appointment. Review the questions below and use them to advocate for your health effectively.";
   }
 
@@ -1238,7 +1321,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       });
 
       final appointmentCubit = AppointmentCompanionCubit();
-      
+
       // Prepare the request data with all current data including custom questions
       Map<String, dynamic> requestData = {
         'title': _title ?? 'Appointment Preparation Guide',
@@ -1246,14 +1329,16 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         'conditions_custom_questions': _conditionsList,
         'history_custom_questions': _historyList,
         'my_appointment_notes': [_emotionalSupport ?? ''],
-        'appointment_date': _selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        'appointment_date': _selectedDate?.toIso8601String() ??
+            DateTime.now().toIso8601String(),
         'post_appointment_notes': [],
         'tags': _selectedTags.toList(),
       };
 
       // Call the API to update the companion
-      await appointmentCubit.updateAppointmentCompanionCustom(companionId, requestData);
-      
+      await appointmentCubit.updateAppointmentCompanionCustom(
+          companionId, requestData);
+
       setState(() {
         _isLoading = false;
         _hasUnsavedChanges = false;
@@ -1271,11 +1356,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save appointment companion: ${e.toString()}'),
+            content:
+                Text('Failed to save appointment companion: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1304,7 +1390,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                     children: [
                       _buildHeader(),
                       _buildTabSelector(),
-                      _isCompanionTabSelected 
+                      _isCompanionTabSelected
                           ? _buildCompanionContent()
                           : _buildPostVisitContent(),
                     ],
@@ -1340,7 +1426,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           child: Text(
             'Save',
             style: AppOSTextStyles.osMd.copyWith(
-              color: _hasUnsavedChanges ? AppColors.amethyst : AppColors.gray400,
+              color:
+                  _hasUnsavedChanges ? AppColors.amethyst : AppColors.gray400,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1382,12 +1469,14 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     // Format the date properly
     String displayDate = 'Select Date';
     if (_selectedDate != null) {
-      displayDate = '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}';
+      displayDate =
+          '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}';
     } else if (_appointmentDate != null) {
       // Parse the existing appointment date if available
       try {
         final existingDate = DateTime.parse(_appointmentDate!);
-        displayDate = '${existingDate.day}/${existingDate.month}/${existingDate.year}';
+        displayDate =
+            '${existingDate.day}/${existingDate.month}/${existingDate.year}';
         // Set the selected date to the existing date
         if (_selectedDate == null) {
           _selectedDate = existingDate;
@@ -1412,7 +1501,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today, size: 16, color: AppColors.primary01),
+            const Icon(Icons.calendar_today,
+                size: 16, color: AppColors.primary01),
             const SizedBox(width: 8),
             Text(
               'Appointment: $displayDate',
@@ -1422,7 +1512,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.arrow_drop_down, size: 16, color: AppColors.primary01),
+            const Icon(Icons.arrow_drop_down,
+                size: 16, color: AppColors.primary01),
           ],
         ),
       ),
@@ -1438,7 +1529,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _selectedTags.map((tag) => _buildHeaderTagChip(tag)).toList(),
+            children:
+                _selectedTags.map((tag) => _buildHeaderTagChip(tag)).toList(),
           ),
           const SizedBox(height: 12),
         ],
@@ -1449,9 +1541,10 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           child: Row(
             children: [
               CircleAvatar(
-                radius: 12,
-                backgroundColor: Colors.white.withOpacity(0.9),
-                child: Icon(Icons.add, size: 16, color: AppColors.amethyst)),
+                  radius: 12,
+                  backgroundColor: Colors.white.withOpacity(0.9),
+                  child: const Icon(Icons.add,
+                      size: 16, color: AppColors.amethyst)),
               const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1461,7 +1554,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                 ),
                 child: Text(
                   'Add tag',
-                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(color: AppColors.amethyst),
+                  style: AppOSTextStyles.osSmSemiboldLabel
+                      .copyWith(color: AppColors.amethyst),
                 ),
               ),
             ],
@@ -1535,14 +1629,15 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected 
+            color: isSelected
                 ? AppColors.backgroundHighlighted.withOpacity(0.3)
                 : Colors.transparent,
             borderRadius: BorderRadius.only(
               topLeft: isSelected ? const Radius.circular(20) : Radius.zero,
               bottomLeft: isSelected ? const Radius.circular(20) : Radius.zero,
               topRight: !isSelected ? const Radius.circular(20) : Radius.zero,
-              bottomRight: !isSelected ? const Radius.circular(20) : Radius.zero,
+              bottomRight:
+                  !isSelected ? const Radius.circular(20) : Radius.zero,
             ),
           ),
           child: Text(
@@ -1600,7 +1695,6 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   Widget _buildQuestionsSection() {
     return Container(
-      
       padding: const EdgeInsets.all(20),
       decoration: AppColors.glassCardDecoration.copyWith(
         color: Colors.white.withOpacity(0.48),
@@ -1649,11 +1743,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   ) {
     final isExpanded = _expandedSections[sectionKey] ?? false;
     final visibleQuestions = _getVisibleQuestions(sectionKey, questions);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(title, isExpanded, () => _toggleSection(sectionKey)),
+        _buildSectionHeader(
+            title, isExpanded, () => _toggleSection(sectionKey)),
         if (isExpanded) ...[
           const SizedBox(height: 12),
           _buildMoreLikeThisButton(sectionKey),
@@ -1661,7 +1756,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
           if (isLoading)
             _buildLoadingIndicator()
           else if (visibleQuestions.isNotEmpty)
-            ...visibleQuestions.map((question) => _buildQuestionCard(sectionKey, question))
+            ...visibleQuestions
+                .map((question) => _buildQuestionCard(sectionKey, question))
           else if (questions.isNotEmpty && visibleQuestions.isEmpty)
             _buildAllQuestionsHiddenMessage()
           else
@@ -1676,12 +1772,14 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
   Widget _buildEmotionalSupportSection() {
     final isExpanded = _expandedSections['emotionalSupport'] ?? false;
     final emotionalSupportContent = _emotionalSupport ?? '';
-    final isHidden = _isQuestionHidden('emotionalSupport', emotionalSupportContent);
-    
+    final isHidden =
+        _isQuestionHidden('emotionalSupport', emotionalSupportContent);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Emotional Support', isExpanded, () => _toggleSection('emotionalSupport')),
+        _buildSectionHeader('Emotional Support', isExpanded,
+            () => _toggleSection('emotionalSupport')),
         if (isExpanded) ...[
           const SizedBox(height: 12),
           _buildMoreLikeThisButton('emotionalSupport'),
@@ -1697,7 +1795,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     );
   }
 
-  Widget _buildSectionHeader(String title, bool isExpanded, VoidCallback onTap) {
+  Widget _buildSectionHeader(
+      String title, bool isExpanded, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1724,7 +1823,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                   if (_getHiddenCount(title) > 0) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.gray300,
                         borderRadius: BorderRadius.circular(10),
@@ -1909,12 +2009,11 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   Widget _buildCustomQuestionInput(String sectionKey) {
     final controller = _customQuestionControllers[sectionKey];
-    
+
     return Column(
       children: [
         Row(
           children: [
-
             const SizedBox(width: 8),
             Text(
               'Add custom question',
@@ -1939,11 +2038,12 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                   controller: controller,
                   decoration: InputDecoration(
                     hintText: 'Type your question and press Enter',
-                    
                     border: InputBorder.none,
-                    hintStyle: AppOSTextStyles.osMd.copyWith(color: AppColors.gray400),
+                    hintStyle:
+                        AppOSTextStyles.osMd.copyWith(color: AppColors.gray400),
                   ),
-                  style: AppOSTextStyles.osMd.copyWith(color: AppColors.tertiaryBtnTxt),
+                  style: AppOSTextStyles.osMd
+                      .copyWith(color: AppColors.tertiaryBtnTxt),
                   onSubmitted: (question) {
                     if (question.trim().isNotEmpty) {
                       _addCustomQuestion(sectionKey, question.trim());
@@ -1988,9 +2088,11 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                   decoration: InputDecoration(
                     hintText: 'Add question',
                     border: InputBorder.none,
-                    hintStyle: AppOSTextStyles.osMd.copyWith(color: AppColors.gray400),
+                    hintStyle:
+                        AppOSTextStyles.osMd.copyWith(color: AppColors.gray400),
                   ),
-                  style: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+                  style:
+                      AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
                 ),
               ),
             ],
@@ -2049,24 +2151,24 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     final List<TextSpan> spans = [];
     final RegExp boldPattern = RegExp(r'\*\*(.*?)\*\*');
     int lastIndex = 0;
-    
+
     for (final Match match in boldPattern.allMatches(text)) {
       if (match.start > lastIndex) {
         spans.add(TextSpan(text: text.substring(lastIndex, match.start)));
       }
-      
+
       spans.add(TextSpan(
         text: match.group(1),
         style: const TextStyle(fontWeight: FontWeight.bold),
       ));
-      
+
       lastIndex = match.end;
     }
-    
+
     if (lastIndex < text.length) {
       spans.add(TextSpan(text: text.substring(lastIndex)));
     }
-    
+
     return spans;
   }
 
@@ -2096,8 +2198,10 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   Widget _buildPostVisitQuestionsSection() {
     final allQuestions = ['postVisit1', 'postVisit2'];
-    final visibleQuestions = allQuestions.where((key) => !_isQuestionHidden('postVisit', key)).toList();
-    
+    final visibleQuestions = allQuestions
+        .where((key) => !_isQuestionHidden('postVisit', key))
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2109,15 +2213,16 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
             _buildPostVisitQuestion(
               'postVisit1',
               'How did you feel during the appointment? Did you feel truly heard and understood by your doctor? Reflecting on this can help you decide if this is the right healthcare partner for your ongoing journey',
-              'Add notes',
+              'Add notes and press Enter',
             ),
-            if (visibleQuestions.contains('postVisit2')) const SizedBox(height: 24),
+            if (visibleQuestions.contains('postVisit2'))
+              const SizedBox(height: 24),
           ],
           if (visibleQuestions.contains('postVisit2'))
             _buildPostVisitQuestion(
               'postVisit2',
               'Based on today\'s conversation, what are the two most important immediate next steps you need to take (e.g., scheduling labs, starting a new treatment, researching a referral)? Writing these down can help you feel in control and clarify your path forward.',
-              'Add notes',
+              'Add notes and press Enter',
             ),
         ] else ...[
           _buildAllQuestionsHiddenMessage(),
@@ -2128,7 +2233,7 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   Widget _buildPostVisitSectionHeader() {
     final hiddenCount = _getHiddenCount('Post appointment questions');
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
@@ -2153,7 +2258,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
                 if (hiddenCount > 0) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.gray300,
                       borderRadius: BorderRadius.circular(10),
@@ -2176,13 +2282,14 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     );
   }
 
-  Widget _buildPostVisitQuestion(String questionKey, String questionText, String placeholder) {
+  Widget _buildPostVisitQuestion(
+      String questionKey, String questionText, String placeholder) {
     final isHidden = _isQuestionHidden('postVisit', questionKey);
-    
+
     if (isHidden) {
       return _buildHiddenPostVisitQuestion(questionKey, questionText);
     }
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -2229,16 +2336,21 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
               children: [
                 Expanded(
                   child: TextField(
+                    controller: questionKey == 'postVisit1'
+                        ? _note1Controller
+                        : _note2Controller,
                     decoration: InputDecoration(
                       hintText: placeholder,
                       border: InputBorder.none,
-                      hintStyle: AppOSTextStyles.osMd.copyWith(color: AppColors.gray400),
+                      hintStyle: AppOSTextStyles.osMd
+                          .copyWith(color: AppColors.gray400),
                     ),
-                    style: AppOSTextStyles.osMd.copyWith(color: AppColors.primary01),
+                    style: AppOSTextStyles.osMd
+                        .copyWith(color: AppColors.primary01),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
+                const Icon(
                   Icons.mic,
                   size: 20,
                   color: AppColors.gray400,
@@ -2251,7 +2363,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     );
   }
 
-  Widget _buildHiddenPostVisitQuestion(String questionKey, String questionText) {
+  Widget _buildHiddenPostVisitQuestion(
+      String questionKey, String questionText) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -2319,56 +2432,68 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
     if (_companionDetails == null) {
       return const Center(child: Text('No appointment details available'));
     }
-    
+
     final details = _companionDetails!;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (details.typeOfVisitOrExam != null) ...[
-            _buildDetailSection('Appointment Type', details.typeOfVisitOrExam!.description),
+            _buildDetailSection(
+                'Appointment Type', details.typeOfVisitOrExam!.description),
             const SizedBox(height: 16),
           ],
           if (details.typeOfDoctorProvider != null) ...[
-            _buildDetailSection('Care Provider', details.typeOfDoctorProvider!.description),
+            _buildDetailSection(
+                'Care Provider', details.typeOfDoctorProvider!.description),
             const SizedBox(height: 16),
           ],
           if (details.mainReasonForVisit != null) ...[
-            _buildDetailSection('Main Reason for Visit', details.mainReasonForVisit!.description),
+            _buildDetailSection('Main Reason for Visit',
+                details.mainReasonForVisit!.description),
             const SizedBox(height: 16),
           ],
           if (details.importantSymptomsToDiscuss?.isNotEmpty == true) ...[
             _buildDetailSection(
               'Important Symptoms to Discuss',
-              details.importantSymptomsToDiscuss!.map((s) => s.description).join(', '),
+              details.importantSymptomsToDiscuss!
+                  .map((s) => s.description)
+                  .join(', '),
             ),
             const SizedBox(height: 16),
           ],
           if (details.lifeStressorsAffectingHealth?.isNotEmpty == true) ...[
             _buildDetailSection(
               'Life Stressors',
-              details.lifeStressorsAffectingHealth!.map((s) => s.description).join(', '),
+              details.lifeStressorsAffectingHealth!
+                  .map((s) => s.description)
+                  .join(', '),
             ),
             const SizedBox(height: 16),
           ],
           if (details.journeyWithThisConcern != null) ...[
-            _buildDetailSection('Journey with This Concern', details.journeyWithThisConcern!.description),
+            _buildDetailSection('Journey with This Concern',
+                details.journeyWithThisConcern!.description),
             const SizedBox(height: 16),
           ],
           if (details.prioritizeYourConcerns != null) ...[
-            _buildDetailSection('Priority Concerns', details.prioritizeYourConcerns!.description),
+            _buildDetailSection('Priority Concerns',
+                details.prioritizeYourConcerns!.description),
             const SizedBox(height: 16),
           ],
           if (details.symptomsBeenChangingOverTime != null) ...[
-            _buildDetailSection('Symptoms Changing Over Time', details.symptomsBeenChangingOverTime!.description),
+            _buildDetailSection('Symptoms Changing Over Time',
+                details.symptomsBeenChangingOverTime!.description),
             const SizedBox(height: 16),
           ],
           if (details.communicateWithYourHealthcare?.isNotEmpty == true) ...[
             _buildDetailSection(
               'Communication Preferences',
-              details.communicateWithYourHealthcare!.map((s) => s.description).join(', '),
+              details.communicateWithYourHealthcare!
+                  .map((s) => s.description)
+                  .join(', '),
             ),
             const SizedBox(height: 16),
           ],
@@ -2393,7 +2518,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
             const SizedBox(height: 16),
           ],
           if (details.updatedAt != null) ...[
-            _buildDetailSection('Last Updated', _formatDate(details.updatedAt!)),
+            _buildDetailSection(
+                'Last Updated', _formatDate(details.updatedAt!)),
           ],
         ],
       ),
@@ -2414,7 +2540,8 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
         children: [
           Text(
             title,
-            style: AppOSTextStyles.osMdSemiboldTitle.copyWith(color: AppColors.primary01),
+            style: AppOSTextStyles.osMdSemiboldTitle
+                .copyWith(color: AppColors.primary01),
           ),
           const SizedBox(height: 8),
           Text(
@@ -2428,8 +2555,18 @@ class _AppointmentCompanionScreenState extends State<AppointmentCompanionScreen>
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
