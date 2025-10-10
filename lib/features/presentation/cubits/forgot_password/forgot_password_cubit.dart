@@ -14,10 +14,10 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     try {
       emit(ForgotPasswordLoading());
       _email = email; // Store email for reset password step
-      final response = await _apiClient.post(
+      await _apiClient.post(
         '/api/v1/auth/forgot-password',
         data: {
-          'email': email,
+          'email_address': email,
         },
       );
       emit(EmailSent());
@@ -36,10 +36,10 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
         throw Exception('Email not found. Please try again.');
       }
       
-      final response = await _apiClient.post(
+      await _apiClient.post(
         '/api/v1/auth/reset-password',
         data: {
-          'email': _email,
+          'email_address': _email,
           'otp': otp,
           'new_password': newPassword,
         },

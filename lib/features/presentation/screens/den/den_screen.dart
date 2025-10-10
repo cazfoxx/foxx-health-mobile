@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 
 class DenScreen extends StatefulWidget {
   const DenScreen({Key? key}) : super(key: key);
@@ -55,7 +56,7 @@ class _DenScreenState extends State<DenScreen> with SingleTickerProviderStateMix
       'userAvatar': 'assets/images/cat_avatar.png',
       'pronouns': 'she/her',
       'postedIn': 'Autoimmune Den',
-      'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris ni aliqui...',
+      'content': 'I\'ve been dealing with autoimmune issues for the past year and wanted to share my experience with managing symptoms through diet and lifestyle changes. It\'s been a journey, but I\'ve found some helpful strategies...',
       'hashtags': ['#Autoimmune', '#Gut'],
       'likes': 32,
       'comments': 8,
@@ -69,7 +70,7 @@ class _DenScreenState extends State<DenScreen> with SingleTickerProviderStateMix
       'userAvatar': 'assets/images/cat_avatar.png',
       'pronouns': 'she/her',
       'postedIn': 'Heart Health',
-      'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      'content': 'Heart health is so important for women, especially as we age. I wanted to share some insights from my recent check-up and the lifestyle changes my doctor recommended. Regular exercise and monitoring have made such a difference in how I feel.',
       'hashtags': ['#Autoimmue', '#Gut'],
       'likes': 32,
       'comments': 8,
@@ -104,6 +105,119 @@ class _DenScreenState extends State<DenScreen> with SingleTickerProviderStateMix
             (post['hashtags'] as List<String>).any((tag) =>
                 tag.toLowerCase().contains(_searchQuery.toLowerCase())))
         .toList();
+  }
+
+  void _showCommentDialog(Map<String, dynamic> post) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Comments on ${post['userName']}\'s post'),
+          content: Container(
+            width: double.maxFinite,
+            height: 300,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
+                      // Sample comments
+                      _buildCommentItem('SarahM', 'Thanks for sharing this! I\'ve been dealing with similar issues.'),
+                      _buildCommentItem('HealthJourney', 'This is really helpful information.'),
+                      _buildCommentItem('WellnessSeeker', 'I can relate to this experience.'),
+                      _buildCommentItem('FitLife', 'Great insights, thank you!'),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Add a comment...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {
+                        // Handle comment submission
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Comment posted successfully!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.send),
+                      color: AppColors.amethystViolet,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCommentItem(String username, String comment) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: AppColors.amethystViolet.withOpacity(0.2),
+            child: Text(
+              username[0].toUpperCase(),
+              style: TextStyle(
+                color: AppColors.amethystViolet,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username,
+                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  comment,
+                  style: AppOSTextStyles.osSmSemiboldBody.copyWith(
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -518,21 +632,26 @@ class _DenScreenState extends State<DenScreen> with SingleTickerProviderStateMix
               const SizedBox(width: 24),
               
               // Comment button
-              Row(
-                children: [
-                  Icon(
-                    Icons.comment_outlined,
-                    color: Colors.grey[600],
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${post['comments']}',
-                    style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                      color: Colors.black,
+              GestureDetector(
+                onTap: () {
+                  _showCommentDialog(post);
+                },
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.comment_outlined,
+                      color: Colors.grey[600],
+                      size: 20,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      '${post['comments']}',
+                      style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               
               Spacer(),

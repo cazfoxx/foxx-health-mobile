@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/network/api_logger_interceptor.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get.dart' as getx;
 import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
@@ -169,10 +170,13 @@ class LoggerInterceptor extends Interceptor {
     );
 
     if (err.response?.statusCode == 401) {
-      // Only clear credentials and redirect to login for certain endpoints
-      // Don't clear credentials for onboarding endpoint as it might be a server-side issue
       final path = err.requestOptions.path;
-      if (!path.contains('/api/v1/accounts/me/onboarding')) {
+      
+      // Don't clear credentials for auth endpoints or onboarding endpoint
+      final isAuthEndpoint = AuthInterceptor.noAuthEndpoints.any((endpoint) => path.contains(endpoint));
+      final isOnboardingEndpoint = path.contains('/api/v1/accounts/me/onboarding');
+      
+      if (!isAuthEndpoint && !isOnboardingEndpoint) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         GetStorage().erase();
@@ -180,14 +184,11 @@ class LoggerInterceptor extends Interceptor {
         await AppStorage.clearCredentials();
         Navigator.of(getx.Get.context!).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => LoginScreen(
-                showBackButton: false,
-                isSign: true,
-              ),
+              builder: (context) => const SplashScreen(),
             ),
             (route) => false);
       } else {
-        ApiClient.logger.w('⚠️ 401 error on onboarding endpoint - not clearing credentials');
+        ApiClient.logger.w('⚠️ 401 error on ${isAuthEndpoint ? 'auth' : 'onboarding'} endpoint - not clearing credentials');
       }
     }
 
@@ -212,18 +213,24 @@ class LoggerInterceptor extends Interceptor {
 
 class AuthInterceptor extends Interceptor {
   // List of endpoints that don't require authentication
-  static const List<String> _noAuthEndpoints = [];
+  static const List<String> noAuthEndpoints = [
+    '/api/v1/auth/register',
+    '/api/v1/auth/verify-registration-otp',
+    '/api/v1/auth/login',
+    '/api/v1/auth/forgot-password',
+    '/api/v1/auth/reset-password',
+  ];
 
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     // Check if this endpoint requires authentication
-    final requiresAuth = !_noAuthEndpoints.any((endpoint) => 
+    final requiresAuth = !noAuthEndpoints.any((endpoint) => 
         options.path.contains(endpoint));
     
     ApiClient.logger.d('🔍 AuthInterceptor - Path: ${options.path}');
     ApiClient.logger.d('🔍 AuthInterceptor - Requires Auth: $requiresAuth');
-    ApiClient.logger.d('🔍 AuthInterceptor - No Auth Endpoints: $_noAuthEndpoints');
+    ApiClient.logger.d('🔍 AuthInterceptor - No Auth Endpoints: $noAuthEndpoints');
     
     if (requiresAuth) {
       // First try to get token from AppStorage
@@ -262,11 +269,16 @@ class AuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
       final path = err.requestOptions.path;
-      if (!path.contains('/api/v1/accounts/me/onboarding')) {
+      
+      // Don't clear credentials for auth endpoints or onboarding endpoint
+      final isAuthEndpoint = noAuthEndpoints.any((endpoint) => path.contains(endpoint));
+      final isOnboardingEndpoint = path.contains('/api/v1/accounts/me/onboarding');
+      
+      if (!isAuthEndpoint && !isOnboardingEndpoint) {
         await AppStorage.clearCredentials();
         ApiClient.logger.w('🔑 Token expired or invalid. Clearing credentials.');
       } else {
-        ApiClient.logger.w('🔑 401 error on onboarding endpoint - not clearing credentials in AuthInterceptor');
+        ApiClient.logger.w('🔑 401 error on ${isAuthEndpoint ? 'auth' : 'onboarding'} endpoint - not clearing credentials in AuthInterceptor');
       }
     }
     super.onError(err, handler);
@@ -277,9 +289,16 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     String errorMessage = 'An error occurred';
+    final path = err.requestOptions.path;
+    final isAuthEndpoint = AuthInterceptor.noAuthEndpoints.any((endpoint) => path.contains(endpoint));
 
     if (err.response?.statusCode == 401) {
-      errorMessage = 'Session has expired please login again';
+      // For auth endpoints, show the specific error message from the API
+      if (isAuthEndpoint && err.response?.data != null && err.response?.data is Map) {
+        errorMessage = err.response?.data['detail'] ?? 'Authentication failed';
+      } else {
+        errorMessage = 'Session has expired please login again';
+      }
     } else if (err.response?.data != null && err.response?.data is Map) {
       errorMessage = err.response?.data['detail'] ??
           err.response?.data['message'] ??
