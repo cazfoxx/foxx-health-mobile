@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
           child: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.textBoxHorizontal,
+                horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
               ),
               child: Column(
                 children: [
@@ -90,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   // Welcome Text
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.textBoxHorizontal,
+                    horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
                   ),
                   child: Text(
                     'Welcome to FoXX',
@@ -204,7 +204,7 @@ class _CarouselWithDotsState extends State<_CarouselWithDots> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.textBoxHorizontal,
+                    horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
                   ),
                   child: Text(
                     'FoXX exists because women deserve better. Better answers, better tools, and care that actually listens.',
@@ -222,7 +222,7 @@ class _CarouselWithDotsState extends State<_CarouselWithDots> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.textBoxHorizontal,
+                    horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
                   ),
                   child: Text(
                     'We\'ll start with a few questions, and your answers help us give you support that\'s truly personal.\n\nEvery detail matters. Your story, your experience, and your body all deserve to be understood.\n\nWe\'ll keep what you share safe, and always use it with care.',
@@ -240,7 +240,7 @@ class _CarouselWithDotsState extends State<_CarouselWithDots> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.textBoxHorizontal,
+                    horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
                   ),
                   child: Text(
                     'At the end of setup, you\'ll enter your payment details to begin your free trial. You\'re in control - no charge until it ends, and you can cancel anytime.',
@@ -258,7 +258,7 @@ class _CarouselWithDotsState extends State<_CarouselWithDots> {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.textBoxHorizontal,
+                    horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
                   ),
                   child: Text(
                     'FoXX exists because women deserve better. Better answers, better tools, and care that actually listens.',

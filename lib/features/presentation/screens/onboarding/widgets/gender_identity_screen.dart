@@ -3,7 +3,9 @@ import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
+import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 
 class GenderIdentityScreen extends StatefulWidget {
   final VoidCallback? onNext;
@@ -108,52 +110,46 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _description.split('?')[0] + '?',
-                style: AppHeadingTextStyles.h4,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _description.split('?').length > 1 ? _description.split('?')[1] : '',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color:AppColors.textPrimary),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ..._genderOptions.map(_buildGenderOption).toList(),
-                      _buildSelfDescribeField(),
-                    ],
+    return Foxxbackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Padding(
+            padding: AppSpacing.safeAreaContentPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select your gender identity',
+                  style: AppTypography.bodyMd,
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ..._genderOptions.map(_buildGenderOption).toList(),
+                        _buildSelfDescribeField(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              
-              SizedBox(
-                width: double.infinity,
-                child: 
-                FoxxNextButton(
-                  isEnabled: getSelectedGender() != null,
-                  onPressed: () {
-                    final selectedGender = getSelectedGender();
-                    if (selectedGender != null) {
-                      widget.onDataUpdate?.call(selectedGender);
-                    }
-                    widget.onNext?.call();
-                  },
-                  text: 'Next'),
-             
-              ),
-            ],
+                SizedBox(
+                  width: double.infinity,
+                  child: FoxxNextButton(
+                    isEnabled: getSelectedGender() != null,
+                    onPressed: () {
+                      final selectedGender = getSelectedGender();
+                      if (selectedGender != null) {
+                        widget.onDataUpdate?.call(selectedGender);
+                      }
+                      widget.onNext?.call();
+                    },
+                    text: 'Next',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

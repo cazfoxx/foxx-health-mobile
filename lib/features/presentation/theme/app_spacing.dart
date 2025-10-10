@@ -25,6 +25,7 @@ class AppSpacing {
   static const double s36 = 36;
   static const double s40 = 40;
   static const double s48 = 48;
+  static const double s52 = 52;
   static const double s56 = 56;
   static const double s64 = 64;
   static const double s72 = 72;
@@ -51,12 +52,19 @@ class AppSpacing {
   // ============================
   // EdgeInsets helpers for common patterns.
 
+  // SafeArea content padding tokens
+  static const EdgeInsets safeAreaContentPadding = EdgeInsets.all(s16);
+  static const EdgeInsets safeAreaHorizontalPadding = EdgeInsets.symmetric(horizontal: s16);
+  static const double appBarHeight = 56.0;
+
   // Component semantics
   static const double stackedButtons = s12; // standard gap between stacked buttons
   static const double fullWidthButtonsHorizontal = s16; // side padding for full-width buttons
-  static const double textBoxHorizontal = s20; // side padding for generic text boxes
+  static const double textBoxHorizontalNoSafeArea = s20; // side padding for generic text boxes on page that DO NOT use safe area
   static const double paragraphSpacing = s4; // spacing between paragraph and subsequent content
-  
+  static const double textBoxHorizontalWidget = s4; // side padding for generic text boxes on page that use safe area
+
+
   // Bottom navigation bar padding: 16 top/left/right, 20 bottom
   static const EdgeInsets bottomBarPadding = EdgeInsets.fromLTRB(s16, s16, s16, s20);
 
@@ -71,6 +79,8 @@ class AppSpacing {
     double right = 0,
     double bottom = 0,
   }) => EdgeInsets.only(left: left, top: top, right: right, bottom: bottom);
+
+
 }
 
 /// Radius tokens (combined into spacing file for centralization).

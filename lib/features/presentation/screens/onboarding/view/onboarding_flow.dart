@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
@@ -23,6 +24,17 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 
+abstract class HasNextButtonState {
+  NextButtonState getNextButtonState();
+}
+
+class NextButtonState {
+  final bool show;
+  final VoidCallback? onPressed;
+
+  const NextButtonState({required this.show, required this.onPressed});
+}
+
 class OnboardingFlow extends StatefulWidget {
   final String email;
   final String password;
@@ -35,8 +47,10 @@ class OnboardingFlow extends StatefulWidget {
 }
 
 class _OnboardingFlowState extends State<OnboardingFlow> {
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  final ValueNotifier<bool> _canProceedNotifier = ValueNotifier<bool>(true);
 
   // API Data
   List<OnboardingQuestion> _questions = [];
@@ -69,8 +83,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   @override
   void dispose() {
     _pageController.dispose();
+
     super.dispose();
   }
+
 
   Future<void> _loadQuestions() async {
     try {
@@ -94,8 +110,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   void _nextPage() {
-    if (_currentPage < 13) {
-      // Updated to include all 14 screens (0-13)
+    if (_currentPage < screens.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -175,10 +190,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             builder: (context) => OTPVerificationSheet(
               email: widget.email,
               onSuccess: () async {
-                // Close the bottom sheet
                 Navigator.of(context).pop();
-                
-                // After successful OTP verification and login, proceed with onboarding
                 await _completeOnboardingAfterLogin(onboardingCubit);
               },
             ),
@@ -387,6 +399,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         .setPrivacyPolicyAccepted(dataPrivacyAccepted);
   }
 
+  PreferredSizeWidget? _headerForPage() {
+    return null;
+  }
+
   List<Widget> get screens => [
         UsernameScreen(onNext: _nextPage, onDataUpdate: _updateUsername),
         GenderIdentityScreen(
@@ -451,7 +467,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             backgroundColor: Colors.transparent,
             appBar: _currentPage > 0
                 ? AppBar(
-                    backgroundColor: Colors.white.withOpacity(0.4),
+                    backgroundColor: Colors.transparent,
+                    surfaceTintColor: AppColors.backgroundTopNav,
                     elevation: 0,
                     leading: FoxxBackButton(onPressed: _previousPage),
                     title: Container(
@@ -472,52 +489,98 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     actions: [
                       SizedBox(width: 50),
                     ],
+                    bottom: _headerForPage(),
                   )
                 : null,
             body: SafeArea(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Error: $_error'),
-                              ElevatedButton(
-                                onPressed: _loadQuestions,
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        )
-                      : _isCreatingAccount
-                          ? const Center(
+              top: false,
+              child: Stack(
+                children: [
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircularProgressIndicator(),
-                                  SizedBox(height: 16),
-                                  Text('Creating your account...'),
-                                  SizedBox(height: 8),
-                                  Text(
-                                      'Please wait while we set up your profile',
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey)),
+                                  Text('Error: $_error'),
+                                  ElevatedButton(
+                                    onPressed: _loadQuestions,
+                                    child: const Text('Retry'),
+                                  ),
                                 ],
                               ),
                             )
-                          : PageView(
-                              controller: _pageController,
-                              physics: const NeverScrollableScrollPhysics(),
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPage = index;
-                                });
-                              },
-                              children: screens,
+                          : _isCreatingAccount
+                              ? const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CircularProgressIndicator(),
+                                      SizedBox(height: 16),
+                                      Text('Creating your account...'),
+                                    ],
+                                  ),
+                                )
+                              : PageView.builder(
+                                  controller: _pageController,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  onPageChanged: (index) => setState(() => _currentPage = index),
+                                  itemCount: screens.length,
+                                  itemBuilder: (context, index) {
+                                    final child = screens[index];
+                                    return (index == 9)
+                                        ? SingleChildScrollView(
+                                            padding: AppSpacing.safeAreaHorizontalPadding,
+                                            child: Builder(
+                                              builder: (context) => child,
+                                            ),
+                                          )
+                                        : Padding(
+                                            padding: EdgeInsets.zero,
+                                            child: child,
+                                          );
+                                  },
+                                ),
+                  if (!_isLoading && !_isCreatingAccount && _error == null)
+                    Positioned(
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                      left: 16,
+                      right: 16,
+                      child: Builder(
+                        builder: (context) {
+                          final currentChild = screens[_currentPage];
+                          bool showButton = false;
+                          VoidCallback? onPressed;
+
+                          if (currentChild is HasNextButtonState) {
+                            final state =
+                                (currentChild as HasNextButtonState).getNextButtonState();
+                            showButton = state.show;
+                            onPressed = state.onPressed;
+                          } else {
+                            // Default behavior
+                            showButton = true;
+                            onPressed = _nextPage;
+                          }
+
+                          return AnimatedOpacity(
+                            opacity: showButton ? 1 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Visibility(
+                              visible: showButton,
+                              child: FoxxNextButton(
+                                text: 'Next',
+                                isEnabled: true,
+                                onPressed: onPressed,
+                              ),
                             ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

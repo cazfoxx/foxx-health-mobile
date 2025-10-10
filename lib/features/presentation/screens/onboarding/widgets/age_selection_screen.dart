@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 
@@ -50,7 +50,7 @@ class _AgeSelectionRevampScreenState extends State<AgeSelectionRevampScreen> {
   Widget build(BuildContext context) {
     return  SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: AppSpacing.safeAreaContentPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

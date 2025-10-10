@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:foxxhealth/features/presentation/widgets/neumorphic.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_neumorphic.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 
 class LocationScreen extends StatefulWidget {
   final VoidCallback? onNext;
@@ -203,7 +204,7 @@ class _LocationScreenState extends State<LocationScreen> {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: AppSpacing.safeAreaContentPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -217,7 +218,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   style: AppTextStyles.bodyOpenSans.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 24),
-                NeumorphicCard(
+                FoxxNeumorphicCard(
                   isSelected: false,
                   onTap: _showStateSelector,
 

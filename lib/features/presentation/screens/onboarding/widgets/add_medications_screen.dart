@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 
 class AddMedicationsScreen extends StatefulWidget {
@@ -90,86 +92,90 @@ class _AddMedicationsScreenState extends State<AddMedicationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Add your medications or supplements',
-                style: AppHeadingTextStyles.h4,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'If you\'re not sure, still figuring it out, or would rather answer later, that\'s totally okay. You can update this anytime in your Health Profile.',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color: AppColors.primary01),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ...List.generate(_medicationControllers.length, (index) => _buildMedicationField(index)),
-                      InkWell(
-                        onTap: _addMedicationField,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.amethystViolet,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Add Item',
-                                style: AppTextStyles.bodyOpenSans.copyWith(
-                                  color: AppColors.amethystViolet,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+    return Foxxbackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Padding(
+            padding: AppSpacing.safeAreaContentPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add your medications or supplements',
+                  style: AppTypography.bodyMd,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'If you\'re not sure, still figuring it out, or would rather answer later, that\'s totally okay. You can update this anytime in your Health Profile.',
+                  style: AppTypography.bodyMd.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: FoxxNextButton(
-                  isEnabled: true, // Always enabled since it's optional
-                  onPressed: () {
-                    // Collect all non-empty medication entries
-                    final medications = _medicationControllers
-                        .map((controller) => controller.text.trim())
-                        .where((text) => text.isNotEmpty)
-                        .toList();
-                    widget.onDataUpdate?.call(medications);
-                    // Close keyboard
-                    FocusScope.of(context).unfocus();
-                    widget.onNext?.call();
-                  },
-                  text: 'Next'),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ...List.generate(_medicationControllers.length, (index) => _buildMedicationField(index)),
+                        InkWell(
+                          onTap: _addMedicationField,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.amethystViolet,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Add Item',
+                                  style: AppTextStyles.bodyOpenSans.copyWith(
+                                    color: AppColors.amethystViolet,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: FoxxNextButton(
+                    isEnabled: true, // Always enabled since it's optional
+                    onPressed: () {
+                      // Collect all non-empty medication entries
+                      final medications = _medicationControllers
+                          .map((controller) => controller.text.trim())
+                          .where((text) => text.isNotEmpty)
+                          .toList();
+                      widget.onDataUpdate?.call(medications);
+                      // Close keyboard
+                      FocusScope.of(context).unfocus();
+                      widget.onNext?.call();
+                    },
+                    text: 'Next',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-} 
+}

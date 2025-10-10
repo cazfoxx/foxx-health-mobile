@@ -27,6 +27,7 @@ class AppColors {
   static const mauve = Color(0xFFCEA2FD); 
   static const mauve50 = Color(0xFFDEBFFF);
   static const flax = Color(0xFFFEEE99);
+  static const flax10 = Color(0xFFFEF7EE);
   static const sunglow = Color(0xFFFFCA4B); 
   static const foxxWhite = Color(0xFFFFFCFC); 
   static const ombre20 = Color(0xFFFEEFF1);
@@ -51,9 +52,6 @@ class AppColors {
   static const red = Color(0xFFEB3C3C);
   static const orange = Color(0xFFE7931D);
   static const yellow = Color(0xFFFFCD04);
-
-  // Green Colors
-  static const pineGreen = Color(0xFF01796F);
 
   // Insight Colors
   static const insightDarkRed = Color(0xFFBF0F0F);
@@ -112,13 +110,14 @@ class AppColors {
   static const Color textSecondary = gray700;
   static const Color textBrand = amethyst;
   static const Color inputTextPlaceholder = gray600;
-  static const Color textSuccess = pineGreen;
+  static const Color textSuccess = insightPineGreen;
   static const Color textError = darkRed;
 
   // Progress and background tokens (non-button)
   static const Color progressBarBase = grayWhite;
   static const Color progressBarSelected = sunglow;
   static const Color backgroundHighlighted = mauve;
+  static const Color backgroundTopNav = ombre10;
 
   // Canonical button text tokens
   static const Color buttonTextPrimary = foxxWhite;
@@ -151,6 +150,7 @@ class AppColors {
   static const overlaySoft = Color(0x1A000000); // 10% black
   static const overlayLight = Color(0x0D000000); // 5% black
   static const onSurfaceSubtle = Color(0xCCFEEFF1); // 80% ombre20
+  static const glassReplacement = Color(0x73FFFFFF); // 45% white
 
   // Kits
   static const kitLevel0 = gray400;
