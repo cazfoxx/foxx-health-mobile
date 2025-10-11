@@ -1,4 +1,8 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_profile/health_profile_questions_screen.dart';
@@ -7,6 +11,8 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/features/presentation/widgets/neumorphic.dart';
+import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
 
 class HealthProfileScreen extends StatefulWidget {
   const HealthProfileScreen({super.key});
@@ -107,34 +113,34 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppColors.primary01),
           ),
-          actions: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: AppColors.mauve50,
-                  radius: 20,
-                  child: Icon(Icons.chat_bubble_outline,
-                      color: AppColors.amethyst, size: 20),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    );
-                  },
-                  child: CircleAvatar(
-                    backgroundColor: AppColors.mauve50,
-                    radius: 20,
-                    child: Icon(Icons.person_outline,
-                        color: AppColors.amethyst, size: 20),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          // actions: [
+          //   Row(
+          //     children: [
+          //       const CircleAvatar(
+          //         backgroundColor: AppColors.mauve50,
+          //         radius: 20,
+          //         child: Icon(Icons.chat_bubble_outline,
+          //             color: AppColors.amethyst, size: 20),
+          //       ),
+          //       const SizedBox(width: 12),
+          //       GestureDetector(
+          //         onTap: () {
+          //           Navigator.of(context).push(
+          //             MaterialPageRoute(
+          //               builder: (context) => const ProfileScreen(),
+          //             ),
+          //           );
+          //         },
+          //         child: const CircleAvatar(
+          //           backgroundColor: AppColors.mauve50,
+          //           radius: 20,
+          //           child: Icon(Icons.person_outline,
+          //               color: AppColors.amethyst, size: 20),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ],
         ),
         backgroundColor: Colors.transparent,
         body: SafeArea(
@@ -151,8 +157,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Get to know me section
-                      _buildGetToKnowMeSection(),
-                      const SizedBox(height: 32),
+                      // _buildGetToKnowMeSection(),
+                      // const SizedBox(height: 32),
 
                       // My core profile section
                       _buildCoreProfileSection(),
@@ -171,15 +177,15 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20.0),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Top right icons
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // Title
-          const Text(
+          Text(
             'Health Profile',
             style: TextStyle(
               fontSize: 28,
@@ -478,12 +484,21 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
   late TextEditingController _controller;
   late TextEditingController _feetController;
   late TextEditingController _inchesController;
+  late TextEditingController _selfDescribeController;
+  late TextEditingController _searchController;
+  bool _isSelfDescribeSelected = false;
+
+  final FocusNode _focusNode = FocusNode();
+  final FocusNode _feetFocusNode = FocusNode();
+  final FocusNode _inchesFocusNode = FocusNode();
   String? _selectedGender;
   int? _selectedAge;
   double? _selectedWeight;
   double? _selectedHeight;
   String? _selectedEthnicity;
   String? _selectedLocation;
+  String? selectedState;
+  List<String> filteredStates = [];
 
   @override
   void initState() {
@@ -491,7 +506,14 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
     _controller = TextEditingController();
     _feetController = TextEditingController();
     _inchesController = TextEditingController();
+    _selfDescribeController = TextEditingController();
+    _searchController = TextEditingController();
+    filteredStates = List.from(allStates);
     _initializeValues();
+    // Auto-focus the feet field when screen loads
+    Future.delayed(Duration.zero, () {
+      FocusScope.of(context).requestFocus(_feetFocusNode);
+    });
   }
 
   void _initializeValues() {
@@ -512,14 +534,16 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         // Convert cm to inches for display
         if (_selectedHeight != null) {
           final heightInInches = _selectedHeight! / 2.54;
-          _controller.text = heightInInches.toStringAsFixed(0);
+          final feet = heightInInches ~/ 12; // Integer division
+          final inches = heightInInches % 12; // Remainder
+          _feetController.text = feet.toStringAsFixed(0);
+          _inchesController.text = inches.toStringAsFixed(0);
         } else {
           _controller.text = '';
         }
         break;
       case 'ethnicity':
         _selectedEthnicity = widget.userProfile?['ethnicity'];
-        _controller.text = _selectedEthnicity ?? '';
         break;
       case 'address':
         _selectedLocation = widget.userProfile?['address'];
@@ -533,6 +557,8 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
     _controller.dispose();
     _feetController.dispose();
     _inchesController.dispose();
+    _selfDescribeController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -581,7 +607,7 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close, color: AppColors.primary01),
                     ),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'My core profile',
                         style: AppTextStyles.heading3,
@@ -637,6 +663,64 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
     }
   }
 
+  String? getSelectedGender() {
+    if (_selectedGender == 'Prefer to self describe' ||
+        _selectedGender == 'Prefer to self-describe') {
+      return _selfDescribeController.text.isNotEmpty
+          ? _selfDescribeController.text
+          : null;
+    }
+    return _selectedGender;
+  }
+
+  Widget _buildSelfDescribeField() {
+    return Visibility(
+      visible: _isSelfDescribeSelected,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _selfDescribeController,
+            decoration: const InputDecoration(
+              hintText: 'Self describe',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            style: AppTextStyles.bodyOpenSans,
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderOption(String option) {
+    final bool isSelected = _selectedGender == option;
+    final bool isSelfDescribe = option == 'Prefer to self describe' ||
+        option == 'Prefer to self-describe';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: NeumorphicOptionCard(
+        text: option,
+        isSelected: isSelected,
+        onTap: () {
+          setState(() {
+            _selectedGender = option;
+            _isSelfDescribeSelected = isSelfDescribe;
+          });
+        },
+      ),
+    );
+  }
+
   Widget _buildGenderSelector() {
     final genderOptions = [
       'Woman',
@@ -644,6 +728,12 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
       'Gender queer/Gender fluid',
       'Agender',
       'Prefer not to say',
+      'Prefer to self describe',
+      // 'Woman',
+      // 'Transgender Woman',
+      // 'Gender queer/Gender fluid',
+      // 'Agender',
+      // 'Prefer not to say',
     ];
 
     return Column(
@@ -666,62 +756,8 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        ...genderOptions.map((gender) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedGender = gender;
-                  });
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _selectedGender == gender
-                        ? AppColors.amethyst.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _selectedGender == gender
-                          ? AppColors.amethyst
-                          : Colors.grey.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    gender,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: _selectedGender == gender
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: _selectedGender == gender
-                          ? AppColors.amethyst
-                          : AppColors.primary01,
-                    ),
-                  ),
-                ),
-              ),
-            )),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.yellow.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.yellow),
-          ),
-          child: const Text(
-            'Prefer to self describe',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary01,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
+        ...genderOptions.map(_buildGenderOption).toList(),
+        _buildSelfDescribeField(),
       ],
     );
   }
@@ -747,18 +783,42 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        TextField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: 'Enter your age',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            suffixIcon: IconButton(
-              onPressed: () => _controller.clear(),
-              icon: const Icon(Icons.clear),
-            ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: '16',
+                    hintStyle: AppOSTextStyles.osSmSingleLine
+                        .copyWith(color: Colors.grey),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  style: AppTextStyles.bodyOpenSans.copyWith(fontSize: 18),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+              Text(
+                'Years',
+                style: AppTextStyles.bodyOpenSans
+                    .copyWith(color: Colors.grey[600]),
+              ),
+            ],
           ),
         ),
       ],
@@ -786,22 +846,63 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        TextField(
-          controller: _controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: 'Enter your weight in lbs',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            suffixIcon: IconButton(
-              onPressed: () => _controller.clear(),
-              icon: const Icon(Icons.clear),
-            ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: 'Enter your weight in lbs',
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      onPressed: () => _controller.clear(),
+                      icon: const Icon(Icons.clear),
+                    ),
+                  ),
+                  style: AppTextStyles.bodyOpenSans.copyWith(fontSize: 18),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+              // Text(
+              //   'lbs',
+              //   style: AppTextStyles.bodyOpenSans
+              //       .copyWith(color: Colors.grey[600]),
+              // ),
+            ],
           ),
         ),
       ],
     );
+  }
+
+  bool isHeightValid() {
+    return _feetController.text.isNotEmpty;
+  }
+
+  bool hasTextInput() {
+    return _feetController.text.isNotEmpty || _inchesController.text.isNotEmpty;
+  }
+
+  Map<String, dynamic>? getHeight() {
+    if (_feetController.text.isEmpty) return null;
+    final feet = int.tryParse(_feetController.text);
+    final inches = int.tryParse(_inchesController.text) ?? 0;
+    if (feet == null) return null;
+    return {'feet': feet, 'inches': inches};
   }
 
   Widget _buildHeightInput() {
@@ -810,69 +911,183 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
       children: [
         const Text(
           'How tall are you?',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary01,
-          ),
+          style: AppHeadingTextStyles.h4,
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Your height helps us interpret symptom trends and offer more accurate support for your body.',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.gray600,
-          ),
+          style: AppOSTextStyles.osMd.copyWith(color: Colors.grey[600]),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _feetController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Feet',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _feetController,
+                        focusNode: _feetFocusNode,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(1),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: '0',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style:
+                            AppTextStyles.bodyOpenSans.copyWith(fontSize: 18),
+                        onChanged: (_) => setState(() {}),
+                        onSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_inchesFocusNode);
+                        },
+                      ),
+                    ),
+                    Text(
+                      'ft',
+                      style: AppTextStyles.bodyOpenSans
+                          .copyWith(color: Colors.grey[600]),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
-              child: TextField(
-                controller: _inchesController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Inches',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _inchesController,
+                        focusNode: _inchesFocusNode,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(2),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: '0',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style:
+                            AppTextStyles.bodyOpenSans.copyWith(fontSize: 18),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                    Text(
+                      'in',
+                      style: AppTextStyles.bodyOpenSans
+                          .copyWith(color: Colors.grey[600]),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
-        // TextField(
-        //   controller: _controller,
-        //   keyboardType: TextInputType.number,
-        //   decoration: InputDecoration(
-        //     hintText: 'Enter your height in inches',
-        //     border: OutlineInputBorder(
-        //       borderRadius: BorderRadius.circular(12),
-        //     ),
-        //     suffixIcon: IconButton(
-        //       onPressed: () => _controller.clear(),
-        //       icon: const Icon(Icons.clear),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }
 
+  Widget _buildEthnicityOption(String option) {
+    final bool isSelected = _selectedEthnicity == option;
+
+    final backgroundColor = isSelected
+        ? AppColors.progressBarSelected
+        : Colors.white.withOpacity(0.15);
+
+    final shadowColor = isSelected
+        ? Colors.white.withOpacity(0.5)
+        : Colors.white.withOpacity(0.3);
+
+    final textColor = isSelected
+        ? Colors.black.withOpacity(0.85)
+        : Colors.black.withOpacity(0.85);
+
+    return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedEthnicity = option;
+              });
+            },
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: isSelected
+                              ? AppColors.progressBarSelected
+                              : Colors.white),
+                      boxShadow: [
+                        BoxShadow(
+                          color: shadowColor,
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        isSelected
+                            ? const Icon(Icons.check_circle,
+                                color: AppColors.amethyst)
+                            : Icon(Icons.circle_outlined,
+                                color: Colors.grey[400]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            option,
+                            style: AppTextStyles.bodyOpenSans.copyWith(
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ))));
+  }
+
   Widget _buildEthnicityInput() {
+    final ethnicityOptions = [
+      'Asian (East Asian, South Asian)',
+      'Black or African American',
+      'Hispanic or Latino',
+      'Middle Eastern or North African',
+      'Mixed/Multiracial',
+      'Native American or Alaska Native',
+      'Pacific Islander or Native Hawaiian',
+      'White or Caucasian',
+      'Prefer not to answer',
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -893,20 +1108,167 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            hintText: 'Enter your ethnicity',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            suffixIcon: IconButton(
-              onPressed: () => _controller.clear(),
-              icon: const Icon(Icons.clear),
+        ...ethnicityOptions.map(_buildEthnicityOption).toList(),
+      ],
+    );
+  }
+
+  static const List<String> allStates = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
+    'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+    'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri',
+    'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+    'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
+    'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+    'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+  ];
+
+  void _filterStates(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredStates = List.from(allStates);
+      } else {
+        filteredStates = allStates
+            .where((state) => state.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  void _showStateSelector() {
+    setState(() {
+      filteredStates = List.from(allStates);
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
             ),
           ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(CupertinoIcons.xmark)),
+                        Text(
+                          'Location',
+                          style: AppTextStyles.bodyOpenSans.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: 50)
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                color: AppColors.lightViolet,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search state',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _filterStates('');
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _filterStates(value);
+                      });
+                    },
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filteredStates.length,
+                  itemBuilder: (context, index) {
+                    final state = filteredStates[index];
+                    return InkWell(
+                      onTap: () {
+                        this.setState(() {
+                          selectedState = state;
+                          _controller.text = state;
+                        });
+                        _searchController.clear();
+                        _filterStates('');
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey[200]!),
+                          ),
+                        ),
+                        child: Text(
+                          state,
+                          style: AppTextStyles.bodyOpenSans,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 
@@ -931,17 +1293,37 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            hintText: 'Enter your location',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            suffixIcon: IconButton(
-              onPressed: () => _controller.clear(),
-              icon: const Icon(Icons.clear),
-            ),
+        NeumorphicCard(
+          isSelected: false,
+          onTap: _showStateSelector,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Location',
+                style: AppTextStyles.bodyOpenSans
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  readOnly: true,
+                  onTap: _showStateSelector,
+                  decoration: const InputDecoration(
+                    hintText: 'Select state',
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -964,7 +1346,7 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
     switch (widget.field) {
       case 'gender':
         if (_selectedGender != null) {
-          updatedData['gender'] = _selectedGender;
+          updatedData['gender'] = getSelectedGender();
         }
         break;
       case 'age':
@@ -988,7 +1370,9 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
         }
         break;
       case 'ethnicity':
-        updatedData['ethnicity'] = _controller.text;
+        if (_selectedEthnicity != null) {
+          updatedData['ethnicity'] = _selectedEthnicity;
+        }
         break;
       case 'address':
         updatedData['address'] = _controller.text;

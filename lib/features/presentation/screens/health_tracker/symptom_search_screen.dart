@@ -28,7 +28,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+        _scrollController.position.maxScrollExtent - 20) {
       final cubit = context.read<SymptomSearchCubit>();
       if (cubit.hasMore && cubit.state is! SymptomSearchLoadingMore) {
         // Load more based on current filter
