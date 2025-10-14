@@ -214,118 +214,107 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
   }
 
   Widget _buildSymptomsList() {
-    return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
-      builder: (context, state) {
-        if (state is SymptomSearchLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        
-        if (state is SymptomSearchError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Error: ${state.message}',
-                  style: AppOSTextStyles.osMd.copyWith(
-                    color: AppColors.red,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<SymptomSearchCubit>().loadInitialSymptoms();
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        if (state is SymptomSearchLoaded) {
-          final symptoms = state.symptoms;
-          final selectedSymptoms = state.selectedSymptoms;
-          
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: symptoms.length + (state.symptoms.length < 100 ? 1 : 0), // Simplified pagination check
-              itemBuilder: (context, index) {
-                if (index == symptoms.length) {
-                  // Loading indicator for pagination
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                
-                final symptom = symptoms[index];
-                final isSelected = selectedSymptoms.contains(symptom);
-                
-                return GestureDetector(
-                  onTap: () {
-                    // Show details sheet when symptom is selected
-                    _showSymptomDetailsSheet(symptom);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(16),
-                    decoration: AppColors.glassCardDecoration,
-                    child: Row(
-                      children: [
-                        // Radio Button
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.amethyst : Colors.transparent,
-                            border: Border.all(
-                              color: AppColors.amethyst,
-                              width: 2,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: isSelected
-                              ? Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 12,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        
-                        // Symptom Text
-                        Expanded(
-                          child: Text(
-                            symptom.name,
-                            style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                              color: AppColors.primary01,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        }
-        
-        return const Center(
-          child: Text('No symptoms found'),
+  return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
+    builder: (context, state) {
+      if (state is SymptomSearchLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (state is SymptomSearchError) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Error: ${state.message}',
+                style: AppOSTextStyles.osMd.copyWith(color: AppColors.red),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<SymptomSearchCubit>().loadInitialSymptoms();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         );
-      },
-    );
-  }
+      }
+
+      if (state is SymptomSearchLoaded || state is SymptomSearchLoadingMore) {
+        // Handle both loaded and loading-more states
+        final symptoms = state is SymptomSearchLoaded
+            ? state.symptoms
+            : (state as SymptomSearchLoadingMore).symptoms;
+        final selectedSymptoms = state is SymptomSearchLoaded
+            ? state.selectedSymptoms
+            : (state as SymptomSearchLoadingMore).selectedSymptoms;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount: symptoms.length + (state is SymptomSearchLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == symptoms.length && state is SymptomSearchLoadingMore) {
+                // Pagination loading spinner
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final symptom = symptoms[index];
+              final isSelected = selectedSymptoms.contains(symptom);
+
+              return GestureDetector(
+                onTap: () {
+                  _showSymptomDetailsSheet(symptom);
+                },
+                child: Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: AppColors.glassCardDecoration,
+                  child: Row(
+                    children: [
+                      // Selection circle
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.amethyst : Colors.transparent,
+                          border: Border.all(color: AppColors.amethyst, width: 2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check, color: Colors.white, size: 12)
+                            : null,
+                      ),
+                      const SizedBox(width: 16),
+
+                      // Symptom name
+                      Expanded(
+                        child: Text(
+                          symptom.name,
+                          style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                            color: AppColors.primary01,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      return const Center(child: Text('No symptoms found'));
+    },
+  );
+}
 
   void _showSymptomDetailsSheet(Symptom symptom) async {
     try {
