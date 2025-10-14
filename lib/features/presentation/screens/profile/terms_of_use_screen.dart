@@ -47,7 +47,7 @@ class TermsOfUseScreen extends StatelessWidget {
                       
                       // Last Updated
                       Text(
-                        'Last Updated: October 5, 2025',
+                        'Last Updated: 08.22.25',
                         style: AppOSTextStyles.osMd.copyWith(
                           color: AppColors.davysGray,
                         ),
@@ -56,7 +56,7 @@ class TermsOfUseScreen extends StatelessWidget {
                       
                       // Introduction
                       Text(
-                        'Welcome to FoXX Health. These Terms of Use ("Terms") govern your use of our mobile application and services. By using our app, you agree to these terms.',
+                        'Welcome to FoXX Health ("FoXX," "we," "our," or "us"). These Terms & Conditions ("Terms") govern your use of the FoXX Health mobile application (the "App") and related services (collectively, the "Services"). By creating an account, accessing, or using the Services, you agree to be bound by these Terms. If you do not agree, you may not use the Services.',
                         style: AppOSTextStyles.osMd.copyWith(
                           color: AppColors.primary01,
                           height: 1.5,
@@ -66,68 +66,92 @@ class TermsOfUseScreen extends StatelessWidget {
                       
                       // Section 1
                       _buildSection(
-                        '1. Acceptance of Terms',
-                        'By downloading, installing, or using the FoXX Health mobile application, you agree to be bound by these Terms of Use and our Privacy Policy.',
+                        '1. Eligibility',
+                        'You must be at least 16 years old (or the age of majority in your jurisdiction) to use the Services.\n\nBy using the App, you represent that you have the legal capacity to enter into these Terms.',
                       ),
                       
                       // Section 2
                       _buildSection(
-                        '2. Description of Service',
-                        'FoXX Health is a women\'s health tracking application that provides tools and resources to help users manage their health and wellness. Our service includes health tracking features, community support, and educational content.',
+                        '2. Health Disclaimer',
+                        'FoXX Health does not provide medical advice, diagnosis, or treatment.\n\nThe App is designed for educational and informational purposes only and should not replace consultation with a qualified healthcare professional.\n\nAlways seek the advice of a physician or other qualified health provider with questions regarding medical conditions or treatment.\n\nIf you experience a medical emergency, call your local emergency number immediately.',
                       ),
                       
                       // Section 3
                       _buildSection(
                         '3. User Accounts',
-                        'To access certain features of our app, you may need to create an account. You are responsible for maintaining the confidentiality of your account information and for all activities that occur under your account.',
+                        'You must create an account to use certain features. You agree to provide accurate, complete, and updated information.\n\nYou are responsible for maintaining the confidentiality of your login credentials and for all activity under your account.\n\nWe reserve the right to suspend or terminate your account if you violate these Terms.',
                       ),
                       
                       // Section 4
                       _buildSection(
-                        '4. Health Information',
-                        'The information provided through our app is for educational and informational purposes only and is not intended as medical advice. Always consult with a qualified healthcare professional for medical advice, diagnosis, or treatment.',
+                        '4. Subscriptions & Payments',
+                        'Some features are available only with a paid subscription. Pricing, billing cycles, and payment methods will be displayed at the time of purchase.\n\nSubscriptions automatically renew unless canceled before the renewal date.\n\nYou may cancel your subscription through your app store or account settings. No refunds will be issued for partially used billing periods, unless required by law.',
                       ),
                       
                       // Section 5
                       _buildSection(
-                        '5. Subscription Services',
-                        'Some features of our app may require a paid subscription. Subscription fees are charged in advance and are non-refundable except as required by law. Subscriptions automatically renew unless cancelled before the renewal date.',
+                        '5. User Content',
+                        'You may submit health data, journal entries, or community posts ("User Content").\n\nYou retain ownership of your User Content, but grant FoXX a limited, non-exclusive, worldwide license to store, process, and display it solely for operating the Services.\n\nYou agree not to post content that is illegal, harmful, harassing, or violates the rights of others.',
                       ),
                       
                       // Section 6
                       _buildSection(
-                        '6. Privacy and Data Protection',
-                        'Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information.',
+                        '6. Privacy & Data Protection',
+                        'Protecting your privacy and the security of your health data is a core priority at FoXX.\n\nWe follow strict internal standards for data handling and security, and we are actively building toward HIPAA compliance as we expand in the United States.\n\nWhile we are not yet certified as HIPAA compliant, our infrastructure and processes are designed with HIPAA requirements in mind, and we are working toward meeting recognized standards such as SOC 2 and other data security certifications.\n\nOur collection and use of personal data is governed by our Privacy Policy.\n\nBy using the Services, you consent to the processing of your data as described in the Privacy Policy.',
                       ),
                       
                       // Section 7
                       _buildSection(
-                        '7. Prohibited Uses',
-                        'You may not use our app for any unlawful purpose or to solicit others to perform unlawful acts. You may not violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances.',
+                        '7. Community Guidelines (The Den)',
+                        'The Den is a community feature for peer support. It is not moderated by medical professionals.\n\nBe respectful, avoid harassment or offensive language, and do not share misleading medical information.\n\nFoXX reserves the right to remove content or suspend accounts for violations.',
                       ),
                       
                       // Section 8
                       _buildSection(
                         '8. Intellectual Property',
-                        'The app and its original content, features, and functionality are owned by FoXX Health and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.',
+                        'The Services, including trademarks, software, and content, are owned by FoXX or its licensors.\n\nYou may not copy, distribute, reverse engineer, or exploit any part of the Services without our prior written consent.',
                       ),
                       
                       // Section 9
                       _buildSection(
-                        '9. Termination',
-                        'We may terminate or suspend your account and access to the app immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.',
+                        '9. Prohibited Uses',
+                        'You agree not to:\n\n• Use the Services for unlawful purposes.\n• Attempt to gain unauthorized access to the App or related systems.\n• Upload viruses or malicious code.\n• Exploit the Services for commercial purposes without consent.',
                       ),
                       
                       // Section 10
                       _buildSection(
-                        '10. Changes to Terms',
-                        'We reserve the right to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.',
+                        '10. Termination',
+                        'We may suspend or terminate your access if you breach these Terms or misuse the Services. You may stop using the Services at any time by deleting your account.',
                       ),
                       
                       // Section 11
                       _buildSection(
-                        '11. Contact Information',
-                        'If you have any questions about these Terms of Use, please contact us at support@foxxhealth.com.',
+                        '11. Limitation of Liability',
+                        'The Services are provided "as is" without warranties of any kind.\n\nTo the maximum extent permitted by law, FoXX disclaims liability for any indirect, incidental, or consequential damages arising from your use of the Services.\n\nFoXX takes commercially reasonable steps to protect your data and is working toward industry-recognized compliance standards, including HIPAA. However, because no system can be 100% secure, you acknowledge that transmission of data via the internet is not completely secure and that we cannot guarantee the absolute security of your information.\n\nOur total liability shall not exceed the amount paid by you for the Services in the 12 months prior to the claim.',
+                      ),
+                      
+                      // Section 12
+                      _buildSection(
+                        '12. Indemnification',
+                        'You agree to indemnify and hold harmless FoXX, its affiliates, and employees from any claims, damages, or expenses arising from your misuse of the Services or violation of these Terms.',
+                      ),
+                      
+                      // Section 13
+                      _buildSection(
+                        '13. Changes to the Terms',
+                        'We may update these Terms from time to time. Material changes will be notified via the App or by email. Continued use after changes means you accept the updated Terms.',
+                      ),
+                      
+                      // Section 14
+                      _buildSection(
+                        '14. Governing Law & Dispute Resolution',
+                        'These Terms are governed by the laws of [Insert Jurisdiction].\n\nAny disputes will be resolved through binding arbitration or small claims court, unless otherwise required by law.',
+                      ),
+                      
+                      // Section 15
+                      _buildSection(
+                        '15. Contact Us',
+                        'If you have questions about these Terms, please contact us at FoXX Health: maria@foxxhealth.com',
                       ),
                       
                       const SizedBox(height: 32),
@@ -166,5 +190,8 @@ class TermsOfUseScreen extends StatelessWidget {
     );
   }
 }
+
+
+
 
 

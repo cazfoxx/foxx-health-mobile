@@ -364,7 +364,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 32),
           Expanded(
             child: Container(
-
               child: Column(
                 children: [
                   OnboardingHeadingContainer(

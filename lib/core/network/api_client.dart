@@ -130,6 +130,23 @@ class ApiClient {
       rethrow;
     }
   }
+
+  /// Verify Apple receipt for payment confirmation
+  Future<Response> verifyAppleReceipt({
+    required String appleReceiptData,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/api/v1/payments/verify-apple-receipt',
+        data: {
+          'apple_receipt_data': appleReceiptData,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 class LoggerInterceptor extends Interceptor {
@@ -221,6 +238,8 @@ class AuthInterceptor extends Interceptor {
     '/api/v1/auth/login',
     '/api/v1/auth/forgot-password',
     '/api/v1/auth/reset-password',
+    '/api/v1/subscriptions/verify-purchase',
+    '/api/v1/payments/verify-apple-receipt',
   ];
 
   @override

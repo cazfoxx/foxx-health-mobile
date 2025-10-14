@@ -6,6 +6,7 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/update_password_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/den_privacy_screen.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
@@ -825,26 +826,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 
-                // Privacy Policy Link
-                const SizedBox(height: 20),
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const PrivacyPolicyScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Privacy Policy',
-                      style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                        color: AppColors.amethyst,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
+               // Legal Links
+               const SizedBox(height: 20),
+               Center(
+                 child: GestureDetector(
+                   onTap: () {
+                     Navigator.of(context).push(
+                       MaterialPageRoute(
+                         builder: (context) => const PrivacyPolicyScreen(),
+                       ),
+                     );
+                   },
+                   child: Text(
+                     'Privacy Policy',
+                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                       color: AppColors.amethyst,
+                     ),
+                   ),
+                 ),
+               ),
+               const SizedBox(height: 12),
+               Center(
+                 child: GestureDetector(
+                   onTap: () {
+                     Navigator.of(context).push(
+                       MaterialPageRoute(
+                         builder: (context) => const TermsOfUseScreen(),
+                       ),
+                     );
+                   },
+                   child: Text(
+                     'Terms & Conditions',
+                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                       color: AppColors.amethyst,
+                     ),
+                   ),
+                 ),
+               ),
+               const SizedBox(height: 12),
+               Center(
+                 child: GestureDetector(
+                   onTap: () {
+                     Navigator.of(context).push(
+                       MaterialPageRoute(
+                         builder: (context) => const TermsOfUseScreen(),
+                       ),
+                     );
+                   },
+                   child: Text(
+                     'Terms of Use',
+                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                       color: AppColors.amethyst,
+                     ),
+                   ),
+                 ),
+               ),
+               const SizedBox(height: 20),
               ],
             ),
           ),

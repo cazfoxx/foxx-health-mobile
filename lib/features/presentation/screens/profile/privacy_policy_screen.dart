@@ -167,7 +167,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       // Section 5
                       _buildSection(
                         title: '5. Data Security & Compliance',
-                        content: 'We take reasonable technical, administrative, and physical measures to safeguard your personal information. However, no method of transmission or storage is completely secure. We are actively building our infrastructure and processes to align with HIPAA standards as we expand in the United States. While FoXX Health is not yet HIPAA compliant, we are working toward this goal to better protect your health-related information. We are also pursuing recognized security certifications such as SOC 2.',
+                        content: 'We take reasonable technical, administrative, and physical measures to safeguard your personal information. However, no method of transmission or storage is completely secure.\n\nWe are actively building our infrastructure and processes to align with HIPAA standards as we expand in the United States. While FoXX Health is not yet HIPAA compliant, we are working toward this goal to better protect your health-related information. We are also pursuing recognized security certifications such as SOC 2.',
                       ),
                       const SizedBox(height: 24),
 
@@ -195,46 +195,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       // Section 9
                       _buildSection(
                         title: '9. Contact Us',
-                        content: 'If you have questions about this Privacy Policy, please contact us at:',
-                      ),
-                      const SizedBox(height: 16),
-
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.gray200,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'FoXX Health',
-                              style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                                color: AppColors.primary01,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Email: maria@foxxhealth.com',
-                              style: AppOSTextStyles.osMd.copyWith(
-                                color: AppColors.primary01,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Website: foxxhealth.com',
-                              style: AppOSTextStyles.osMd.copyWith(
-                                color: AppColors.primary01,
-                              ),
-                            ),
-                          ],
-                        ),
+                        content: 'If you have questions about this Privacy Policy, please contact us at FoXX Health: maria@foxxhealth.com',
                       ),
                       const SizedBox(height: 32),
                     ],
