@@ -11,7 +11,15 @@ class SymptomSearchInitial extends SymptomSearchState {}
 
 class SymptomSearchLoading extends SymptomSearchState {}
 
-class SymptomSearchLoadingMore extends SymptomSearchState {}
+class SymptomSearchLoadingMore extends SymptomSearchState {
+  final List<Symptom> symptoms;
+  final Set<Symptom> selectedSymptoms;
+
+  const SymptomSearchLoadingMore(this.symptoms, this.selectedSymptoms);
+
+  @override
+  List<Object?> get props => [symptoms, selectedSymptoms.toList()];
+}
 
 class SymptomSearchLoaded extends SymptomSearchState {
   final List<Symptom> symptoms;

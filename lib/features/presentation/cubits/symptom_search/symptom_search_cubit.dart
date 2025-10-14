@@ -87,11 +87,21 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   // }
 
   Future<void> loadMoreSymptoms() async {
-    if (!_hasMore || state is SymptomSearchLoading) return;
+    // Prevent loading if already loading, no more items, or searching
+    if (!_hasMore ||
+        state is SymptomSearchLoading ||
+        state is SymptomSearchLoadingMore ||
+        _searchQuery.isNotEmpty) return;
 
     try {
-      emit(SymptomSearchLoadingMore());
+      // Emit a state that keeps the current data visible
+      if (state is SymptomSearchLoaded) {
+        final currentState = state as SymptomSearchLoaded;
+        emit(SymptomSearchLoadingMore(
+            currentState.symptoms, currentState.selectedSymptoms));
+      }
 
+      // Fetch more data
       final result = await _getAllSymptoms(
         skip: _currentSkip,
         limit: _limit,
@@ -102,10 +112,31 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       _currentSkip += _limit;
 
       _applySearchAndFilter();
+
+      // Re-emit loaded state with new data
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
       emit(SymptomSearchError(e.toString()));
     }
+    // if (!_hasMore || state is SymptomSearchLoading || _searchQuery.isNotEmpty) return;
+
+    // try {
+    //   emit(SymptomSearchLoadingMore());
+
+    //   final result = await _getAllSymptoms(
+    //     skip: _currentSkip,
+    //     limit: _limit,
+    //   );
+
+    //   _allSymptoms.addAll(result['symptoms']);
+    //   _hasMore = result['hasMore'];
+    //   _currentSkip += _limit;
+
+    //   _applySearchAndFilter();
+    //   emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
+    // } catch (e) {
+    //   emit(SymptomSearchError(e.toString()));
+    // }
   }
 
   Future<void> loadSymptomsByFilter(String filterGroup) async {
@@ -160,11 +191,21 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   Future<void> loadMoreSymptomsByFilter() async {
-    if (!_hasMore || state is SymptomSearchLoading) return;
+    // Prevent redundant or overlapping requests
+    if (!_hasMore ||
+        state is SymptomSearchLoading ||
+        state is SymptomSearchLoadingMore ||
+        _searchQuery.isNotEmpty) return;
 
     try {
-      emit(SymptomSearchLoadingMore());
+      // Preserve current symptoms while loading more
+      if (state is SymptomSearchLoaded) {
+        final currentState = state as SymptomSearchLoaded;
+        emit(SymptomSearchLoadingMore(
+            currentState.symptoms, currentState.selectedSymptoms));
+      }
 
+      // Fetch next batch based on selected filter
       final result = await _getSymptomsByFilter(
         filterGroup: _selectedFilter,
         skip: _currentSkip,
@@ -176,6 +217,8 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       _currentSkip += _limit;
 
       _applySearchAndFilter();
+
+      // Emit the updated loaded state
       emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     } catch (e) {
       emit(SymptomSearchError(e.toString()));
@@ -183,7 +226,8 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   void updateSearchQuery(String query) {
-    _searchQuery = query;
+    _searchQuery = query.trim();
+    _hasMore = false; // stop further pagination when searching
     _applySearchAndFilter();
     emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
   }
@@ -206,7 +250,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   void toggleSymptomSelection(Symptom symptom) {
-    emit(SymptomSearchLoading());
+    // emit(SymptomSearchLoading());
     if (_selectedSymptoms.contains(symptom)) {
       _selectedSymptoms.remove(symptom);
     } else {
@@ -219,7 +263,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
   }
 
   void refreshSymptoms() {
-    emit(SymptomSearchLoading());
+    // emit(SymptomSearchLoading());
     log('selected symptoms: ${_selectedSymptoms.length}');
     emit(SymptomSearchLoaded(_filteredSymptoms, _selectedSymptoms));
     log('selected symptoms: ${_selectedSymptoms.length}');
@@ -277,7 +321,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       return {
         'symptoms': symptoms,
         'total': symptoms.length,
-        'hasMore': symptoms.length >= limit,
+        'hasMore': symptoms.length == limit,
       };
     } catch (e) {
       print('❌ API Error: $e');
@@ -318,7 +362,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       return {
         'symptoms': symptoms,
         'total': symptoms.length,
-        'hasMore': symptoms.length >= limit,
+        'hasMore': symptoms.length == limit,
       };
     } catch (e) {
       print('❌ API Error: $e');
@@ -420,67 +464,7 @@ class SymptomSearchCubit extends Cubit<SymptomSearchState> {
       return [];
     }
   }
-
-//   Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(DateTime month) async {
-//   try {
-//     final year = month.year;
-//     final monthNumber = month.month;
-
-//     // First day of the month
-//     final startDate = DateTime(year, monthNumber, 1);
-//     // Last day of the month
-//     final endDate = DateTime(year, monthNumber + 1, 0);
-
-//     final response = await _apiClient.get(
-//       '/api/v1/health-trackers/me',
-//       queryParameters: {
-//         'from_date': startDate.toIso8601String().split("T").first,
-//         'to_date': endDate.toIso8601String().split("T").first,
-//       },
-//       options: Options(
-//         headers: {
-//           'accept': 'application/json',
-//           'Authorization': 'Bearer ${AppStorage.accessToken}',
-//         },
-//         validateStatus: (status) => status! < 400,
-//       ),
-//     );
-
-//     if (response.data is! List) {
-//       throw Exception("Unexpected response format: ${response.data}");
-//     }
-
-//     final List<dynamic> trackers = response.data;
-//     final Map<DateTime, List<Symptom>> symptomMap = {};
-
-//     for (final tracker in trackers) {
-//       final String fromDateStr = tracker['from_date'];
-//       final String toDateStr = tracker['to_date'];
-
-//       final fromDate = DateTime.parse(fromDateStr);
-//       final toDate = DateTime.parse(toDateStr);
-
-//       final List<dynamic> selected = tracker['selected_symptoms'] ?? [];
-//       final List<Symptom> symptoms =
-//           selected.map((s) => Symptom.fromJson(s)).toList();
-
-//       // Assign symptoms to each date in the range
-//       for (DateTime d = fromDate;
-//           !d.isAfter(toDate);
-//           d = d.add(const Duration(days: 1))) {
-//         final key = DateTime(d.year, d.month, d.day); // normalize
-//         symptomMap.putIfAbsent(key, () => []);
-//         symptomMap[key]!.addAll(symptoms);
-//       }
-//     }
-
-//     return symptomMap;
-//   } catch (e) {
-//     print("❌ Error fetching symptoms for month: $e");
-//     return {};
-//   }
-// }
-
+  
   Future<Map<DateTime, List<Symptom>>> getSymptomsByMonth(
       DateTime month) async {
     try {

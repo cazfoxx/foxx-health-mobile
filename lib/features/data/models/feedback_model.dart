@@ -19,7 +19,9 @@ class FeedbackModel {
 
   Map<String, dynamic> toJson() => {
         'favorites_code': favoritesCode,
+        'favorite_parts': favoritesCode,
         'feedback_text': feedbackText,
+        'usage_reason': feedbackText,
         'is_deleted': isDeleted,
         'account_id': accountId,
       };
