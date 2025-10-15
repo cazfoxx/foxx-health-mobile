@@ -19,7 +19,8 @@ class PremiumOverlay extends StatefulWidget {
 }
 
 class _PremiumOverlayState extends State<PremiumOverlay> {
-  bool isYearlySelected = true;
+  bool isYearlySelected = false;
+  bool isMonthlySelected = true;
   bool _isLoading = false;
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   final ApiClient _apiClient = ApiClient();
@@ -65,18 +66,18 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       log('Loading products - attempt $attempt of $maxRetries');
       await _loadProducts();
-      
+
       if (_products.isNotEmpty) {
         log('Products loaded successfully on attempt $attempt');
         return;
       }
-      
+
       if (attempt < maxRetries) {
         log('No products found, retrying in 2 seconds...');
         await Future.delayed(const Duration(seconds: 2));
       }
     }
-    
+
     log('Failed to load products after $maxRetries attempts');
   }
 
@@ -84,14 +85,15 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     try {
       final Set<String> productIds = {yearlyProductId, monthlyProductId};
       log('Attempting to load products: $productIds');
-      
-      final ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(productIds);
-      
+
+      final ProductDetailsResponse response =
+          await _inAppPurchase.queryProductDetails(productIds);
+
       log('Product query response:');
       log('- Found products: ${response.productDetails.length}');
       log('- Not found IDs: ${response.notFoundIDs}');
       log('- Error: ${response.error}');
-      
+
       if (response.notFoundIDs.isNotEmpty) {
         log('Products not found: ${response.notFoundIDs}');
         log('This is normal during development or if app is under review');
@@ -124,7 +126,8 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   Future<void> initializePayment() async {
     if (!_isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('In-app purchases are not available on this device')),
+        const SnackBar(
+            content: Text('In-app purchases are not available on this device')),
       );
       return;
     }
@@ -134,28 +137,31 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     });
 
     try {
-      final String productId = isYearlySelected ? yearlyProductId : monthlyProductId;
-      
+      final String productId =
+          isYearlySelected ? yearlyProductId : monthlyProductId;
+
       if (_products.isEmpty) {
         throw 'No products available. Please wait for app review to complete or check your product configuration.';
       }
-      
+
       final ProductDetails product = _products.firstWhere(
         (p) => p.id == productId,
-        orElse: () => throw 'Product not found: $productId. This usually means the app is still under review.',
+        orElse: () =>
+            throw 'Product not found: $productId. This usually means the app is still under review.',
       );
 
-      final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
-      
+      final PurchaseParam purchaseParam =
+          PurchaseParam(productDetails: product);
+
       // Both yearly and monthly subscriptions should use buyNonConsumable
       // as they are auto-renewable subscriptions
       await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-
     } catch (e) {
       log('Error during purchase: $e');
       String errorMessage = e.toString();
       if (errorMessage.contains('Product not found')) {
-        errorMessage = 'Products are not available yet. This is normal while your app is under review.';
+        errorMessage =
+            'Products are not available yet. This is normal while your app is under review.';
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
@@ -175,17 +181,19 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       return product.currencySymbol + product.rawPrice.toString();
     } catch (e) {
       // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$20' : '\$2';
+      return productId == yearlyProductId ? '\$22' : '\$2';
     }
   }
 
   String _getProductTitle(String productId) {
-    return productId == yearlyProductId ? 'Yearly Subscription' : 'Monthly Subscription';
+    return productId == yearlyProductId
+        ? 'Yearly Subscription'
+        : 'Monthly Subscription';
   }
 
   String _getProductDescription(String productId) {
-    return productId == yearlyProductId 
-        ? 'Auto-renewable subscription. Billed annually. Cancel anytime.' 
+    return productId == yearlyProductId
+        ? 'Auto-renewable subscription. Billed annually. Cancel anytime.'
         : 'Auto-renewable subscription. Billed monthly. Cancel anytime.';
   }
 
@@ -231,7 +239,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         // Handle error
         log('Purchase error: ${purchaseDetails.error}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase failed: ${purchaseDetails.error?.message ?? "Unknown error"}')),
+          SnackBar(
+              content: Text(
+                  'Purchase failed: ${purchaseDetails.error?.message ?? "Unknown error"}')),
         );
       } else if (purchaseDetails.status == PurchaseStatus.canceled) {
         // Handle cancellation
@@ -250,18 +260,22 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   Future<void> _verifyPurchase(PurchaseDetails purchaseDetails) async {
     try {
       log('Starting purchase verification for: ${purchaseDetails.productID}');
-      
+
       String? verificationData;
       String platform = Platform.isIOS ? 'ios' : 'android';
-      
+
       if (Platform.isIOS) {
         // iOS: Get receipt data
-        if (purchaseDetails.verificationData.serverVerificationData.isNotEmpty) {
-          verificationData = purchaseDetails.verificationData.serverVerificationData;
-        } else if (purchaseDetails.verificationData.localVerificationData.isNotEmpty) {
-          verificationData = purchaseDetails.verificationData.localVerificationData;
+        if (purchaseDetails
+            .verificationData.serverVerificationData.isNotEmpty) {
+          verificationData =
+              purchaseDetails.verificationData.serverVerificationData;
+        } else if (purchaseDetails
+            .verificationData.localVerificationData.isNotEmpty) {
+          verificationData =
+              purchaseDetails.verificationData.localVerificationData;
         }
-        
+
         if (verificationData == null || verificationData.isEmpty) {
           throw Exception('No receipt data available for verification');
         }
@@ -272,7 +286,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
           throw Exception('No purchase token available for verification');
         }
       }
-      
+
       // Send verification data to backend
       final verificationSuccess = await _verifyPurchaseWithBackend(
         verificationData: verificationData,
@@ -280,13 +294,14 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         platform: platform,
         transactionId: purchaseDetails.purchaseID ?? '',
       );
-      
+
       if (verificationSuccess) {
         log('Purchase verification successful: ${purchaseDetails.productID}');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Purchase successful! Welcome to Premium!')),
+          const SnackBar(
+              content: Text('Purchase successful! Welcome to Premium!')),
         );
-        
+
         // Close the premium overlay
         if (mounted) {
           Navigator.pop(context);
@@ -294,7 +309,6 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       } else {
         throw Exception('Purchase verification failed');
       }
-      
     } catch (e) {
       log('Purchase verification error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -302,7 +316,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       );
     }
   }
-  
+
   Future<bool> _verifyPurchaseWithBackend({
     required String verificationData,
     required String productId,
@@ -311,9 +325,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   }) async {
     try {
       log('Starting ${platform} purchase verification for product: $productId');
-      
+
       Response response;
-      
+
       if (platform == 'ios') {
         // Use the new Apple receipt verification endpoint for iOS
         log('Using Apple receipt verification endpoint for iOS');
@@ -330,15 +344,15 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
           'purchase_token': verificationData,
           'package_name': 'com.foxxhealth',
         };
-        
+
         response = await _apiClient.post(
           '/api/v1/subscriptions/verify-purchase',
           data: requestData,
         );
       }
-      
+
       log('Backend verification response: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final responseData = response.data;
         log('Verification successful: $responseData');
@@ -347,13 +361,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         log('Verification failed with status: ${response.statusCode}');
         return false;
       }
-      
     } catch (e) {
       log('Backend verification error: $e');
-      
+
       // If it's a network error or server error, we should still allow the purchase
       // to complete to avoid blocking legitimate purchases due to temporary server issues
-      if (e.toString().contains('SocketException') || 
+      if (e.toString().contains('SocketException') ||
           e.toString().contains('TimeoutException') ||
           e.toString().contains('500') ||
           e.toString().contains('502') ||
@@ -361,7 +374,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         log('Server error detected, allowing purchase to complete');
         return true;
       }
-      
+
       return false;
     }
   }
@@ -369,20 +382,20 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
               ),
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Column(
+            ),
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
@@ -391,71 +404,76 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close, color: AppColors.amethystViolet),
+                        icon: const Icon(Icons.close,
+                            color: AppColors.amethystViolet),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      Text('Premium Plan', style: AppTextStyles.heading3),
                       const SizedBox(width: 50),
                     ],
                   ),
                 ),
                 _buildPremiumBenefits(),
-                  Container(
-                    color: Colors.transparent,
-                child: Column(
-                  children: [
-                const SizedBox(height: 32),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isYearlySelected = true;
-                    });
-                  },
-                  child: _buildSubscriptionOption(
-                    title: _getProductTitle(yearlyProductId),
-                    price: _getProductPrice(yearlyProductId),
-                    pricePerUnit: _getPricePerUnit(yearlyProductId),
-                    description: _getProductDescription(yearlyProductId),
-                    isSelected: isYearlySelected,
+                Container(
+                  color: Colors.transparent,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 32),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            // isYearlySelected = true;
+                            isMonthlySelected = true;
+                          });
+                        },
+                        child: _buildSubscriptionOption(
+                          title: _getProductTitle(yearlyProductId),
+                          price: _getProductPrice(yearlyProductId),
+                          pricePerUnit: _getPricePerUnit(yearlyProductId),
+                          description: _getProductDescription(yearlyProductId),
+                          isSelected: isMonthlySelected, //isYearlySelected,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            // isYearlySelected = false;
+                            isMonthlySelected = false;
+                          });
+                        },
+                        child: _buildSubscriptionOption(
+                          title: _getProductTitle(monthlyProductId),
+                          price: _getProductPrice(monthlyProductId),
+                          pricePerUnit: _getPricePerUnit(monthlyProductId),
+                          description: _getProductDescription(monthlyProductId),
+                          isSelected: !isMonthlySelected, //!isYearlySelected,
+                        ),
+                      ),
+
+                      const SizedBox(height: 48),
+                      // _buildTestimonial(),
+                      const SizedBox(height: 16),
+                      _buildTermsOfService(),
+                      const SizedBox(height: 10),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isYearlySelected = false;
-                    });
-                  },
-                  child: _buildSubscriptionOption(
-                    title: _getProductTitle(monthlyProductId),
-                    price: _getProductPrice(monthlyProductId),
-                    pricePerUnit: _getPricePerUnit(monthlyProductId),
-                    description: _getProductDescription(monthlyProductId),
-                    isSelected: !isYearlySelected,
-                  ),
-                ),
-            
-                     const SizedBox(height: 48),
-                _buildTestimonial(),
-                const SizedBox(height: 16),
-                _buildTermsOfService(),
-                const SizedBox(height:10),
-                
-                
-                  ],
-                ),
-              ),
-             
+
                 _buildTrialButton(),
                 // if (_products.isEmpty) _buildRefreshButton(),
-                // const SizedBox(height: 10),
+                const SizedBox(height: 10),
+                const Padding(
+                  padding: EdgeInsets.only(left: 32.0),
+                  child: Text(
+                      'Once your free trial ends, your subscription renews automatically at \$2/month',
+                      style: TextStyle(color: AppColors.gray700, fontSize: 16)),
+                )
               ],
             ),
           ),
         ),
       ),
-      )
-    );
+    ));
   }
 
   Widget _buildPremiumBenefits() {
@@ -474,10 +492,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
             Text('Premium Benefits',
                 style: AppTextStyles.heading2
                     .copyWith(color: AppColors.amethystViolet)),
+            const Text('Start your FREE 14-day trial today',
+                style: AppTextStyles.bodyOpenSans),
             const SizedBox(height: 3),
-            _buildBenefitItem('Unlock the Personal Health Guide'),
-            _buildBenefitItem('In-appointment support'),
-            _buildBenefitItem('First access to exclusive events'),
+            _buildBenefitItem('Track your symptoms'),
+            _buildBenefitItem('Uncover powerful insights'),
+            _buildBenefitItem('Prep like a pro for every appointment'),
+            _buildBenefitItem('Connect with a community that truely gets it'),
           ],
         ),
       ),
@@ -486,12 +507,14 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
   Widget _buildBenefitItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4,right: 10,left: 10),
+      padding: const EdgeInsets.only(bottom: 4, right: 10, left: 10),
       child: Row(
         children: [
           Text('• ', style: AppTextStyles.bodyOpenSans),
           Expanded(
-            child: Text(text, style: AppTextStyles.bodyOpenSans.copyWith(fontWeight: FontWeight.w400)),
+            child: Text(text,
+                style: AppTextStyles.bodyOpenSans
+                    .copyWith(fontWeight: FontWeight.w400)),
           ),
         ],
       ),
@@ -512,7 +535,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         borderRadius: BorderRadius.circular(12),
         color: Colors.white,
         border: Border.all(
-          width: isSelected ? 3 : 1,
+            width: isSelected ? 3 : 1,
             color: isSelected ? AppColors.amethystViolet : Colors.transparent),
       ),
       child: Row(
@@ -523,17 +546,17 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
               children: [
                 Text(
                   title,
-                  style: AppTextStyles.heading3.copyWith(color: isSelected ? AppColors.amethystViolet : Colors.black),
+                  style: AppTextStyles.heading3.copyWith(
+                      color:
+                          isSelected ? AppColors.amethystViolet : Colors.black),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: AppTextStyles.captionOpenSans.copyWith()
-                ),
+                Text(description,
+                    style: AppTextStyles.captionOpenSans.copyWith()),
                 const SizedBox(height: 2),
                 Text(
                   pricePerUnit,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.amethystViolet,
                     fontWeight: FontWeight.w500,
@@ -545,12 +568,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                price,
-                style: AppTextStyles.bodyOpenSans.copyWith(fontSize: 22,
-                color: isSelected ? AppColors.amethystViolet : Colors.black,
-                  fontWeight: FontWeight.w600)
-              ),
+              Text(price,
+                  style: AppTextStyles.bodyOpenSans.copyWith(
+                      fontSize: 22,
+                      color:
+                          isSelected ? AppColors.amethystViolet : Colors.black,
+                      fontWeight: FontWeight.w600)),
               Text(
                 'Cancel Anytime',
                 style: TextStyle(
@@ -600,7 +623,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Terms of Use',
                   style: TextStyle(
                     color: AppColors.amethystViolet,
@@ -624,7 +647,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Privacy Policy',
                   style: TextStyle(
                     color: AppColors.amethystViolet,
@@ -647,7 +670,6 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-
         onPressed: _isLoading ? null : initializePayment,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.amethystViolet,
@@ -658,7 +680,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : const Text(
-                'Start Free 3-day Trial',
+                'Start FREE Trial',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -722,10 +744,11 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(_products.isEmpty 
-                        ? 'Products still not available. Check App Store Connect configuration.'
-                        : 'Products loaded successfully!'),
-                      backgroundColor: _products.isEmpty ? Colors.orange : Colors.green,
+                      content: Text(_products.isEmpty
+                          ? 'Products still not available. Check App Store Connect configuration.'
+                          : 'Products loaded successfully!'),
+                      backgroundColor:
+                          _products.isEmpty ? Colors.orange : Colors.green,
                     ),
                   );
                 }
@@ -746,4 +769,3 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     );
   }
 }
-
