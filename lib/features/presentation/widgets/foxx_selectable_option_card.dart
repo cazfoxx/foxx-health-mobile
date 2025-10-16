@@ -27,19 +27,22 @@ class SelectableOptionCard extends StatelessWidget {
     this.variant = SelectableOptionVariant.brandSecondary,
   });
 
-  /// Icon color depends on variant & selection state
-  Color get _iconColor {
+  /// Returns the correct SVG asset based on selected state
+  String get _svgAsset {
     switch (variant) {
       case SelectableOptionVariant.brandColor:
-        return isSelected ? AppColors.foxxWhite : AppColors.amethyst;
+        return isSelected
+            ? 'assets/svg/icons/circle_check_on_brand-24.svg'
+            : 'assets/svg/icons/circle_check_off_brand-24.svg';
       case SelectableOptionVariant.brandSecondary:
-        return isSelected ? AppColors.amethyst : AppColors.gray900;
+        return isSelected
+            ? 'assets/svg/icons/circle_check_on_white-24.svg'
+            : 'assets/svg/icons/circle_check_off_brand-24.svg';
       case SelectableOptionVariant.error:
-        return AppColors.darkRed;
+        return 'assets/svg/icons/circle_check_off_error-24.svg';
     }
   }
 
-  /// Text style fully uses AppTypography labelLargeSemibold token
   TextStyle get _textStyle {
     return AppTypography.labelMdSemibold.copyWith(
       color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
@@ -57,15 +60,15 @@ class SelectableOptionCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SvgPicture.asset(
-            isSelected
-                ? 'assets/svg/icons/circle_check_on-24.svg'
-                : 'assets/svg/icons/circle_check_off-24.svg',
-            width: 24,
-            height: 24,
-            color: _iconColor,
-          ),
-          const SizedBox(width: AppSpacing.s12),
+          // Show icon only for multi-select
+          if (isMultiSelect) ...[
+            SvgPicture.asset(
+              _svgAsset,
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: AppSpacing.s8),
+          ],
           Expanded(
             child: Text(
               label,

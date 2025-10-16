@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
-
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_text_field.dart';
+import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 
 class WeightInputScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final Function(double)? onDataUpdate;
-  
-  const WeightInputScreen({super.key, this.onNext, this.onDataUpdate});
+  final List<OnboardingQuestion>? questions;
+  final double? currentValue; // ✅ Previously entered weight
+
+  const WeightInputScreen({
+    super.key,
+    this.onNext,
+    this.onDataUpdate,
+    this.questions,
+    this.currentValue,
+  });
 
   @override
   State<WeightInputScreen> createState() => _WeightInputScreenState();
@@ -19,14 +27,23 @@ class WeightInputScreen extends StatefulWidget {
 
 class _WeightInputScreenState extends State<WeightInputScreen> {
   final TextEditingController _weightController = TextEditingController();
-  final FocusNode _weightFocusNode = FocusNode();
+  late final FocusNode _weightFocusNode;
 
   @override
   void initState() {
     super.initState();
-    // Auto-focus the weight field when screen loads
+    _weightFocusNode = FocusNode();
+
+    // ✅ Pre-fill weight if currentValue exists
+    if (widget.currentValue != null) {
+      _weightController.text = widget.currentValue!.toStringAsFixed(0);
+    }
+
+    // Auto-show keyboard when screen loads
     Future.delayed(Duration.zero, () {
-      FocusScope.of(context).requestFocus(_weightFocusNode);
+      if (mounted) {
+        FocusScope.of(context).requestFocus(_weightFocusNode);
+      }
     });
   }
 
@@ -42,79 +59,63 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
     return double.tryParse(_weightController.text);
   }
 
-  bool hasTextInput() {
-    return _weightController.text.isNotEmpty;
-  }
+  bool hasTextInput() => _weightController.text.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    return Foxxbackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Padding(
-            padding: AppSpacing.safeAreaContentPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Your current weight',
-                  style: AppHeadingTextStyles.h4,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Your weight can change symptom trends and insights.',
-                  style: AppTypography.bodyMd.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: AppTypography.regular,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _weightController,
-                  focusNode: _weightFocusNode,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: '0',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  style: AppTypography.bodyLg,
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'lbs',
-                  style: AppTypography.bodyMd.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: hasTextInput(),
-                    onPressed: (){
-                      final weight = getWeight();
-                      if (weight != null) {
-                        widget.onDataUpdate?.call(weight);
-                      }
-                      // Close keyboard
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    }, 
-                    text: 'Next',
-                  ),
-                ),
-              ],
+    final weightQuestion =
+        OnboardingCubit().getQuestionByType(widget.questions ?? [], 'WEIGHT');
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: AppSpacing.s24,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            OnboardingQuestionHeader(
+              questions: widget.questions ?? const [],
+              questionType: 'WEIGHT',
+              questionOverride:
+                  weightQuestion == null ? 'Your current weight' : null,
+              descriptionOverride: weightQuestion == null
+                  ? 'Knowing your weight helps us better understand patterns in your health and tailor insights to you.'
+                  : null,
             ),
-          ),
+            // 🏋️ Weight Input
+            FoxxTextField(
+              controller: _weightController,
+              focusNode: _weightFocusNode, // external focus node
+              hintText: '0',
+              size: FoxxTextFieldSize.singleLine,
+              unitLabel: 'lbs',
+              keyboardType: TextInputType.number,
+              numericOnly: true,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(4),
+              ],
+              showClearButton: false,
+              onChanged: (_) => setState(() {}),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              child: FoxxNextButton(
+                isEnabled: hasTextInput(),
+                onPressed: () {
+                  final weight = getWeight();
+                  if (weight != null) {
+                    widget.onDataUpdate?.call(weight);
+                  }
+                  FocusScope.of(context).unfocus();
+                  widget.onNext?.call();
+                },
+                text: 'Next',
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,37 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 
-enum FoxxTextFieldState { defaultState, focus, typing, textEntered, error }
-enum FoxxTextFieldBorder { borderLarge, borderDefault }
 enum FoxxTextFieldSize { singleLine, multiLine }
 
 class FoxxTextField extends StatefulWidget {
   final String hintText;
   final String? errorText;
-  final FoxxTextFieldState fieldState;
-  final FoxxTextFieldBorder borderVariant;
   final FoxxTextFieldSize size;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final bool isPassword;
-  final bool showHighlight; // system-controlled highlight for multi-line
+  final bool showHighlight;
+  final bool showClearButton;
   final List<Widget>? rightIcons;
   final ValueChanged<String>? onChanged;
+  final String? unitLabel;
+  final TextInputType? keyboardType;
+  final bool numericOnly;
+  final List<TextInputFormatter>? inputFormatters;
 
   const FoxxTextField({
     Key? key,
     required this.hintText,
     this.errorText,
-    this.fieldState = FoxxTextFieldState.defaultState,
-    this.borderVariant = FoxxTextFieldBorder.borderLarge,
     this.size = FoxxTextFieldSize.singleLine,
     this.controller,
+    this.focusNode,
     this.isPassword = false,
     this.showHighlight = false,
+    this.showClearButton = true,
     this.rightIcons,
     this.onChanged,
+    this.unitLabel,
+    this.keyboardType,
+    this.numericOnly = false,
+    this.inputFormatters,
   }) : super(key: key);
 
   @override
@@ -39,61 +46,45 @@ class FoxxTextField extends StatefulWidget {
 }
 
 class _FoxxTextFieldState extends State<FoxxTextField> {
-  late FocusNode _focusNode;
+  late FocusNode _internalFocusNode;
   late TextEditingController _controller;
 
   bool get isMultiline => widget.size == FoxxTextFieldSize.multiLine;
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode;
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
+    _internalFocusNode = FocusNode();
     _controller = widget.controller ?? TextEditingController();
+
+    _focusNode.addListener(() {
+      setState(() {}); // redraw on focus change
+    });
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    if (widget.focusNode == null) _internalFocusNode.dispose();
     if (widget.controller == null) _controller.dispose();
     super.dispose();
   }
 
   Color getBorderColor() {
-    switch (widget.fieldState) {
-      case FoxxTextFieldState.focus:
-      case FoxxTextFieldState.typing:
-        return AppColors.mauve;
-      case FoxxTextFieldState.error:
-        return AppColors.darkRed;
-      case FoxxTextFieldState.defaultState:
-      case FoxxTextFieldState.textEntered:
-      default:
-        return AppColors.gray200;
-    }
-  }
-
-  BorderRadius getBorderRadius() {
-    switch (widget.borderVariant) {
-      case FoxxTextFieldBorder.borderDefault:
-        return AppRadius.brSm;
-      case FoxxTextFieldBorder.borderLarge:
-      default:
-        return AppRadius.brMd;
-    }
+    if (widget.errorText != null) return AppColors.darkRed;
+    if (_focusNode.hasFocus) return AppColors.mauve;
+    return AppColors.gray200;
   }
 
   Color getTextColor() {
-    switch (widget.fieldState) {
-      case FoxxTextFieldState.typing:
-      case FoxxTextFieldState.textEntered:
-        return AppColors.textPrimary;
-      case FoxxTextFieldState.error:
-      case FoxxTextFieldState.defaultState:
-      case FoxxTextFieldState.focus:
-      default:
-        return AppColors.textInputPlaceholder;
+    if (widget.errorText != null) return AppColors.textError;
+    if (_focusNode.hasFocus || _controller.text.isNotEmpty) {
+      return AppColors.textPrimary;
     }
+    return AppColors.textInputPlaceholder;
   }
+
+  BorderRadius getBorderRadius() => BorderRadius.circular(16);
 
   void clearText() {
     _controller.clear();
@@ -103,13 +94,10 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showClearButton =
-        widget.fieldState == FoxxTextFieldState.typing &&
-        _controller.text.isNotEmpty;
+    final bool canShowClearButton =
+        widget.showClearButton && _controller.text.isNotEmpty && _focusNode.hasFocus;
 
-    final double minHeight = widget.size == FoxxTextFieldSize.multiLine
-        ? AppSpacing.s80
-        : AppSpacing.s52;
+    final double minHeight = isMultiline ? AppSpacing.s120 : AppSpacing.s52;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +106,8 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
           constraints: BoxConstraints(minHeight: minHeight),
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.sm,
+            horizontal: AppSpacing.s20,
+            vertical: AppSpacing.s16,
           ),
           decoration: ShapeDecoration(
             color: AppColors.grayWhite,
@@ -129,24 +117,9 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
             ),
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
-              // Focus indicator bar
-              if (widget.fieldState == FoxxTextFieldState.focus ||
-                  widget.fieldState == FoxxTextFieldState.typing)
-                Container(
-                  width: AppSpacing.s2,
-                  height: AppSpacing.s16,
-                  decoration: BoxDecoration(
-                    color: AppColors.amethyst,
-                    borderRadius: BorderRadius.circular(AppSpacing.s2),
-                  ),
-                ),
-              if (widget.fieldState == FoxxTextFieldState.focus ||
-                  widget.fieldState == FoxxTextFieldState.typing)
-                SizedBox(width: AppSpacing.s8),
-
-              // TextField area
               Expanded(
                 child: Stack(
                   children: [
@@ -154,10 +127,18 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
                       controller: _controller,
                       focusNode: _focusNode,
                       cursorColor: AppColors.amethyst,
-                      style: AppTypography.labelMd.copyWith(
-                        color: getTextColor(),
-                      ),
+                      style: AppTypography.labelMd.copyWith(color: getTextColor()),
                       maxLines: isMultiline ? null : 1,
+                      obscureText: widget.isPassword,
+                      keyboardType: widget.numericOnly
+                          ? TextInputType.number
+                          : widget.keyboardType ?? TextInputType.text,
+                      inputFormatters: widget.numericOnly
+                          ? [
+                              FilteringTextInputFormatter.digitsOnly,
+                              ...?widget.inputFormatters
+                            ]
+                          : widget.inputFormatters,
                       decoration: InputDecoration(
                         isDense: true,
                         border: InputBorder.none,
@@ -165,21 +146,17 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
                         hintStyle: AppTypography.labelMd.copyWith(
                           color: AppColors.textInputPlaceholder,
                         ),
+                        contentPadding: EdgeInsets.zero,
                       ),
                       onChanged: widget.onChanged,
                     ),
-
-                    // Highlight layer (system-controlled)
                     if (isMultiline && widget.showHighlight)
                       Positioned.fill(
                         child: IgnorePointer(
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border(
-                                bottom: BorderSide(
-                                  color: AppColors.gray200,
-                                  width: 1.5,
-                                ),
+                                bottom: BorderSide(color: AppColors.gray200, width: 1.5),
                               ),
                             ),
                           ),
@@ -189,8 +166,18 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
                 ),
               ),
 
-              // Right-side icons
-              if (showClearButton)
+              if (widget.unitLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    widget.unitLabel!,
+                    style: AppTypography.labelMd.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+
+              if (canShowClearButton)
                 GestureDetector(
                   onTap: clearText,
                   child: SvgPicture.asset(
@@ -199,25 +186,21 @@ class _FoxxTextFieldState extends State<FoxxTextField> {
                     height: AppSpacing.s20,
                   ),
                 ),
+
               if (widget.rightIcons != null) ...widget.rightIcons!,
             ],
           ),
         ),
 
-        // Error text
-        if (widget.fieldState == FoxxTextFieldState.error &&
-            widget.errorText != null)
+        // 4px vertical gap to error
+        if (widget.errorText != null)
           Padding(
-            padding: EdgeInsets.only(
-              top: AppSpacing.s4,
-              left: AppSpacing.s8,
-            ),
+            padding: const EdgeInsets.only(top: 4, left: 8),
             child: Text(
               widget.errorText!,
-              style: AppTypography.labelXsSemibold.copyWith(
+              style: AppTypography.labelSmSemibold.copyWith(
                 color: AppColors.darkRed,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 0.1,
               ),
             ),
           ),

@@ -51,11 +51,11 @@ class _FoxxNeumorphicCardState extends State<FoxxNeumorphicCard> {
         duration: const Duration(milliseconds: 150),
         padding: EdgeInsets.symmetric(
           horizontal: widget.horizontalPadding ?? AppSpacing.s16,
-          vertical: widget.verticalPadding ?? AppSpacing.s12,
+          vertical: widget.verticalPadding ?? AppSpacing.s16,
         ),
         decoration: BoxDecoration(
           color: _backgroundColor,
-          borderRadius: BorderRadius.circular(AppSpacing.s16),
+          borderRadius: AppRadius.brSm,
         ),
         child: widget.child,
       ),

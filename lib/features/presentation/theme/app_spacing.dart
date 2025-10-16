@@ -30,6 +30,7 @@ class AppSpacing {
   static const double s64 = 64;
   static const double s72 = 72;
   static const double s80 = 80;
+  static const double s120 = 120;
 
   // ============================
   /// Semantic — Spacing
@@ -91,8 +92,8 @@ class AppRadius {
   // ============================
   // Raw radius values (logical pixels)
   static const double xs = 8;    // 8px
-  static const double sm = 12;   // 12px
-  static const double smOuter = 14; // 14px
+  static const double sm = 16;   // 12px
+  static const double smOuter = 18; // 18px
   static const double md = 20;   // 20px
   static const double lg = 40;   // 40px
 

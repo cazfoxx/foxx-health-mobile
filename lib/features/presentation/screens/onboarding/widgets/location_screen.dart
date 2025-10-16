@@ -6,12 +6,22 @@ import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 
 class LocationScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final Function(String)? onDataUpdate;
-  
-  const LocationScreen({super.key, this.onNext, this.onDataUpdate});
+  final List<OnboardingQuestion> questions;
+  final String? currentValue; // ✅ Previously selected state
+
+  const LocationScreen({
+    super.key,
+    this.onNext,
+    this.onDataUpdate,
+    this.questions = const [],
+    this.currentValue,
+  });
 
   @override
   State<LocationScreen> createState() => _LocationScreenState();
@@ -41,6 +51,11 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   void initState() {
     super.initState();
+    // ✅ Restore previous selection
+    if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
+      selectedState = widget.currentValue;
+      _locationController.text = widget.currentValue!;
+    }
     filteredStates = List.from(allStates);
   }
 
@@ -92,10 +107,11 @@ class _LocationScreenState extends State<LocationScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Icon(CupertinoIcons.xmark)),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: Icon(CupertinoIcons.xmark),
+                        ),
                         Text(
                           'Location',
                           style: AppTextStyles.bodyOpenSans.copyWith(
@@ -155,7 +171,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     final state = filteredStates[index];
                     return InkWell(
                       onTap: () {
-                        this.setState(() {
+                        setState(() {
                           selectedState = state;
                           _locationController.text = state;
                         });
@@ -203,69 +219,68 @@ class _LocationScreenState extends State<LocationScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: Padding(
-            padding: AppSpacing.safeAreaContentPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Where do you live?',
-                  style: AppHeadingTextStyles.h2,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'We ask this because where you live can shape your health in real ways, whether it\'s care availability, environmental factors, or local support resources.',
-                  style: AppTextStyles.bodyOpenSans.copyWith(color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 24),
-                FoxxNeumorphicCard(
-                  isSelected: false,
-                  onTap: _showStateSelector,
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Location',
-                        style: AppTextStyles.bodyOpenSans.copyWith(fontWeight: FontWeight.w600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              OnboardingQuestionHeader(
+                questions: const [],
+                questionType: 'ADDRESS',
+                questionOverride: 'Where do you live?',
+                descriptionOverride:
+                    "Where you live can shape your health in real ways, whether it’s care availability, environmental factors, or local support resources.",
+              ),
+              const SizedBox(height: 24),
+              FoxxNeumorphicCard(
+                isSelected: false,
+                onTap: _showStateSelector,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Location',
+                      style: AppTextStyles.bodyOpenSans.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          controller: _locationController,
-                          focusNode: _locationFocusNode,
-                          readOnly: true,
-                          onTap: _showStateSelector,
-                          decoration: InputDecoration(
-                            hintText: 'Select state',
-                            border: InputBorder.none,
-                            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _locationController,
+                        focusNode: _locationFocusNode,
+                        readOnly: true,
+                        onTap: _showStateSelector,
+                        decoration: InputDecoration(
+                          hintText: 'Select state',
+                          border: InputBorder.none,
+                          prefixIcon:
+                              const Icon(Icons.search, color: Colors.grey),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: _locationController.text.isNotEmpty,
-                    onPressed: () {
-                      if (_locationController.text.isNotEmpty) {
-                        widget.onDataUpdate?.call(_locationController.text);
-                      }
-                      widget.onNext?.call();
-                    },
-                    text: 'Next'),
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: FoxxNextButton(
+                  isEnabled: _locationController.text.isNotEmpty,
+                  onPressed: () {
+                    if (_locationController.text.isNotEmpty) {
+                      widget.onDataUpdate?.call(_locationController.text);
+                    }
+                    widget.onNext?.call();
+                  },
+                  text: 'Next',
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
