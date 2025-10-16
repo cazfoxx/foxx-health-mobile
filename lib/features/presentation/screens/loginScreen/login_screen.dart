@@ -534,7 +534,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Icon(
             isMet ? Icons.check_circle : Icons.circle_outlined,
-            color: isMet ? AppColors.insightMintGreen : AppColors.textPrimary,
+            color: isMet ? AppColors.insightPineGreen : AppColors.textPrimary,
             size: 16,
           ),
           const SizedBox(width: 8),
@@ -542,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Text(
               rule,
               style: AppTypography.labelXsSemibold.copyWith(
-                color: isMet ? AppColors.insightMintGreen : AppColors.textPrimary,
+                color: isMet ? AppColors.insightPineGreen : AppColors.textPrimary,
               ),
             ),
           ),

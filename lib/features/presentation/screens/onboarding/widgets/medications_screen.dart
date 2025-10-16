@@ -1,107 +1,137 @@
 import 'package:flutter/material.dart';
-import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_selectable_option_card.dart';
 
 class MedicationsScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
-  
-  const MedicationsScreen({super.key, this.onNext, this.questions = const [], this.onDataUpdate});
+  final String? currentValue; // ✅ Previously selected option
+
+  const MedicationsScreen({
+    super.key,
+    this.onNext,
+    this.questions = const [],
+    this.onDataUpdate,
+    this.currentValue,
+  });
 
   @override
   State<MedicationsScreen> createState() => _MedicationsScreenState();
 }
 
 class _MedicationsScreenState extends State<MedicationsScreen> {
-  String? _selectedOption;
+  String? _selectedAnswers;
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Initialize with previous value if available
+    _selectedAnswers = widget.currentValue;
+  }
 
   List<String> get _medicationOptions {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR');
-    if (question != null) {
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR');
+    if (question != null && question.choices.isNotEmpty) {
       return question.choices;
     }
-    // Fallback options if API data is not available
     return [
-      'Yes',
+      'Yes, I\'d like to list them',
       'Yes, but I\'d prefer not to share',
       'No',
       'Prefer not to say',
     ];
   }
 
-  String get _description {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR');
-    return question?.description ?? 'Are you currently taking any medications or supplements?';
+  String get _question {
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR');
+    final text = question?.question?.trim() ?? '';
+    return text.isEmpty ? 'Are you currently taking any medications or supplements?' : text;
   }
 
-  Widget _buildMedicationOption(String option) {
-    final bool isSelected = _selectedOption == option;
-    
+  String get _description {
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR');
+    final text = question?.description?.trim() ?? '';
+    return text.isEmpty
+        ? 'This helps us tailor guidance to your routine and avoid conflicts.'
+        : text;
+  }
+
+  bool hasValidSelection() {
+    return _selectedAnswers != null && _selectedAnswers!.isNotEmpty;
+  }
+
+  Widget _buildAnswerOption(String label) {
+    final isSelected = _selectedAnswers == label;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: NeumorphicOptionCard(
-        text: option,
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: SelectableOptionCard(
+        label: label,
         isSelected: isSelected,
-        onTap: () {
-          setState(() {
-            _selectedOption = option;
-          });
-        },
+        isMultiSelect: false,
+        variant: SelectableOptionVariant.brandSecondary,
+        onTap: () => setState(() => _selectedAnswers = label),
       ),
     );
+  }
+
+  void _onNext() {
+    if (!hasValidSelection()) return;
+    widget.onDataUpdate?.call(_selectedAnswers!);
+    FocusScope.of(context).unfocus();
+    widget.onNext?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    final canProceed = hasValidSelection();
+
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.textBoxHorizontalWidget,
+            0,
+            AppSpacing.textBoxHorizontalWidget,
+            AppSpacing.s80,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _description.split('?')[0] + '?',
-                style: AppHeadingTextStyles.h4,
+              OnboardingQuestionHeader(
+                questions: widget.questions,
+                questionType: 'MEDICATIONS_OR_SUPPLEMENTS_INDICATOR',
+                questionOverride: _question,
+                descriptionOverride: _description,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _description.split('?').length > 1 ? _description.split('?')[1] : '',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color: AppColors.primary01),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: _medicationOptions.map(_buildMedicationOption).toList(),
-                  ),
-                ),
-              ),
-              if (_selectedOption != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: true,
-                    onPressed: () {
-                      if (_selectedOption != null) {
-                        widget.onDataUpdate?.call(_selectedOption!);
-                      }
-                      // Close keyboard
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    },
-                    text: 'Next'),
-                ),
+              ..._medicationOptions.map(_buildAnswerOption).toList(),
             ],
           ),
         ),
-      ),
+        Positioned(
+          left: AppSpacing.textBoxHorizontalWidget,
+          right: AppSpacing.textBoxHorizontalWidget,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          child: AnimatedOpacity(
+            opacity: canProceed ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: IgnorePointer(
+              ignoring: !canProceed,
+              child: FoxxNextButton(
+                text: 'Next',
+                onPressed: _onNext,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
-} 
+}

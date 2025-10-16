@@ -20,6 +20,7 @@ class OnboardingQuestion {
   final int id;
   final String createdAt;
   final String updatedAt;
+  final String question;
 
   OnboardingQuestion({
     required this.choices,
@@ -33,6 +34,7 @@ class OnboardingQuestion {
     required this.id,
     required this.createdAt,
     required this.updatedAt,
+    required this.question,
   });
 
   factory OnboardingQuestion.fromJson(Map<String, dynamic> json) {
@@ -42,12 +44,13 @@ class OnboardingQuestion {
       type: json['type'],
       fieldName: json['field_name'],
       isPremium: json['is_premium'],
-      description: json['description'],
+      description: json['description'] ?? '',
       dataType: json['data_type'],
       flowType: json['flow_type'],
       id: json['id'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      question: json['question'] ?? '',
     );
   }
 }

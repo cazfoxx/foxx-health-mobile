@@ -132,7 +132,7 @@ class AppTypography {
     fontWeight: AppTypography.bold,
     fontSize: AppTypography.sizeXl,
     height: AppTypography.lhMd / AppTypography.sizeXl,
-    letterSpacing: AppTypography.lsBase,
+    letterSpacing: AppTypography.lsSm,
     color: AppTypography.textPrimary,
   );
 
@@ -229,7 +229,7 @@ class AppTypography {
 
 
   // ==========================
-  // Original Code --- DO NOT DELETE
+  // Original Code --- DO NOT DELETE --- DO NOT USE -- DEPRECATED
   // ==========================
 }
 

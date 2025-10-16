@@ -1,287 +1,210 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_selectable_option_card.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_text_field.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 
 class LifeStageScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
-  
-  const LifeStageScreen({super.key, this.onNext, this.questions = const [], this.onDataUpdate});
+  final String? currentValue; // ✅ Previously selected life stage
+
+  const LifeStageScreen({
+    super.key,
+    this.onNext,
+    this.questions = const [],
+    this.onDataUpdate,
+    this.currentValue,
+  });
 
   @override
   State<LifeStageScreen> createState() => _LifeStageScreenState();
 }
 
 class _LifeStageScreenState extends State<LifeStageScreen> {
-  String? _selectedLifeStage;
-  final TextEditingController _otherController = TextEditingController();
-  bool _showOtherField = false;
+  final Set<String> _selectedAnswers = {};
+  final TextEditingController _selfDescribeController = TextEditingController();
+  bool _showSelfDescribeField = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Pre-fill previously selected value
+    if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
+      final otherLabels = _lifeStages.where(_isOtherLabel);
+      if (otherLabels.contains(widget.currentValue)) {
+        _selectedAnswers.add(widget.currentValue!);
+        _showSelfDescribeField = true;
+        _selfDescribeController.text = widget.currentValue!;
+      } else {
+        _selectedAnswers.add(widget.currentValue!);
+      }
+    }
+  }
 
   List<String> get _lifeStages {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'CURRENT_STAGE_IN_LIFE');
-    if (question != null) {
-      return question.choices;
-    }
-    // Fallback options if API data is not available
-    return [
-      'Menstruating',
-      'Trying to conceive',
-      'Pregnant',
-      'Postpartum',
-      'Peri-menopause',
-      'Menopause',
-      'Post-menopausal',
-    ];
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'CURRENT_STAGE_IN_LIFE');
+    final choices = question?.choices ?? [];
+    return choices.isNotEmpty
+        ? choices
+        : [
+            'Menstruating',
+            'Trying to conceive',
+            'Pregnant',
+            'Postpartum',
+            'Peri-menopause',
+            'Menopause',
+            'Post-menopausal',
+            'Other',
+          ];
+  }
+
+  String get _question {
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'CURRENT_STAGE_IN_LIFE');
+    final text = question?.question?.trim() ?? '';
+    return text.isEmpty ? 'What is your current life stage?' : text;
   }
 
   String get _description {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'CURRENT_STAGE_IN_LIFE');
-    return question?.description ?? 'What is your current life stage?';
+    final question = OnboardingCubit()
+        .getQuestionByType(widget.questions, 'CURRENT_STAGE_IN_LIFE');
+    final text = question?.description?.trim() ?? '';
+    return text.isEmpty
+        ? 'This helps us tailor guidance and content to your stage.'
+        : text;
   }
 
-  Widget _buildLifeStageOption(String option) {
-    final bool isSelected = _selectedLifeStage == option;
-    
-    final backgroundColor = isSelected
-        ? AppColors.progressBarSelected
-        : Colors.white.withOpacity(0.15);
+  bool _isOtherLabel(String label) =>
+      label.toLowerCase().contains('other') ||
+      label.toLowerCase().contains('self');
 
-    final shadowColor = isSelected
-        ? Colors.white.withOpacity(0.5)
-        : Colors.white.withOpacity(0.3);
+  void _toggleOption(String label) {
+    final isOther = _isOtherLabel(label);
+    final isSelected = _selectedAnswers.contains(label);
 
-    final textColor = isSelected
-        ? Colors.black.withOpacity(0.85)
-        : Colors.black.withOpacity(0.85);
-    
+    setState(() {
+      if (isSelected) {
+        _selectedAnswers.remove(label);
+        if (isOther) {
+          _showSelfDescribeField = false;
+          _selfDescribeController.clear();
+        }
+      } else {
+        _selectedAnswers.add(label);
+        if (isOther) {
+          _showSelfDescribeField = true;
+        }
+      }
+    });
+  }
+
+  Widget _buildAnswerOption(String label) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedLifeStage = option;
-          });
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color:
-                isSelected? AppColors.progressBarSelected:
-                 Colors.white),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                    offset: Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  isSelected
-                      ? const Icon(Icons.check_circle, color: AppColors.amethyst)
-                      : Icon(Icons.circle_outlined, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      option,
-                      style: AppTextStyles.bodyOpenSans.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+      child: SelectableOptionCard(
+        label: label,
+        isSelected: _selectedAnswers.contains(label),
+        isMultiSelect: true,
+        onTap: () => _toggleOption(label),
       ),
     );
   }
 
-  Widget _buildOtherOption() {
-    final bool isSelected = _selectedLifeStage == 'Others';
-    
-    final backgroundColor = isSelected
-        ? AppColors.progressBarSelected
-        : Colors.white.withOpacity(0.15);
-
-    final shadowColor = isSelected
-        ? Colors.white.withOpacity(0.5)
-        : Colors.white.withOpacity(0.3);
-
-    final textColor = isSelected
-        ? Colors.black.withOpacity(0.85)
-        : Colors.black.withOpacity(0.85);
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            if (isSelected) {
-              _selectedLifeStage = null;
-              _showOtherField = false;
-            } else {
-              _selectedLifeStage = 'Others';
-              _showOtherField = true;
-            }
-          });
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color:
-                isSelected? AppColors.progressBarSelected:
-                 Colors.white),
-                boxShadow: [
-                  BoxShadow(
-                    color: shadowColor,
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                    offset: Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  isSelected
-                      ? const Icon(Icons.check_circle, color: AppColors.amethyst)
-                      : Icon(Icons.circle_outlined, color: Colors.grey[400]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Others',
-                      style: AppTextStyles.bodyOpenSans.copyWith(
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOtherField() {
+  Widget _buildSelfDescribeField() {
     return Visibility(
-      visible: _showOtherField,
+      visible: _showSelfDescribeField,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _otherController,
-            decoration: InputDecoration(
-              hintText: 'Please specify',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: AppTextStyles.bodyOpenSans,
-            onChanged: (value) {
-              setState(() {});
-            },
-          ),
+        padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+        child: FoxxTextField(
+          controller: _selfDescribeController,
+          hintText: 'Please specify',
+          size: FoxxTextFieldSize.singleLine,
+          onChanged: (_) => setState(() {}),
         ),
       ),
     );
   }
 
-  bool hasValidSelection() {
-    return _selectedLifeStage != null || (_showOtherField && _otherController.text.isNotEmpty);
+  bool get _canProceed {
+    final hasSelection = _selectedAnswers.isNotEmpty;
+    final hasOtherText = _showSelfDescribeField &&
+        _selfDescribeController.text.trim().isNotEmpty;
+    return hasSelection || hasOtherText;
+  }
+
+  void _onNext() {
+    final answers = <String>{
+      ..._selectedAnswers.where((a) => !_isOtherLabel(a)),
+    };
+
+    if (_showSelfDescribeField) {
+      final otherText = _selfDescribeController.text.trim();
+      if (otherText.isNotEmpty) answers.add(otherText);
+    }
+
+    if (answers.isNotEmpty) {
+      widget.onDataUpdate?.call(answers.first);
+    }
+
+    FocusScope.of(context).unfocus();
+    widget.onNext?.call();
   }
 
   @override
   void dispose() {
-    _otherController.dispose();
+    _selfDescribeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.textBoxHorizontalWidget,
+            0,
+            AppSpacing.textBoxHorizontalWidget,
+            AppSpacing.s80,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _description.split('?')[0] + '?',
-                style: AppHeadingTextStyles.h4,
+              OnboardingQuestionHeader(
+                questions: widget.questions,
+                questionType: 'CURRENT_STAGE_IN_LIFE',
+                questionOverride: _question,
+                descriptionOverride: _description,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _description.split('?').length > 1 ? _description.split('?')[1] : '',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color: AppColors.primary01),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ..._lifeStages.map(_buildLifeStageOption).toList(),
-                      _buildOtherOption(),
-                      _buildOtherField(),
-                    ],
-                  ),
-                ),
-              ),
-              if (hasValidSelection())
-                SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: true,
-                    onPressed: () {
-                      // Determine the final life stage value
-                      String? finalLifeStage;
-                      if (_selectedLifeStage == 'Others' && _otherController.text.isNotEmpty) {
-                        finalLifeStage = _otherController.text;
-                      } else if (_selectedLifeStage != null && _selectedLifeStage != 'Others') {
-                        finalLifeStage = _selectedLifeStage;
-                      }
-                      
-                      if (finalLifeStage != null) {
-                        widget.onDataUpdate?.call(finalLifeStage);
-                      }
-                      // Close keyboard
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    },
-                    text: 'Next'),
-                ),
+              ..._lifeStages.map(_buildAnswerOption),
+              _buildSelfDescribeField(),
             ],
           ),
         ),
-      ),
+        Positioned(
+          left: AppSpacing.textBoxHorizontalWidget,
+          right: AppSpacing.textBoxHorizontalWidget,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          child: AnimatedOpacity(
+            opacity: _canProceed ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: IgnorePointer(
+              ignoring: !_canProceed,
+              child: FoxxNextButton(
+                text: 'Next',
+                onPressed: _onNext,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
-} 
+}
