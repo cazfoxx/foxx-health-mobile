@@ -421,7 +421,6 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            // isYearlySelected = true;
                             isMonthlySelected = true;
                           });
                         },
@@ -430,14 +429,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                           price: _getProductPrice(yearlyProductId),
                           pricePerUnit: _getPricePerUnit(yearlyProductId),
                           description: _getProductDescription(yearlyProductId),
-                          isSelected: isMonthlySelected, //isYearlySelected,
+                          isSelected: !isMonthlySelected,
                         ),
                       ),
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            // isYearlySelected = false;
                             isMonthlySelected = false;
                           });
                         },
@@ -446,7 +444,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                           price: _getProductPrice(monthlyProductId),
                           pricePerUnit: _getPricePerUnit(monthlyProductId),
                           description: _getProductDescription(monthlyProductId),
-                          isSelected: !isMonthlySelected, //!isYearlySelected,
+                          isSelected: isMonthlySelected,
                         ),
                       ),
 

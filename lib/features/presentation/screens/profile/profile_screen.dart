@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
+import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
@@ -23,11 +24,11 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
-  
+
   String? _profileIconUrl;
   bool _hasProfileIcon = false;
   bool _isLoadingProfileIcon = false;
-  
+
   // User profile data
   String? _userName;
   String? _gender;
@@ -66,10 +67,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         GetStorage().erase();
-        
+
         // Clear AppStorage
         AppStorage.clearCredentials();
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -78,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             duration: Duration(seconds: 2),
           ),
         );
-        
+
         // Navigate to login screen and clear all previous routes
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -119,11 +120,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200 && response.data != null) {
         final userData = response.data;
-        
+
         setState(() {
           _userName = userData['user_name'];
           _gender = userData['gender'];
-          
+
           // Handle profile icon
           final profileIconUrl = userData['profile_icon_url'];
           if (profileIconUrl != null && profileIconUrl.isNotEmpty) {
@@ -133,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _hasProfileIcon = false;
             _profileIconUrl = null;
           }
-          
+
           _isLoadingProfileIcon = false;
         });
       } else {
@@ -149,13 +150,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
   String _getFullImageUrl(String imageUrl) {
     // If the URL is already a full URL, return it as is
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
-    
+
     // If it's a relative path, prepend the base URL
     return 'https://fastapi-backend-v2-788993188947.us-central1.run.app/$imageUrl';
   }
@@ -164,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (gender == null || gender.isEmpty) {
       return 'she/her'; // Default fallback
     }
-    
+
     switch (gender.toLowerCase()) {
       case 'female':
       case 'woman':
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Title
                   Text(
                     'Update Profile Picture',
@@ -222,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Camera option
                   _buildBottomSheetOption(
                     icon: Icons.camera_alt,
@@ -232,9 +232,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _pickAndUploadImage(ImageSource.camera);
                     },
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Gallery option
                   _buildBottomSheetOption(
                     icon: Icons.photo_library,
@@ -244,10 +244,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _pickAndUploadImage(ImageSource.gallery);
                     },
                   ),
-                  
+
                   if (_hasProfileIcon) ...[
                     const SizedBox(height: 12),
-                    
+
                     // Delete option (only show if user has a profile icon)
                     _buildBottomSheetOption(
                       icon: Icons.delete,
@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       isDestructive: true,
                     ),
                   ],
-                  
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -321,11 +321,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
 
         final result = await _uploadProfileIcon(image.path);
-        
+
         if (result != null) {
           // Reload complete profile data
           await _loadUserProfile();
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -338,7 +338,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Failed to upload profile picture. Please try again.'),
+                content:
+                    Text('Failed to upload profile picture. Please try again.'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -372,7 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final apiClient = ApiClient();
-      
+
       // Create FormData for multipart upload
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
@@ -394,9 +395,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        return responseData['profile_icon_url'] ?? 
-               responseData['url'] ?? 
-               responseData['image_url'];
+        return responseData['profile_icon_url'] ??
+            responseData['url'] ??
+            responseData['image_url'];
       } else {
         throw Exception('Failed to upload profile icon');
       }
@@ -413,7 +414,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Remove Profile Picture'),
-          content: const Text('Are you sure you want to remove your profile picture?'),
+          content: const Text(
+              'Are you sure you want to remove your profile picture?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -450,7 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (response.statusCode == 200) {
           // Reload complete profile data
           await _loadUserProfile();
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -670,10 +672,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         GetStorage().erase();
-        
+
         // Clear AppStorage
         AppStorage.clearCredentials();
-        
+
         // Show success message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -684,7 +686,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         }
-        
+
         // Navigate to login screen and clear all previous routes
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -705,7 +707,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         Navigator.of(context).pop();
       }
-      
+
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -722,12 +724,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
-   
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -782,7 +784,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const UpdatePasswordScreen(),
+                                builder: (context) =>
+                                    const UpdatePasswordScreen(),
                               ),
                             );
                           },
@@ -800,19 +803,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        // _buildSettingsItem(
-                        //   icon: Icons.star,
-                        //   title: 'My subscription',
-                        //   onTap: () {
-                        //     // TODO: Navigate to subscription screen
-                        //     ScaffoldMessenger.of(context).showSnackBar(
-                        //       const SnackBar(
-                        //         content: Text('Subscription functionality coming soon'),
-                        //         backgroundColor: Colors.blue,
-                        //       ),
-                        //     );
-                        //   },
-                        // ),
+                        _buildSettingsItem(
+                          icon: Icons.star,
+                          title: 'My subscription',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PremiumOverlay(),
+                              ),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 12),
                         _buildSettingsItem(
                           icon: Icons.person_remove,
@@ -825,63 +826,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                
-               // Legal Links
-               const SizedBox(height: 20),
-               Center(
-                 child: GestureDetector(
-                   onTap: () {
-                     Navigator.of(context).push(
-                       MaterialPageRoute(
-                         builder: (context) => const PrivacyPolicyScreen(),
-                       ),
-                     );
-                   },
-                   child: Text(
-                     'Privacy Policy',
-                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                       color: AppColors.amethyst,
-                     ),
-                   ),
-                 ),
-               ),
-               const SizedBox(height: 12),
-               Center(
-                 child: GestureDetector(
-                   onTap: () {
-                     Navigator.of(context).push(
-                       MaterialPageRoute(
-                         builder: (context) => const TermsOfUseScreen(),
-                       ),
-                     );
-                   },
-                   child: Text(
-                     'Terms & Conditions',
-                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                       color: AppColors.amethyst,
-                     ),
-                   ),
-                 ),
-               ),
-               const SizedBox(height: 12),
-               Center(
-                 child: GestureDetector(
-                   onTap: () {
-                     Navigator.of(context).push(
-                       MaterialPageRoute(
-                         builder: (context) => const TermsOfUseScreen(),
-                       ),
-                     );
-                   },
-                   child: Text(
-                     'Terms of Use',
-                     style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
-                       color: AppColors.amethyst,
-                     ),
-                   ),
-                 ),
-               ),
-               const SizedBox(height: 20),
+
+                // Legal Links
+                const SizedBox(height: 20),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Privacy Policy',
+                      style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                        color: AppColors.amethyst,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TermsOfUseScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Terms & Conditions',
+                      style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                        color: AppColors.amethyst,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TermsOfUseScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Terms of Use',
+                      style: AppOSTextStyles.osMdSemiboldLabel.copyWith(
+                        color: AppColors.amethyst,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -914,7 +915,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : _isLoadingProfileIcon
                           ? const CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.amethyst),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.amethyst),
                             )
                           : Icon(
                               Icons.person,
@@ -941,7 +943,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : const Icon(
@@ -954,30 +957,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(width: 16),
-            
+
             // User Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Text(
-                  _userName ?? UserProfileConstants.getDisplayName(),
-                  style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                    color: AppColors.primary01,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    _userName ?? UserProfileConstants.getDisplayName(),
+                    style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                      color: AppColors.primary01,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _getGenderPronouns(_gender),
-                  style: AppOSTextStyles.osMd.copyWith(
-                    color: AppColors.davysGray,
+                  const SizedBox(height: 4),
+                  Text(
+                    _getGenderPronouns(_gender),
+                    style: AppOSTextStyles.osMd.copyWith(
+                      color: AppColors.davysGray,
+                    ),
                   ),
-                ),
                 ],
               ),
             ),
-            
+
             // Arrow Icon
             Icon(
               Icons.arrow_forward_ios,
@@ -1068,7 +1071,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildNavItem(Icons.search, 'Insight', false, () {
             // TODO: Navigate to Insight
           }),
-       
         ],
       ),
     );

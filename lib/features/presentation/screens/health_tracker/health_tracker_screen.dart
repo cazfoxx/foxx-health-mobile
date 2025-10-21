@@ -59,6 +59,7 @@ class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
                               ),
                             ),
                             onPressed: () {
+                              Navigator.of(context).pop();
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>
