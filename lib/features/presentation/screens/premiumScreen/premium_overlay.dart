@@ -487,16 +487,15 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Premium Benefits',
+            Text('Take control of your health with FoXX',
                 style: AppTextStyles.heading2
                     .copyWith(color: AppColors.amethystViolet)),
-            const Text('Start your FREE 14-day trial today',
-                style: AppTextStyles.bodyOpenSans),
             const SizedBox(height: 3),
+            _buildBenefitItem('Start your FREE 14-day trial today'),
             _buildBenefitItem('Track your symptoms'),
             _buildBenefitItem('Uncover powerful insights'),
             _buildBenefitItem('Prep like a pro for every appointment'),
-            _buildBenefitItem('Connect with a community that truely gets it'),
+            _buildBenefitItem('Connect with a community that truly gets it'),
           ],
         ),
       ),
