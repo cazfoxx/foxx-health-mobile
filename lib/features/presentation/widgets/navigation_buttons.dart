@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_buttons.dart';
 
 class FoxxBackButton extends StatelessWidget {
   final VoidCallback? onPressed;

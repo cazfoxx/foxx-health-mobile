@@ -11,6 +11,7 @@ import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/widgets/neumorphic.dart';
 import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_neumorphic.dart';
 
 class PersonalInfoReviewScreen extends StatefulWidget {
   final Function(Map<String, String>) onDataUpdate;
@@ -1345,12 +1346,12 @@ class _EditProfileBottomSheetState extends State<_EditProfileBottomSheet> {
           ),
         ),
         const SizedBox(height: 20),
-        NeumorphicCard(
-          isSelected: false,
-          onTap: _showStateSelector,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        FoxxNeumorphicCard(
+            isSelected: false,
+            onTap: _showStateSelector,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Text(
                 'Location',
                 style: AppTextStyles.bodyOpenSans

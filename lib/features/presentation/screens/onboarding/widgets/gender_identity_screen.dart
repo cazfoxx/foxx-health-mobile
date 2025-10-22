@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
-import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_selectable_option_card.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_text_field.dart';
 
 class GenderIdentityScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
-  
-  const GenderIdentityScreen({super.key, this.onNext, this.questions = const [], this.onDataUpdate});
+  final String? currentValue; // ✅ Previously selected gender
+
+  const GenderIdentityScreen({
+    super.key,
+    this.onNext,
+    this.questions = const [],
+    this.onDataUpdate,
+    this.currentValue,
+  });
 
   @override
   State<GenderIdentityScreen> createState() => _GenderIdentityScreenState();
@@ -18,23 +27,65 @@ class GenderIdentityScreen extends StatefulWidget {
 
 class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
   String? _selectedGender;
+
+  /// Controller for self-describe input
   final TextEditingController _selfDescribeController = TextEditingController();
+
+  /// Tracks if self-describe option is selected
   bool _isSelfDescribeSelected = false;
+
+  /// Stores previously entered self-describe input to restore when reselecting
+  String? _previousSelfDescribeText;
+
+  @override
+  void initState() {
+    super.initState();
+    // Restore previous selection properly, including self-describe custom text
+    final cv = widget.currentValue?.trim();
+    if (cv == null || cv.isEmpty) {
+      _selectedGender = null;
+      _isSelfDescribeSelected = false;
+      return;
+    }
+
+    // Compare against known options (case-insensitive)
+    final options = _genderOptions;
+    final matchesOption = options.any(
+      (o) => o.trim().toLowerCase() == cv.toLowerCase(),
+    );
+
+    if (matchesOption) {
+      // It's a predefined option
+      _selectedGender = cv;
+      _isSelfDescribeSelected = _isSelfDescribeLabel(cv);
+    } else {
+      // It's a custom self-describe value
+      _isSelfDescribeSelected = true;
+      // Pick the self-describe label present in options; fallback if missing
+      final selfDescribeLabel = options.firstWhere(
+        (o) => _isSelfDescribeLabel(o),
+        orElse: () => 'Prefer to self describe',
+      );
+      _selectedGender = selfDescribeLabel;
+      _selfDescribeController.text = cv; // restore input
+    }
+  }
 
   List<String> get _genderOptions {
     final question = OnboardingCubit().getQuestionByType(widget.questions, 'GENDER');
-    if (question != null) {
-      return question.choices;
-    }
-    // Fallback options if API data is not available
-    return [
-      'Woman',
-      'Transgender Woman',
-      'Gender queer/Gender fluid',
-      'Agender',
-      'Prefer not to say',
-      'Prefer to self describe',
-    ];
+    final cached = OnboardingCubit.cachedChoicesByType['GENDER'];
+    final apiChoices = (question?.choices.isNotEmpty ?? false) ? question!.choices : (cached ?? []);
+
+    return apiChoices.isNotEmpty
+        ? apiChoices
+        : [
+            'Woman',
+            'Transgender Woman',
+            'Gender queer/Gender fluid',
+            'Agender',
+            'Prefer not to say',
+            'Prefer to self describe',
+          ];
   }
 
   String get _description {
@@ -42,38 +93,61 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
     return question?.description ?? 'How do you currently describe your gender identity?';
   }
 
-  @override
-  void dispose() {
-    _selfDescribeController.dispose();
-    super.dispose();
+  bool _isSelfDescribeLabel(String label) {
+    final l = label.toLowerCase();
+    return l.contains('self describe') || l.contains('self-describe');
   }
 
-  String? getSelectedGender() {
-    if (_selectedGender == 'Prefer to self describe' ||
-        _selectedGender == 'Prefer to self-describe') {
-      return _selfDescribeController.text.isNotEmpty
-          ? _selfDescribeController.text
-          : null;
+  bool hasValidSelection() {
+    return _isSelfDescribeSelected
+        ? _selfDescribeController.text.trim().isNotEmpty
+        : _selectedGender != null;
+  }
+
+  void _onNext() {
+    final value = _isSelfDescribeSelected
+        ? _selfDescribeController.text.trim()
+        : _selectedGender;
+    if (value != null && value.isNotEmpty) {
+      widget.onDataUpdate?.call(value);
+      widget.onNext?.call();
     }
-    return _selectedGender;
   }
 
-  Widget _buildGenderOption(String option) {
-    final bool isSelected = _selectedGender == option;
-    final bool isSelfDescribe = option == 'Prefer to self describe' || 
-                                option == 'Prefer to self-describe';
+  Widget _buildOptionCard(String label) {
+    final isSelfDescribe = _isSelfDescribeLabel(label);
+    final isSelected = isSelfDescribe ? _isSelfDescribeSelected : _selectedGender == label;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: NeumorphicOptionCard(
-        text: option,
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: SelectableOptionCard(
+        label: label,
         isSelected: isSelected,
         onTap: () {
           setState(() {
-            _selectedGender = option;
-            _isSelfDescribeSelected = isSelfDescribe;
+            if (isSelfDescribe) {
+              _selectedGender = label;
+              _isSelfDescribeSelected = true;
+
+              // Restore previous self-describe text if available
+              if (_previousSelfDescribeText != null) {
+                _selfDescribeController.text = _previousSelfDescribeText!;
+              }
+            } else {
+              _selectedGender = label;
+
+              // Save text before clearing
+              if (_isSelfDescribeSelected) {
+                _previousSelfDescribeText = _selfDescribeController.text;
+              }
+
+              _isSelfDescribeSelected = false;
+              _selfDescribeController.clear();
+            }
           });
         },
+        isMultiSelect: false,
+        variant: SelectableOptionVariant.brandSecondary,
       ),
     );
   }
@@ -82,81 +156,68 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
     return Visibility(
       visible: _isSelfDescribeSelected,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _selfDescribeController,
-            decoration: InputDecoration(
-              hintText: 'Self describe',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-            ),
-            style: AppTextStyles.bodyOpenSans,
-            onChanged: (value) {
-              setState(() {});
-            },
-          ),
+        padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+        child: FoxxTextField(
+          controller: _selfDescribeController,
+          hintText: 'Please specify',
+          size: FoxxTextFieldSize.singleLine,
+          onChanged: (_) => setState(() {}),
         ),
       ),
     );
   }
 
   @override
+  void dispose() {
+    _selfDescribeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    final canProceed = hasValidSelection();
+
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.textBoxHorizontalWidget,
+            0,
+            AppSpacing.textBoxHorizontalWidget,
+            AppSpacing.s80,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _description.split('?')[0] + '?',
-                style: AppHeadingTextStyles.h4,
+              OnboardingQuestionHeader(
+                questions: widget.questions,
+                questionType: 'GENDER',
+                descriptionOverride: _description,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _description.split('?').length > 1 ? _description.split('?')[1] : '',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color:AppColors.primaryTxt),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ..._genderOptions.map(_buildGenderOption).toList(),
-                      _buildSelfDescribeField(),
-                    ],
-                  ),
-                ),
-              ),
-              
-              SizedBox(
-                width: double.infinity,
-                child: 
-                FoxxNextButton(
-                  isEnabled: getSelectedGender() != null,
-                  onPressed: () {
-                    final selectedGender = getSelectedGender();
-                    if (selectedGender != null) {
-                      widget.onDataUpdate?.call(selectedGender);
-                    }
-                    widget.onNext?.call();
-                  },
-                  text: 'Next'),
-             
-              ),
+              ..._genderOptions.expand((label) => [
+                    _buildOptionCard(label),
+                    if (_isSelfDescribeLabel(label)) _buildSelfDescribeField(),
+                  ]).toList(),
             ],
           ),
         ),
-      ),
+        Positioned(
+          left: AppSpacing.textBoxHorizontalWidget,
+          right: AppSpacing.textBoxHorizontalWidget,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          child: AnimatedOpacity(
+            opacity: canProceed ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: IgnorePointer(
+              ignoring: !canProceed,
+              child: FoxxNextButton(
+                text: 'Next',
+                onPressed: _onNext,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

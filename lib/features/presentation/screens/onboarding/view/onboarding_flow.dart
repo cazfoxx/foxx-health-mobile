@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
@@ -23,12 +24,22 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 
+abstract class HasNextButtonState {
+  NextButtonState getNextButtonState();
+}
+
+class NextButtonState {
+  final bool show;
+  final VoidCallback? onPressed;
+
+  const NextButtonState({required this.show, required this.onPressed});
+}
+
 class OnboardingFlow extends StatefulWidget {
   final String email;
   final String password;
 
-  const OnboardingFlow(
-      {super.key, required this.email, required this.password});
+  const OnboardingFlow({super.key, required this.email, required this.password});
 
   @override
   State<OnboardingFlow> createState() => _OnboardingFlowState();
@@ -37,6 +48,7 @@ class OnboardingFlow extends StatefulWidget {
 class _OnboardingFlowState extends State<OnboardingFlow> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  final ValueNotifier<bool> _canProceedNotifier = ValueNotifier<bool>(true);
 
   // API Data
   List<OnboardingQuestion> _questions = [];
@@ -50,7 +62,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   int? age;
   double? weight;
   Map<String, dynamic>? height; // {feet: int, inches: int}
-  String? ethnicity;
+  Set<String>? ethnicity;
   String? location;
   String? income;
   Set<String>? healthConcerns;
@@ -93,19 +105,50 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
+  // Helper: whether user chose to list medications (API or fallback label)
+  bool get _shouldListMedications {
+    final normalized = (medicationStatus ?? '').toLowerCase().trim();
+    return normalized.contains('list') && normalized.startsWith('yes');
+  }
+
   void _nextPage() {
-    if (_currentPage < 13) {
-      // Updated to include all 14 screens (0-13)
+    if (_currentPage == 10) {
+      // Branch from MedicationsScreen
+      if (_shouldListMedications) {
+        _pageController.jumpToPage(11); // AddMedicationsScreen
+      } else {
+        _pageController.jumpToPage(12); // LifeStageScreen
+      }
+      return;
+    }
+
+    if (_currentPage < screens.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      // Complete onboarding and create account
       _createAccount();
     }
   }
 
+  void _previousPage() {
+    if (_currentPage == 12 && !_shouldListMedications) {
+      _pageController.jumpToPage(10); // MedicationsScreen
+      return;
+    }
+
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  // Account creation and onboarding submission
   Future<void> _createAccount() async {
     setState(() {
       _isCreatingAccount = true;
@@ -115,28 +158,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       final loginCubit = context.read<LoginCubit>();
       final onboardingCubit = context.read<OnboardingCubit>();
 
-      // Print all collected onboarding data for debugging
-      print('=== ONBOARDING DATA COLLECTED ===');
-      print('Email: ${widget.email}');
-      print('Password: [HIDDEN]');
-      print('Username: $username');
-      print('Gender Identity: $genderIdentity');
-      print('Age: $age');
-      print('Weight: $weight');
-      print('Height: $height (feet: ${height?['feet']}, inches: ${height?['inches']})');
-      print('Height in CM: ${height?['feet'] != null ? (height!['feet'] * 30.48 + height!['inches'] * 2.54) : null}');
-      print('Ethnicity: $ethnicity');
-      print('Location: $location');
-      print('Income: $income');
-      print('Health Concerns: $healthConcerns');
-      print('Diagnoses: $diagnoses');
-      print('Medication Status: $medicationStatus');
-      print('Medications: $medications');
-      print('Life Stage: $lifeStage');
-      print('Data Privacy Accepted: $dataPrivacyAccepted');
-      print('================================');
-
-      // Set all the collected data in the LoginCubit
       loginCubit.setUserDetails(
         email: widget.email,
         password: widget.password,
@@ -145,29 +166,20 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         referralSource: 'Onboarding Flow',
       );
 
-      // Set health goals and concerns if available
       if (healthConcerns != null && healthConcerns!.isNotEmpty) {
         loginCubit.setHealthConcerns(healthConcerns!.toList());
       }
 
-      // Register the user using LoginCubit
       final registrationResponse = await loginCubit.registerUser(context);
 
-      if (registrationResponse != null) {
-        setState(() {
-          _isCreatingAccount = false;
-        });
+      setState(() {
+        _isCreatingAccount = false;
+      });
 
-        // Check if this was a direct login (existing user)
+      if (registrationResponse != null) {
         if (registrationResponse['direct_login'] == true) {
-          print('✅ Existing user logged in directly! Proceeding with onboarding...');
-          
-          // For existing users, proceed directly to onboarding completion
           await _completeOnboardingAfterLogin(onboardingCubit);
         } else {
-          print('✅ Registration successful! Showing OTP verification...');
-          
-          // Show OTP verification bottom sheet for new users
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -175,29 +187,20 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             builder: (context) => OTPVerificationSheet(
               email: widget.email,
               onSuccess: () async {
-                // Close the bottom sheet
                 Navigator.of(context).pop();
-                
-                // After successful OTP verification and login, proceed with onboarding
                 await _completeOnboardingAfterLogin(onboardingCubit);
               },
             ),
           );
         }
       } else {
-        print('❌ Registration failed!');
-        // Error is already handled by LoginCubit and shown via Snackbar
-        setState(() {
-          _isCreatingAccount = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration failed!'), backgroundColor: Colors.red),
+        );
       }
     } catch (e) {
-      print('❌ Error in onboarding process: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error creating account: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error creating account: $e'), backgroundColor: Colors.red),
       );
       setState(() {
         _isCreatingAccount = false;
@@ -207,25 +210,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
     try {
-      // Check if token is available immediately
       final token = AppStorage.accessToken;
-      print('🔍 Token immediately after login: ${token != null ? "Present (${token.length} chars)" : "NULL"}');
-      
-      // If token is null, try to reload credentials
-      if (token == null) {
-        print('⚠️ Token is null, reloading credentials...');
-        await AppStorage.loadCredentials();
-        print('🔍 Token after reload: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
-      }
-      
-      // Add a delay to ensure the login token is properly set
+      if (token == null) await AppStorage.loadCredentials();
       await Future.delayed(const Duration(seconds: 2));
-      
-      // Check token again after delay
-      final tokenAfterDelay = AppStorage.accessToken;
-      print('🔍 Token after 2s delay: ${tokenAfterDelay != null ? "Present (${tokenAfterDelay.length} chars)" : "NULL"}');
 
-      // After successful login, set all onboarding data and submit to onboarding API
       onboardingCubit.setOnboardingData(
         userName: username,
         gender: genderIdentity,
@@ -234,7 +222,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         height: height?['feet'] != null
             ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
             : null,
-        ethnicity: ethnicity,
+        ethnicity: ethnicity?.join(', '),
         address: location,
         householdIncomeRange: income,
         healthConcerns: healthConcerns?.toList() ?? [],
@@ -245,70 +233,22 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         privacyPolicyAccepted: dataPrivacyAccepted ?? false,
         sixteenAndOver: true,
         isActive: true,
-        denPrivacy: ['posts'], // Default value as per API spec
-        profileIconUrl: null, // Can be set later if needed
+        denPrivacy: ['posts'],
+        profileIconUrl: null,
       );
 
-      // Print the data being sent to API
-      print('=== API PAYLOAD DATA ===');
-      final apiData = onboardingCubit.getOnboardingData();
-      apiData.forEach((key, value) {
-        print('$key: $value');
-      });
-      print('========================');
-
-      // Submit onboarding data to API
-      final onboardingSuccess = await onboardingCubit.submitOnboardingData();
-
-      if (onboardingSuccess) {
-        print('✅ Onboarding API call successful!');
-        // Navigate to main navigation screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigationScreen(),
-          ),
-        );
-      } else {
-        print('❌ Onboarding API call failed!');
-        // Onboarding API failed but login was successful
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Account created successfully! Onboarding data will be saved later.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Still navigate to main navigation screen since account was created
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigationScreen(),
-          ),
-        );
-      }
+      await onboardingCubit.submitOnboardingData();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+      );
     } catch (e) {
-      print('❌ Error completing onboarding: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error completing onboarding: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error completing onboarding: $e'), backgroundColor: Colors.red),
       );
     }
   }
 
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      // Navigate back to previous screen outside onboarding
-      Navigator.of(context).pop();
-    }
-  }
-
-  // Data update methods for onboarding cubit
+  // Data update methods
   void _updateUsername(String username) {
     this.username = username;
     context.read<OnboardingCubit>().setUserName(username);
@@ -331,16 +271,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _updateHeight(Map<String, dynamic> height) {
     this.height = height;
-    // Convert feet and inches to cm for the API
     if (height['feet'] != null && height['inches'] != null) {
       final heightInCm = (height['feet'] * 30.48) + (height['inches'] * 2.54);
       context.read<OnboardingCubit>().setHeight(heightInCm);
     }
   }
 
-  void _updateEthnicity(String ethnicity) {
+  void _updateEthnicity(Set<String> ethnicity) {
     this.ethnicity = ethnicity;
-    context.read<OnboardingCubit>().setEthnicity(ethnicity);
+    context.read<OnboardingCubit>().setEthnicity(ethnicity.join(', '));
   }
 
   void _updateLocation(String location) {
@@ -365,9 +304,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _updateMedicationStatus(String medicationStatus) {
     this.medicationStatus = medicationStatus;
-    context
-        .read<OnboardingCubit>()
-        .setMedicationsOrSupplementsIndicator(medicationStatus);
+    context.read<OnboardingCubit>().setMedicationsOrSupplementsIndicator(medicationStatus);
   }
 
   void _updateMedications(List<String> medications) {
@@ -382,50 +319,24 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _updateDataPrivacy(bool dataPrivacyAccepted) {
     this.dataPrivacyAccepted = dataPrivacyAccepted;
-    context
-        .read<OnboardingCubit>()
-        .setPrivacyPolicyAccepted(dataPrivacyAccepted);
+    context.read<OnboardingCubit>().setPrivacyPolicyAccepted(dataPrivacyAccepted);
   }
 
   List<Widget> get screens => [
-        UsernameScreen(onNext: _nextPage, onDataUpdate: _updateUsername),
-        GenderIdentityScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateGender),
-        AgeSelectionRevampScreen(onNext: _nextPage, onDataUpdate: _updateAge),
-        WeightInputScreen(onNext: _nextPage, onDataUpdate: _updateWeight),
-        HeightInputScreen(onNext: _nextPage, onDataUpdate: _updateHeight),
-        EthnicityScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateEthnicity),
-        LocationScreen(onNext: _nextPage, onDataUpdate: _updateLocation),
-        IncomeScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateIncome),
-        HealthConcernsScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateHealthConcerns),
-        DiagnosisHistoryScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateDiagnoses),
-        MedicationsScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateMedicationStatus),
-        AddMedicationsScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateMedications),
-        LifeStageScreen(
-            onNext: _nextPage,
-            questions: _questions,
-            onDataUpdate: _updateLifeStage),
-        DataPrivacyScreen(onNext: _nextPage, onDataUpdate: _updateDataPrivacy),
+        UsernameScreen(onNext: _nextPage, onDataUpdate: _updateUsername, currentValue: username),
+        GenderIdentityScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateGender, currentValue: genderIdentity),
+        AgeSelectionRevampScreen(onNext: _nextPage, onDataUpdate: _updateAge, questions: _questions, currentValue: age),
+        WeightInputScreen(onNext: _nextPage, onDataUpdate: _updateWeight, questions: _questions, currentValue: weight),
+        HeightInputScreen(onNext: _nextPage, onDataUpdate: _updateHeight, questions: _questions, currentValue: height),
+        EthnicityScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateEthnicity, currentValue: ethnicity),
+        LocationScreen(onNext: _nextPage, onDataUpdate: _updateLocation, currentValue: location),
+        IncomeScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateIncome, currentValue: income),
+        HealthConcernsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateHealthConcerns, currentValue: healthConcerns),
+        DiagnosisHistoryScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateDiagnoses, currentValue: diagnoses),
+        MedicationsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateMedicationStatus, currentValue: medicationStatus),
+        AddMedicationsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateMedications, currentValue: medications),
+        LifeStageScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateLifeStage, currentValue: lifeStage),
+        DataPrivacyScreen(onNext: _nextPage),
       ];
 
   @override
@@ -439,10 +350,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         listener: (context, state) {
           if (state is OnboardingError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
+              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
@@ -451,9 +359,13 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             backgroundColor: Colors.transparent,
             appBar: _currentPage > 0
                 ? AppBar(
-                    backgroundColor: Colors.white.withOpacity(0.4),
+                    backgroundColor: Colors.transparent,
+                    surfaceTintColor: AppColors.backgroundTopNav,
                     elevation: 0,
-                    leading: FoxxBackButton(onPressed: _previousPage),
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: _previousPage,
+                    ),
                     title: Container(
                       height: 6,
                       decoration: BoxDecoration(
@@ -464,60 +376,70 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                         borderRadius: BorderRadius.circular(3),
                         value: (_currentPage + 1) / screens.length,
                         backgroundColor: AppColors.progressBarBase,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.progressBarSelected),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.progressBarSelected),
                         minHeight: 4,
                       ),
                     ),
-                    actions: [
-                      SizedBox(width: 50),
-                    ],
+                    actions: const [SizedBox(width: 50)],
                   )
                 : null,
             body: SafeArea(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Error: $_error'),
-                              ElevatedButton(
-                                onPressed: _loadQuestions,
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        )
-                      : _isCreatingAccount
-                          ? const Center(
+              top: false,
+              child: Stack(
+                children: [
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CircularProgressIndicator(),
-                                  SizedBox(height: 16),
-                                  Text('Creating your account...'),
-                                  SizedBox(height: 8),
-                                  Text(
-                                      'Please wait while we set up your profile',
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.grey)),
+                                  Text('Error: $_error'),
+                                  ElevatedButton(
+                                      onPressed: _loadQuestions,
+                                      child: const Text('Retry')),
                                 ],
                               ),
                             )
-                          : PageView(
-                              controller: _pageController,
-                              physics: const NeverScrollableScrollPhysics(),
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPage = index;
-                                });
-                              },
-                              children: screens,
-                            ),
+                          : _isCreatingAccount
+                              ? const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CircularProgressIndicator(),
+                                      SizedBox(height: 16),
+                                      Text('Creating your account...'),
+                                      SizedBox(height: 8),
+                                      Text('Please wait while we set up your profile',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey)),
+                                    ],
+                                  ),
+                                )
+                              : PageView.builder(
+                                  controller: _pageController,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  onPageChanged: (index) =>
+                                      setState(() => _currentPage = index),
+                                  itemCount: screens.length,
+                                  itemBuilder: (context, index) {
+                                    final child = screens[index];
+                                    final scrollablePages = [1, 5, 7, 8, 9, 10, 11, 12];
+                                    if (scrollablePages.contains(index)) {
+                                      return SingleChildScrollView(
+                                        padding: AppSpacing.safeAreaHorizontalPadding,
+                                        child: child,
+                                      );
+                                    }
+                                    return Padding(
+                                      padding: AppSpacing.safeAreaHorizontalPadding,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                ],
+              ),
             ),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
+import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
 class OTPVerificationSheet extends StatefulWidget {
   final String email;
@@ -118,13 +119,9 @@ class _OTPVerificationSheetState extends State<OTPVerificationSheet> {
             const SizedBox(height: 24),
             
             // Title
-            const Text(
-              'Verify Your Email',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryTxt,
-              ),
+            Text(
+              'Verify your email',
+              style: AppTypography.h3.copyWith(color: AppColors.textPrimary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -134,7 +131,7 @@ class _OTPVerificationSheetState extends State<OTPVerificationSheet> {
               'We\'ve sent a verification code to\n${widget.email}',
               style: const TextStyle(
                 fontSize: 16,
-                color: AppColors.secondaryTxt,
+            color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -205,7 +202,7 @@ class _OTPVerificationSheetState extends State<OTPVerificationSheet> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Verify OTP',
                         style: TextStyle(
                           fontSize: 16,
@@ -226,7 +223,7 @@ class _OTPVerificationSheetState extends State<OTPVerificationSheet> {
                   message: 'Resend OTP functionality will be implemented',
                 );
               },
-              child: const Text(
+              child: Text(
                 'Didn\'t receive the code? Resend',
                 style: TextStyle(
                   color: AppColors.primaryTint,

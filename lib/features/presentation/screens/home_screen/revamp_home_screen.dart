@@ -1,18 +1,12 @@
-import 'package:dio/dio.dart';
+// Updated by Joy — homescreen update - not final
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
-import 'package:foxxhealth/core/network/api_client.dart';
-import 'package:foxxhealth/core/utils/app_storage.dart';
-import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
-import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/view/appointment_companion_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/appointment/view/appointment_flow.dart';
-import 'package:foxxhealth/features/presentation/screens/home_screen/no_symptom_dialog.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/my_prep/my_prep_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/my_prep/appointment_companion_details_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/profile_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/data/models/banner_model.dart';
@@ -20,8 +14,8 @@ import 'package:foxxhealth/features/presentation/cubits/banner/banner_cubit.dart
 import 'package:foxxhealth/features/presentation/widgets/banner_carousel.dart';
 import 'package:foxxhealth/features/presentation/screens/health_profile/health_profile_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/feedback/index.dart';
-import 'package:intl/intl.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:flutter_svg/svg.dart';
 
 class RevampHomeScreen extends StatefulWidget {
   const RevampHomeScreen({Key? key}) : super(key: key);
@@ -33,70 +27,11 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
   List<BannerData> _banners = [];
   bool _isLoadingBanners = true;
   String? _bannerError;
-  String? _userName;
-  List<dynamic> _recentAppointments = [];
-  List<AppointmentCompanion> _filteredCompanions = [];
-  List<AppointmentCompanion> _companions = [];
-  bool _isLoading = true;
-  String? _error;
-
-  final AppointmentCompanionCubit _service = AppointmentCompanionCubit();
-
-  // Sort functionality
-  String _selectedSortOption = 'Date updated';
-  final List<String> _sortOptions = [
-    'Date created',
-    'Date updated',
-    'Appointment date'
-  ];
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-    _loadRecentItems();
-    _loadAppointmentCompanions();
     _loadBanners();
-  }
-
-  Future<void> _loadAppointmentCompanions() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final response = await _service.getAppointmentCompanions();
-      setState(() {
-        _companions = response.companions;
-        _filteredCompanions = _sortCompanions(_companions);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  List<AppointmentCompanion> _sortCompanions(
-      List<AppointmentCompanion> companions) {
-    final sortedList = List<AppointmentCompanion>.from(companions);
-
-    switch (_selectedSortOption) {
-      case 'Date created':
-        sortedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case 'Date updated':
-        sortedList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        break;
-      case 'Appointment date':
-        sortedList.sort((a, b) => b.lastPausedAt.compareTo(a.lastPausedAt));
-        break;
-    }
-
-    return sortedList;
   }
 
   Future<void> _loadBanners() async {
@@ -159,11 +94,12 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (banner.questionText != null) Text(banner.questionText!),
+            if (banner.questionText != null)
+              Text(banner.questionText!),
             if (banner.answers != null) ...[
               const SizedBox(height: 16),
-              ...banner.answers!.answerOptions.map(
-                (option) => CheckboxListTile(
+              ...banner.answers!.answerOptions.map((option) => 
+                CheckboxListTile(
                   title: Text(option.optionText),
                   value: false,
                   onChanged: (value) {
@@ -191,69 +127,6 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
     );
   }
 
-  Future<void> _loadUserProfile() async {
-    try {
-      final token = AppStorage.accessToken;
-      if (token == null) {
-        throw Exception('No authentication token found');
-      }
-
-      final apiClient = ApiClient();
-      final response = await apiClient.get(
-        '/api/v1/accounts/me',
-      );
-
-      if (response.statusCode == 200 && response.data != null) {
-        final userData = response.data;
-
-        setState(() {
-          _userName = userData['user_name'];
-        });
-      } else {
-        throw Exception('Failed to load user profile');
-      }
-    } catch (e) {
-      print('Error loading user profile: $e');
-      setState(() {
-        // Fallback to UserProfileConstants if API fails
-        _userName = UserProfileConstants.getDisplayName();
-      });
-    }
-  }
-
-  Future<void> _loadRecentItems() async {
-    try {
-      final token = AppStorage.accessToken;
-      if (token == null) {
-        throw Exception('No authentication token found');
-      }
-
-      final apiClient = ApiClient();
-      final response =
-          await apiClient.get('/api/v1/appointment-companions/recent'
-              // '/api/v1/appointment-companions/me',
-              );
-
-      if (response.statusCode == 200 && response.data != null) {
-        final recentData = response.data;
-        print('Recent Data: $recentData');
-        setState(() {
-          _recentAppointments = recentData;
-        });
-      } else {
-        throw Exception('Failed to load user recent items');
-      }
-    } catch (e) {
-      print('Error loading user recent items: $e');
-    }
-  }
-
-  String _formatDate(String dateString) {
-    final date = DateTime.parse(dateString);
-    return DateFormat('MMM d, yyyy').format(date);
-    // return '${date.month}/${date.day}/${date.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
@@ -265,8 +138,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -282,12 +154,11 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        const FeedbackPreferencesScreen(),
+                                    builder: (context) => const FeedbackPreferencesScreen(),
                                   ),
                                 );
                               },
-                              child: const CircleAvatar(
+                              child: CircleAvatar(
                                 backgroundColor: AppColors.mauve50,
                                 radius: 20,
                                 child: Icon(Icons.chat_bubble_outline,
@@ -303,7 +174,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                                   ),
                                 );
                               },
-                              child: const CircleAvatar(
+                              child: CircleAvatar(
                                 backgroundColor: AppColors.mauve50,
                                 radius: 20,
                                 child: Icon(Icons.person_outline,
@@ -315,22 +186,20 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 30),
-
+                    
                     // Date
                     Text(
-                      DateFormat('EEEE, MMM d').format(DateTime.now()),
-                      style: AppOSTextStyles.osMdSemiboldLabel
-                          .copyWith(color: AppColors.davysGray),
+                      'Wednesday, Apr 17',
+                      style: AppTypography.labelMd,
                     ),
-
+                    
                     // Greeting
                     Text(
-                      'Hi, $_userName',
-                      style: AppHeadingTextStyles.h2
-                          .copyWith(color: AppColors.primary01),
+                      'Hi, ${UserProfileConstants.getDisplayName()}',
+                      style: AppTypography.h2,
                     ),
                     const SizedBox(height: 24),
-                    // How are you feeling card
+                       // How are you feeling card
                     _buildFeelingCard(context),
                     const SizedBox(height: 16),
 
@@ -352,14 +221,11 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.error_outline,
-                                  color: AppColors.amethystViolet),
+                              Icon(Icons.error_outline, color: AppColors.amethystViolet),
                               const SizedBox(height: 8),
                               Text(
                                 'Failed to load banners',
-                                style: AppTextStyles.bodyOpenSans.copyWith(
-                                  color: AppColors.davysGray,
-                                ),
+                                style: AppTypography.bodySm,
                               ),
                             ],
                           ),
@@ -372,66 +238,41 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                       ),
                     const SizedBox(height: 16),
 
-                    // Create & Health Profile cards
-                    Row(
-                      children: [
-                        Expanded(child: _buildCreateCard(context)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildHealthProfileCard()),
-                      ],
+                 
+
+                    // Create & Health Profile cards (equal height, top-aligned)
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: _buildCreateCard(context)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildHealthProfileCard()),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
                     // Recent Items
                     Text('Recent Items',
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01)),
+                        style: AppTypography.titleMd),
                     const SizedBox(height: 12),
+
                     // Recent Item Cards
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                          //ListView(
-                          itemCount: _recentAppointments.length,
-                          itemBuilder: (context, index) {
-                            final appointment = _recentAppointments[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          AppointmentCompanionScreen(
-                                        appointmentData: {
-                                          'companionId':
-                                              _filteredCompanions[index].id,
-                                          'status':
-                                              _filteredCompanions[index].status,
-                                          'createdAt':
-                                              _filteredCompanions[index]
-                                                  .createdAt
-                                                  .toIso8601String(),
-                                          'updatedAt':
-                                              _filteredCompanions[index]
-                                                  .updatedAt
-                                                  .toIso8601String(),
-                                        },
-                                      ),
-                                      // onRefresh: _loadAppointmentCompanions,
-                                      // ),
-                                    ),
-                                  );
-                                },
-                                child: _RecentItemCard(
-                                  title: appointment['title'],
-                                  lastEdited: _formatDate(
-                                      appointment['last_updated_at']),
-                                ),
-                              ),
-                            );
-                          }),
+                    Column(
+                      children: [
+                        _RecentItemCard(
+                          title: 'Yearly Check Up',
+                          date: 'Mar 2025',
+                          lastEdited: 'Apr 13, 2025',
+                        ),
+                        const SizedBox(height: 12),
+                        _RecentItemCard(
+                          title: 'Appointment prep with PCP',
+                          date: 'Mar 2025',
+                          lastEdited: 'Apr 13, 2025',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -459,53 +300,34 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.mauve50,
-                  child: Icon(Icons.timeline, color: AppColors.amethyst),
+                  child: SvgPicture.asset(
+                    'assets/svg/home/home-health-tracker.svg',
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'How are you feeling?',
-                  style: AppOSTextStyles.osMdSemiboldLink.copyWith(
-                    color: AppColors.primary01,
-                    decoration: TextDecoration.underline,
-                  ),
+                  style: AppTypography.h4,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Column(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true, // allows full-height
-                      backgroundColor:
-                          Colors.transparent, // so your custom container shows
-                      builder: (context) => const NoSymptomsDialog(),
-                      // symptoms: _userRecentSymptoms, // pass your list
-                      // date: _selectedDate,
-                      // ),
-                    );
-                    // Navigator.of(context).push(
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const NoSymptomsDialog(),
-                    //   ),
-                    // );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 40,
-                    decoration: AppColors.glassCardDecoration.copyWith(
-                      color: AppColors.gray100.withOpacity(0.7),
-                    ),
+                Container(
+                  width: double.infinity,
+                  height: 40,
+                  decoration: AppColors.glassCardDecoration.copyWith(
+                    color: AppColors.gray100.withOpacity(0.7),
+                  ),
                     child: Center(
                       child: Text(
                         "I feel good, no symptoms",
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01),
+                        style: AppTypography.titleMd,
                       ),
                     ),
-                  ),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -525,8 +347,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                     child: Center(
                       child: Text(
                         "Log my symptoms",
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01),
+                        style: AppTypography.titleMd,
                       ),
                     ),
                   ),
@@ -543,24 +364,29 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const MyPrepScreen(),
+          builder: (context) => const AppointmentCompanionDetailsScreen(origin: 'home'),
         ));
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: AppColors.glassCardDecoration,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.add_box, color: AppColors.amethyst, size: 32),
-            const SizedBox(height: 8),
-            Text('Create',
-                style: AppOSTextStyles.osMdSemiboldTitle
-                    .copyWith(color: AppColors.primary01)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/svg/home/home-create.svg',
+                  width: 48,
+                  height: 48,
+                ),
+                const SizedBox(width: 12),
+                Text('Create', style: AppTypography.titleXl),
+              ],
+            ),
             const SizedBox(height: 4),
-            Text('Appointment companion',
-                style: AppOSTextStyles.osSmSemiboldBody
-                    .copyWith(color: AppColors.primary01),
-                textAlign: TextAlign.center),
+            Text('Appointment companion', style: AppTypography.bodyMd),
           ],
         ),
       ),
@@ -580,17 +406,32 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
         padding: const EdgeInsets.all(16),
         decoration: AppColors.glassCardDecoration,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.favorite, color: AppColors.amethyst, size: 32),
-            const SizedBox(height: 8),
-            Text('Health Profile',
-                style: AppOSTextStyles.osMdSemiboldTitle
-                    .copyWith(color: AppColors.primary01)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/svg/home/home-health-profile.svg',
+                  width: 48,
+                  height: 48,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Health Profile',
+                    style: AppTypography.titleXl,
+                    softWrap: true,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 4),
-            Text('Help us get to know you',
-                style: AppOSTextStyles.osSmSemiboldBody
-                    .copyWith(color: AppColors.primary01),
-                textAlign: TextAlign.center),
+            Text(
+              'Help us get to know you',
+              style: AppTypography.bodyMd,
+              softWrap: true,
+            ),
           ],
         ),
       ),
@@ -600,12 +441,12 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
 class _RecentItemCard extends StatelessWidget {
   final String title;
-  // final String date;
+  final String date;
   final String lastEdited;
 
   const _RecentItemCard({
     required this.title,
-    // required this.date,
+    required this.date,
     required this.lastEdited,
     Key? key,
   }) : super(key: key);
@@ -619,13 +460,41 @@ class _RecentItemCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: AppOSTextStyles.osMdSemiboldTitle
+              style: AppTypography.titleMd
                   .copyWith(color: AppColors.primary01)),
           const SizedBox(height: 4),
           Text('Last Edited: $lastEdited',
-              style: AppOSTextStyles.osSmSemiboldBody
+              style: AppTypography.bodySm
                   .copyWith(color: AppColors.primary01)),
           const SizedBox(height: 12),
+          Row(
+            children: [
+              Text('Date',
+                  style: AppTypography.bodySm
+                      .copyWith(color: AppColors.primary01)),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.28),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today,
+                        size: 16, color: AppColors.amethyst),
+                    const SizedBox(width: 4),
+                    Text(date,
+                        style: AppTypography.bodySm
+                            .copyWith(color: AppColors.primary01)),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Icon(Icons.arrow_forward_ios,
+                  size: 18, color: AppColors.amethyst),
+            ],
+          ),
         ],
       ),
     );

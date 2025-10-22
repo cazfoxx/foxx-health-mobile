@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/network/api_logger_interceptor.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:get/get.dart' as getx;
 import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -43,14 +43,11 @@ class ApiClient {
       ),
     );
 
-    // Remove this line
-    // dio.addSentry();
-
     dio.interceptors.add(LoggerInterceptor());
     dio.interceptors.add(AuthInterceptor());
     dio.interceptors.add(ErrorInterceptor());
     dio.interceptors.add(ApiLoggerInterceptor());
-    
+
     // Load credentials from storage on initialization
     _loadCredentials();
   }
@@ -131,22 +128,17 @@ class ApiClient {
     }
   }
 
-  /// Verify Apple receipt for payment confirmation
-  Future<Response> verifyAppleReceipt({
-    required String appleReceiptData,
-  }) async {
+  // ----------- NEW METHOD ADDED ------------
+  Future<Response> verifyAppleReceipt({required String appleReceiptData}) async {
     try {
-      final response = await dio.post(
-        '/api/v1/payments/verify-apple-receipt',
-        data: {
-          'apple_receipt_data': appleReceiptData,
-        },
-      );
+      const endpoint = '/api/v1/subscriptions/verify-apple-receipt';
+      final response = await post(endpoint, data: {'receipt_data': appleReceiptData});
       return response;
     } catch (e) {
       rethrow;
     }
   }
+
 }
 
 class LoggerInterceptor extends Interceptor {
@@ -187,23 +179,18 @@ class LoggerInterceptor extends Interceptor {
 
     if (err.response?.statusCode == 401) {
       final path = err.requestOptions.path;
-      
-      // Don't clear credentials for auth endpoints or onboarding endpoint
+
       final isAuthEndpoint = AuthInterceptor.noAuthEndpoints.any((endpoint) => path.contains(endpoint));
       final isOnboardingEndpoint = path.contains('/api/v1/accounts/me/onboarding');
-      
+
       if (!isAuthEndpoint && !isOnboardingEndpoint) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         GetStorage().erase();
-        // Clear AppStorage
         await AppStorage.clearCredentials();
         Navigator.of(getx.Get.context!).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => LoginScreen(
-                showBackButton: false,
-                isSign: true,
-              ),
+              builder: (context) => const SplashScreen(),
             ),
             (route) => false);
       } else {
@@ -231,39 +218,32 @@ class LoggerInterceptor extends Interceptor {
 }
 
 class AuthInterceptor extends Interceptor {
-  // List of endpoints that don't require authentication
   static const List<String> noAuthEndpoints = [
     '/api/v1/auth/register',
     '/api/v1/auth/verify-registration-otp',
     '/api/v1/auth/login',
     '/api/v1/auth/forgot-password',
     '/api/v1/auth/reset-password',
-    '/api/v1/subscriptions/verify-purchase',
-    '/api/v1/payments/verify-apple-receipt',
   ];
 
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    // Check if this endpoint requires authentication
-    final requiresAuth = !noAuthEndpoints.any((endpoint) => 
+    final requiresAuth = !noAuthEndpoints.any((endpoint) =>
         options.path.contains(endpoint));
-    
+
     ApiClient.logger.d('🔍 AuthInterceptor - Path: ${options.path}');
     ApiClient.logger.d('🔍 AuthInterceptor - Requires Auth: $requiresAuth');
     ApiClient.logger.d('🔍 AuthInterceptor - No Auth Endpoints: $noAuthEndpoints');
-    
+
     if (requiresAuth) {
-      // First try to get token from AppStorage
       String? token = AppStorage.accessToken;
-      
-      // If token is null, try to load from SharedPreferences directly
+
       if (token == null) {
         try {
           final prefs = await SharedPreferences.getInstance();
           token = prefs.getString('access_token');
           if (token != null) {
-            // Update AppStorage with the loaded token
             AppStorage.accessToken = token;
             ApiClient.logger.d('🔍 AuthInterceptor - Token loaded from SharedPreferences: ${token.length} chars');
           }
@@ -271,9 +251,9 @@ class AuthInterceptor extends Interceptor {
           ApiClient.logger.w('⚠️ AuthInterceptor - Error loading token from SharedPreferences: $e');
         }
       }
-      
+
       ApiClient.logger.d('🔍 AuthInterceptor - Token from AppStorage: ${token != null ? "Present (${token.length} chars)" : "NULL"}');
-      
+
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
         ApiClient.logger.d('🔍 AuthInterceptor - Authorization header set: Bearer ${token.substring(0, 20)}...');
@@ -290,11 +270,10 @@ class AuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
       final path = err.requestOptions.path;
-      
-      // Don't clear credentials for auth endpoints or onboarding endpoint
+
       final isAuthEndpoint = noAuthEndpoints.any((endpoint) => path.contains(endpoint));
       final isOnboardingEndpoint = path.contains('/api/v1/accounts/me/onboarding');
-      
+
       if (!isAuthEndpoint && !isOnboardingEndpoint) {
         await AppStorage.clearCredentials();
         ApiClient.logger.w('🔑 Token expired or invalid. Clearing credentials.');
@@ -314,7 +293,6 @@ class ErrorInterceptor extends Interceptor {
     final isAuthEndpoint = AuthInterceptor.noAuthEndpoints.any((endpoint) => path.contains(endpoint));
 
     if (err.response?.statusCode == 401) {
-      // For auth endpoints, show the specific error message from the API
       if (isAuthEndpoint && err.response?.data != null && err.response?.data is Map) {
         errorMessage = err.response?.data['detail'] ?? 'Authentication failed';
       } else {
