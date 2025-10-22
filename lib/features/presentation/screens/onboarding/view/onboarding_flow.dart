@@ -425,13 +425,22 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                   itemCount: screens.length,
                                   itemBuilder: (context, index) {
                                     final child = screens[index];
+                                    // Pages with full-bleed (no side padding)
+                                    final noPaddingPages = [screens.length - 1]; // DataPrivacyScreen
+                                    // Pages that should scroll with side padding
                                     final scrollablePages = [1, 5, 7, 8, 9, 10, 11, 12];
+                                    
+                                    if (noPaddingPages.contains(index)) {
+                                      return child; // Full-bleed, no padding
+                                    }
+                                    
                                     if (scrollablePages.contains(index)) {
                                       return SingleChildScrollView(
                                         padding: AppSpacing.safeAreaHorizontalPadding,
                                         child: child,
                                       );
                                     }
+                                    
                                     return Padding(
                                       padding: AppSpacing.safeAreaHorizontalPadding,
                                       child: child,
