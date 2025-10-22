@@ -43,14 +43,31 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
   void initState() {
     super.initState();
 
-    // ✅ Restore previous selection if provided
+    /// 🟩 FIXED: Restore previous selections and self-describe field correctly
     if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
-      final initial = widget.currentValue!;
-      if (_isSelfDescribeLabel(initial)) {
-        _showSelfDescribeField = true;
-        _selfDescribeController.text = initial;
-      } else {
-        _selectedAnswers.add(initial);
+      final storedValue = widget.currentValue!;
+      final values = storedValue.split(',').map((e) => e.trim()).toList();
+
+      for (final value in values) {
+        if (_isPreferNotToSayLabel(value)) {
+          _selectedAnswers
+            ..clear()
+            ..add(value);
+          _showSelfDescribeField = false;
+          break;
+        } else if (_answers.contains(value)) {
+          // ✅ Only add known options to selection
+          _selectedAnswers.add(value);
+        } else if (value.isNotEmpty) {
+          // ✅ Unknown value → user’s free-text self-description
+          final selfDescribeLabel = _answers.firstWhere(
+            (e) => _isSelfDescribeLabel(e) || _isOtherLabel(e),
+            orElse: () => 'Prefer to self-describe',
+          );
+          _selectedAnswers.add(selfDescribeLabel);
+          _selfDescribeController.text = value;
+          _showSelfDescribeField = true;
+        }
       }
     }
   }
@@ -195,9 +212,7 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
     final List<Widget> widgets = [];
 
     for (var option in _answers) {
-      if (_isPreferNotToSayLabel(option)) {
-        continue;
-      }
+      if (_isPreferNotToSayLabel(option)) continue;
       widgets.add(_buildAnswerOption(option));
 
       if (_isSelfDescribeLabel(option)) {
@@ -272,6 +287,7 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
                     selected.add(_selfDescribeController.text.trim());
                   }
 
+                  /// 🟩 UPDATED: Ensure persistence for back navigation
                   widget.onDataUpdate?.call(selected.join(', '));
                   FocusScope.of(context).unfocus();
                   widget.onNext?.call();

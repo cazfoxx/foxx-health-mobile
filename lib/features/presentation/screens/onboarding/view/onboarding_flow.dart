@@ -105,7 +105,23 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
+  // Helper: whether user chose to list medications (API or fallback label)
+  bool get _shouldListMedications {
+    final normalized = (medicationStatus ?? '').toLowerCase().trim();
+    return normalized.contains('list') && normalized.startsWith('yes');
+  }
+
   void _nextPage() {
+    // Branch forward from Medications screen
+    if (_currentPage == 10) {
+      if (_shouldListMedications) {
+        _pageController.jumpToPage(11); // AddMedicationsScreen
+      } else {
+        _pageController.jumpToPage(12); // LifeStageScreen
+      }
+      return;
+    }
+
     if (_currentPage < screens.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -117,6 +133,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   void _previousPage() {
+    // Branch back from LifeStage when AddMedications was skipped
+    if (_currentPage == 12 && !_shouldListMedications) {
+      _pageController.jumpToPage(10); // MedicationsScreen
+      return;
+    }
+
     if (_currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),

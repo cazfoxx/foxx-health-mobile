@@ -29,27 +29,30 @@ class DiagnosisHistoryScreen extends StatefulWidget {
       _DiagnosisHistoryScreenState();
 }
 
-class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
+class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true; // 🩵 FIX: preserves state when navigating back
+
   static const double stackedCards = AppSpacing.s12;
 
   final Set<String> _selectedAnswers = {};
   final TextEditingController _selfDescribeController = TextEditingController();
   bool _showSelfDescribeField = false;
-
-  /// 🔹 Remember previous self-describe text even if deselected
-  String _tempSelfDescribeText = '';
+  String _tempSelfDescribeText = ''; // 🔹 store previous custom text
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ Restore previous selections if any
+    // 🩵 FIX: Restore previous selections, including custom "Other/self-describe" text
     if (widget.currentValue != null) {
       for (var option in widget.currentValue!) {
-        if (_isOtherLabel(option)) {
+        if (_isOtherLabel(option) || !_answers.contains(option)) {
           _showSelfDescribeField = true;
           _selfDescribeController.text = option;
-          _tempSelfDescribeText = option; // ✅ store for future toggling
+          _tempSelfDescribeText = option;
+          _selectedAnswers.add(option); // ensure it stays selected
         } else {
           _selectedAnswers.add(option);
         }
@@ -57,12 +60,11 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
     }
   }
 
-  /// ✅ Determine if an option is a self-describe / other option
   bool _isOtherLabel(String label) =>
       label.toLowerCase().contains('other') ||
-      label.toLowerCase().contains('self-describe');
+      label.toLowerCase().contains('self-describe') ||
+      label.toLowerCase().contains('self describe');
 
-  /// ✅ Fetch answers (choices) from API, fallback to local defaults
   List<String> get _answers {
     final question =
         OnboardingCubit().getQuestionByType(widget.questions, 'HEALTH_HISTORY');
@@ -79,10 +81,10 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
           'IBS or other digestive issues',
           'PCOS (Polycystic Ovary Syndrome)',
           'I\'m not sure / still figuring it out',
+          'Other',
         ];
   }
 
-  /// ✅ Fallback for question title
   String get _question {
     final question =
         OnboardingCubit().getQuestionByType(widget.questions, 'HEALTH_HISTORY');
@@ -92,7 +94,6 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
         : text;
   }
 
-  /// ✅ Fallback for description
   String get _description {
     final question =
         OnboardingCubit().getQuestionByType(widget.questions, 'HEALTH_HISTORY');
@@ -102,39 +103,35 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
         : text;
   }
 
-  /// ✅ Determines if Next button can be pressed
   bool get _canProceed {
-    final hasNormalSelection = _selectedAnswers.any((option) => !_isOtherLabel(option));
+    final hasNormalSelection =
+        _selectedAnswers.any((option) => !_isOtherLabel(option));
     final hasValidSelfDescribe =
-        _selectedAnswers.any(_isOtherLabel) && _selfDescribeController.text.trim().isNotEmpty;
+        _selectedAnswers.any(_isOtherLabel) &&
+            _selfDescribeController.text.trim().isNotEmpty;
     return hasNormalSelection || hasValidSelfDescribe;
   }
 
-  /// ✅ Toggle the selection of an option
   void _toggleOption(String option) {
     setState(() {
       final isSelected = _selectedAnswers.contains(option);
 
-      // Handle self-describe / Other input field
       if (_isOtherLabel(option)) {
         if (isSelected) {
           _selectedAnswers.remove(option);
           _showSelfDescribeField = false;
 
-          // 🔹 Store text before clearing
           _tempSelfDescribeText = _selfDescribeController.text;
           _selfDescribeController.clear();
         } else {
           _selectedAnswers.add(option);
           _showSelfDescribeField = true;
 
-          // 🔹 Restore previous text if exists
           _selfDescribeController.text = _tempSelfDescribeText;
         }
         return;
       }
 
-      // Regular multi-select toggling
       if (isSelected) {
         _selectedAnswers.remove(option);
       } else {
@@ -143,7 +140,6 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
     });
   }
 
-  /// ✅ Build a selectable option card
   Widget _buildAnswerOption(String option) {
     return Padding(
       padding: const EdgeInsets.only(bottom: stackedCards),
@@ -156,7 +152,6 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
     );
   }
 
-  /// ✅ Build the text input for self-describe / Other
   Widget _buildSelfDescribeField() {
     return Visibility(
       visible: _showSelfDescribeField,
@@ -166,7 +161,7 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
           controller: _selfDescribeController,
           hintText: 'Please specify',
           size: FoxxTextFieldSize.multiLine,
-          onChanged: (_) => setState(() {}), // triggers _canProceed
+          onChanged: (_) => setState(() {}), // refresh _canProceed
         ),
       ),
     );
@@ -180,9 +175,9 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 🩵 needed for AutomaticKeepAliveClientMixin
     return Stack(
       children: [
-        // Main content (scroll handled by parent)
         Padding(
           padding: EdgeInsets.fromLTRB(
             AppSpacing.textBoxHorizontalWidget,
@@ -190,24 +185,23 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
             AppSpacing.textBoxHorizontalWidget,
             AppSpacing.s80,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// ✅ Question + description header with fallbacks
-              OnboardingQuestionHeader(
-                questions: widget.questions,
-                questionType: 'HEALTH_HISTORY',
-                questionOverride: _question,
-                descriptionOverride: _description,
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              ..._answers.map(_buildAnswerOption),
-              _buildSelfDescribeField(),
-            ],
+          child: SingleChildScrollView( // 🩵 FIX: ensures proper scroll when coming back
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OnboardingQuestionHeader(
+                  questions: widget.questions,
+                  questionType: 'HEALTH_HISTORY',
+                  questionOverride: _question,
+                  descriptionOverride: _description,
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                ..._answers.map(_buildAnswerOption),
+                _buildSelfDescribeField(),
+              ],
+            ),
           ),
         ),
-
-        // Fixed bottom "Next" button
         Positioned(
           left: AppSpacing.textBoxHorizontalWidget,
           right: AppSpacing.textBoxHorizontalWidget,
@@ -221,7 +215,6 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen> {
                 text: 'Next',
                 isEnabled: _canProceed,
                 onPressed: () {
-                  // Prepare submission: replace "Other/self-describe" with entered text
                   final selected = Set<String>.from(_selectedAnswers);
                   if (_selectedAnswers.any(_isOtherLabel) &&
                       _selfDescribeController.text.trim().isNotEmpty) {

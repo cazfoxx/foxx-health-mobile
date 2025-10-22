@@ -50,7 +50,7 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
 
       // Check if any self-describe option exists
       final selfDescribe = _selectedAnswers.firstWhere(
-        (s) => _isOtherLabel(s),
+        (s) => _isOtherLabel(s) || !_healthConcerns.contains(s),
         orElse: () => '',
       );
       if (selfDescribe.isNotEmpty) {
