@@ -10,7 +10,7 @@ import 'package:foxxhealth/features/presentation/widgets/foxx_text_field.dart';
 class UsernameScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final Function(String)? onDataUpdate;
-  final String? currentValue; // ✅ Previously entered username
+  final String? currentValue; // Previously entered username
 
   const UsernameScreen({
     super.key,
@@ -28,6 +28,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
   final FocusNode _usernameFocusNode = FocusNode();
   bool _hasError = false;
   String _errorMessage = '';
+
   // Username validation flags (login-style)
   bool _hasMinLength = false;
   bool _hasAllowedCharacters = false;
@@ -36,12 +37,13 @@ class _UsernameScreenState extends State<UsernameScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Pre-fill if current value exists
+    // Pre-fill if current value exists
     if (widget.currentValue != null) {
       _usernameController.text = widget.currentValue!;
       _updateUsernameValidation();
     }
 
+    // Auto-focus
     Future.delayed(Duration.zero, () {
       FocusScope.of(context).requestFocus(_usernameFocusNode);
     });
@@ -73,14 +75,12 @@ class _UsernameScreenState extends State<UsernameScreen> {
       _hasMinLength = username.length >= 3;
       _withinMaxLength = username.length <= 20;
       _hasAllowedCharacters = RegExp(r'^[a-zA-Z0-9_]*$').hasMatch(username);
-      // Clear inline error while typing; rely on rules UI
       _hasError = false;
       _errorMessage = '';
     });
   }
 
   void _validateUsername(String username) {
-    // Only keep a simple required error; rules box conveys specific requirements
     if (username.isEmpty) {
       setState(() {
         _hasError = true;
@@ -131,126 +131,105 @@ class _UsernameScreenState extends State<UsernameScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: AppSpacing.appBarHeight),
-              OnboardingQuestionHeader(
-                questions: const [],
-                questionType: 'USERNAME_INTRO',
-                questionOverride: "What should we call you?",
-                descriptionOverride:
-                    "Your username is how we'll refer to you, and it's how other FoXX members will connect with you. It can be your name, a nickname, or something completely unique, just make it you.",
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface01,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.overlayLight,
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+          child: Padding(
+            padding: AppSpacing.safeAreaHorizontalPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: AppSpacing.appBarHeight),
+                OnboardingQuestionHeader(
+                  questions: const [],
+                  questionType: 'USERNAME_INTRO',
+                  questionOverride: "What should we call you?",
+                  descriptionOverride:
+                      "Your username is how we'll refer to you, and it's how other FoXX members will connect with you. It can be your name, a nickname, or something completely unique, just make it you.",
                 ),
-                child: TextField(
+                const SizedBox(height: 24),
+                FoxxTextField(
+                  hintText: 'Username',
                   controller: _usernameController,
                   focusNode: _usernameFocusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Username',
-                    hintStyle: AppTypography.bodyMd.copyWith(
-                      fontWeight: AppTypography.regular,
-                      color: AppColors.textInputPlaceholder,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                  ),
-                  style: AppTypography.bodyMd.copyWith(
-                    fontWeight: AppTypography.regular,
-                  ),
+                  showClearButton: true,
                   onChanged: (value) {
                     _updateUsernameValidation();
                   },
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Login-style validation rules box
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.onSurfaceSubtle,
-                  borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.onSurfaceSubtle,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Username must:',
+                        style: AppTypography.labelSmSemibold.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildUsernameRule(
+                        'Only letters, numbers, and underscores',
+                        _hasAllowedCharacters,
+                      ),
+                      _buildUsernameRule(
+                        'At least 3 characters',
+                        _hasMinLength,
+                      ),
+                      _buildUsernameRule(
+                        'No more than 20 characters',
+                        _withinMaxLength,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Username must:',
-                      style: AppTypography.labelSmSemibold.copyWith(
-                        color: AppColors.textPrimary,
+                if (_hasError && _errorMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _errorMessage,
+                      style: AppTypography.bodySm.copyWith(
+                        color: AppColors.textError,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    _buildUsernameRule(
-                      'Only letters, numbers, and underscores',
-                      _hasAllowedCharacters,
-                    ),
-                    _buildUsernameRule(
-                      'At least 3 characters',
-                      _hasMinLength,
-                    ),
-                    _buildUsernameRule(
-                      'No more than 20 characters',
-                      _withinMaxLength,
-                    ),
-                  ],
-                ),
-              ),
-              if (_hasError && _errorMessage.isNotEmpty)
+                  ),
+                const Spacer(),
                 Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    _errorMessage,
-                    style: AppTypography.bodySm.copyWith(
-                      color: AppColors.textError,
+                  padding: EdgeInsets.only(bottom: AppSpacing.s24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FoxxNextButton(
+                      isEnabled: getUsername() != null &&
+                          _hasAllowedCharacters &&
+                          _hasMinLength &&
+                          _withinMaxLength &&
+                          !_hasError,
+                      onPressed: () {
+                        final username = getUsername();
+                        if (username == null) {
+                          setState(() {
+                            _hasError = true;
+                            _errorMessage = 'Please enter a username';
+                          });
+                          return;
+                        }
+                        _validateUsername(username);
+                        if (!_hasError) {
+                          widget.onDataUpdate?.call(username);
+                          FocusScope.of(context).unfocus();
+                          widget.onNext?.call();
+                        }
+                      },
+                      text: 'Next',
                     ),
                   ),
                 ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: FoxxNextButton(
-                  isEnabled: getUsername() != null &&
-                      _hasAllowedCharacters &&
-                      _hasMinLength &&
-                      _withinMaxLength &&
-                      !_hasError,
-                  onPressed: () {
-                    final username = getUsername();
-                    if (username == null) {
-                      setState(() {
-                        _hasError = true;
-                        _errorMessage = 'Please enter a username';
-                      });
-                      return;
-                    }
-                    _validateUsername(username);
-                    if (!_hasError) {
-                      widget.onDataUpdate?.call(username);
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    }
-                  },
-                  text: 'Next',
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

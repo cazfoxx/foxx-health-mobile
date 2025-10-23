@@ -23,6 +23,8 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/life
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data_privacy_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_app_bar.dart';
+
 
 abstract class HasNextButtonState {
   NextButtonState getNextButtonState();
@@ -358,29 +360,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             appBar: _currentPage > 0
-                ? AppBar(
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: AppColors.backgroundTopNav,
-                    elevation: 0,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: _previousPage,
-                    ),
-                    title: Container(
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: AppColors.progressBarBase,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: LinearProgressIndicator(
-                        borderRadius: BorderRadius.circular(3),
-                        value: (_currentPage + 1) / screens.length,
-                        backgroundColor: AppColors.progressBarBase,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.progressBarSelected),
-                        minHeight: 4,
-                      ),
-                    ),
-                    actions: const [SizedBox(width: 50)],
+                ? FoxxAppBar(
+                    showBack: true,
+                    onBack: _previousPage,
+                    progress: (_currentPage + 1) / screens.length,
                   )
                 : null,
             body: SafeArea(
