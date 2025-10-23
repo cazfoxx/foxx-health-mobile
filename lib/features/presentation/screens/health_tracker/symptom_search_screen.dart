@@ -8,7 +8,6 @@ import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_s
 import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_details_bottom_sheet.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
 
-
 class SymptomSearchScreen extends StatefulWidget {
   const SymptomSearchScreen({Key? key}) : super(key: key);
 
@@ -57,7 +56,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
         cubit.loadInitialSymptoms();
       }
     });
-    
+
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -66,10 +65,10 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
             children: [
               // Top Navigation Bar
               _buildTopNavigationBar(),
-              
+
               // Filter Section
               _buildFilterSection(),
-              
+
               // Symptoms List
               Expanded(
                 child: _buildSymptomsList(),
@@ -84,9 +83,10 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
   Widget _buildTopNavigationBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
-      decoration: BoxDecoration(
-        gradient: RadialGradient(colors: [Color(0xffE0CDFA), AppColors.amethystViolet], radius: 10)
-      ),
+      decoration: const BoxDecoration(
+          gradient: RadialGradient(
+              colors: [Color(0xffE0CDFA), AppColors.amethystViolet],
+              radius: 10)),
       child: Row(
         children: [
           // Back Button
@@ -96,7 +96,6 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
             },
           ),
 
-          
           // Search Bar
           Expanded(
             child: Container(
@@ -122,7 +121,9 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) {
-                        context.read<SymptomSearchCubit>().updateSearchQuery(value);
+                        context
+                            .read<SymptomSearchCubit>()
+                            .updateSearchQuery(value);
                       },
                       decoration: InputDecoration(
                         hintText: 'Enter symptom name',
@@ -150,7 +151,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
     return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
       builder: (context, state) {
         final cubit = context.read<SymptomSearchCubit>();
-        
+
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
@@ -163,7 +164,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Horizontal Scrollable Filter Buttons
               SizedBox(
                 height: 40,
@@ -172,8 +173,10 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                   itemCount: cubit.filterOptions.length,
                   itemBuilder: (context, index) {
                     final filter = cubit.filterOptions[index];
-                    final isSelected = filter == 'All' ? cubit.selectedFilter.isEmpty : cubit.selectedFilter == filter;
-                    
+                    final isSelected = filter == 'All'
+                        ? cubit.selectedFilter.isEmpty
+                        : cubit.selectedFilter == filter;
+
                     return GestureDetector(
                       onTap: () {
                         if (filter == 'All') {
@@ -184,12 +187,17 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                       },
                       child: Container(
                         margin: const EdgeInsets.only(right: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.amethyst : Colors.white.withOpacity(0.7),
+                          color: isSelected
+                              ? AppColors.amethyst
+                              : Colors.white.withOpacity(0.7),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? AppColors.amethyst : AppColors.gray200,
+                            color: isSelected
+                                ? AppColors.amethyst
+                                : AppColors.gray200,
                             width: 1,
                           ),
                         ),
@@ -197,7 +205,9 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
                           child: Text(
                             filter,
                             style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                              color: isSelected ? Colors.white : AppColors.primary01,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.primary01,
                             ),
                           ),
                         ),
@@ -214,124 +224,131 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
   }
 
   Widget _buildSymptomsList() {
-  return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
-    builder: (context, state) {
-      if (state is SymptomSearchLoading) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return BlocBuilder<SymptomSearchCubit, SymptomSearchState>(
+      builder: (context, state) {
+        if (state is SymptomSearchLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      if (state is SymptomSearchError) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Error: ${state.message}',
-                style: AppOSTextStyles.osMd.copyWith(color: AppColors.red),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  context.read<SymptomSearchCubit>().loadInitialSymptoms();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        );
-      }
+        if (state is SymptomSearchError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Error: ${state.message}',
+                  style: AppOSTextStyles.osMd.copyWith(color: AppColors.red),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<SymptomSearchCubit>().loadInitialSymptoms();
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
 
-      if (state is SymptomSearchLoaded || state is SymptomSearchLoadingMore) {
-        // Handle both loaded and loading-more states
-        final symptoms = state is SymptomSearchLoaded
-            ? state.symptoms
-            : (state as SymptomSearchLoadingMore).symptoms;
-        final selectedSymptoms = state is SymptomSearchLoaded
-            ? state.selectedSymptoms
-            : (state as SymptomSearchLoadingMore).selectedSymptoms;
+        if (state is SymptomSearchLoaded || state is SymptomSearchLoadingMore) {
+          // Handle both loaded and loading-more states
+          final symptoms = state is SymptomSearchLoaded
+              ? state.symptoms
+              : (state as SymptomSearchLoadingMore).symptoms;
+          final selectedSymptoms = state is SymptomSearchLoaded
+              ? state.selectedSymptoms
+              : (state as SymptomSearchLoadingMore).selectedSymptoms;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: symptoms.length + (state is SymptomSearchLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == symptoms.length && state is SymptomSearchLoadingMore) {
-                // Pagination loading spinner
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount:
+                  symptoms.length + (state is SymptomSearchLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == symptoms.length &&
+                    state is SymptomSearchLoadingMore) {
+                  // Pagination loading spinner
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-              final symptom = symptoms[index];
-              final isSelected = selectedSymptoms.contains(symptom);
+                final symptom = symptoms[index];
+                final isSelected = selectedSymptoms.contains(symptom);
 
-              return GestureDetector(
-                onTap: () {
-                  _showSymptomDetailsSheet(symptom);
-                },
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(16),
-                  decoration: AppColors.glassCardDecoration,
-                  child: Row(
-                    children: [
-                      // Selection circle
-                      Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.amethyst : Colors.transparent,
-                          border: Border.all(color: AppColors.amethyst, width: 2),
-                          shape: BoxShape.circle,
+                return GestureDetector(
+                  onTap: () {
+                    _showSymptomDetailsSheet(symptom);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: AppColors.glassCardDecoration,
+                    child: Row(
+                      children: [
+                        // Selection circle
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.amethyst
+                                : Colors.transparent,
+                            border:
+                                Border.all(color: AppColors.amethyst, width: 2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check,
+                                  color: Colors.white, size: 12)
+                              : null,
                         ),
-                        child: isSelected
-                            ? const Icon(Icons.check, color: Colors.white, size: 12)
-                            : null,
-                      ),
-                      const SizedBox(width: 16),
+                        const SizedBox(width: 16),
 
-                      // Symptom name
-                      Expanded(
-                        child: Text(
-                          symptom.name,
-                          style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                            color: AppColors.primary01,
+                        // Symptom name
+                        Expanded(
+                          child: Text(
+                            symptom.name,
+                            style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                              color: AppColors.primary01,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-        );
-      }
+                );
+              },
+            ),
+          );
+        }
 
-      return const Center(child: Text('No symptoms found'));
-    },
-  );
-}
+        return const Center(child: Text('No symptoms found'));
+      },
+    );
+  }
 
   void _showSymptomDetailsSheet(Symptom symptom) async {
     try {
       // Get symptom details from API
       final cubit = context.read<SymptomSearchCubit>();
       final symptomDetails = await cubit.getSymptomDetails(symptom.id);
-      
+
       if (symptomDetails != null) {
         // Convert symptom to the format expected by the details sheet
         final symptomData = {
           'id': symptom.id,
           'info': {
             'name': symptom.name,
-            'question_map': symptomDetails['info']?['question_map'] ?? symptomDetails['question_map'],
+            'question_map': symptomDetails['info']?['question_map'] ??
+                symptomDetails['question_map'],
           },
         };
-        
+
         // Show the details sheet
         showModalBottomSheet(
           context: context,
@@ -341,7 +358,9 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
             symptoms: [symptomData],
             onDetailsSaved: (details) {
               // Add the symptom with details to selected symptoms
-              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+              context
+                  .read<SymptomSearchCubit>()
+                  .addSymptomWithDetails(symptom, details.first);
             },
           ),
         ).then((_) {
@@ -357,7 +376,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
             'question_map': null,
           },
         };
-        
+
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -366,7 +385,9 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
             symptoms: [symptomData],
             onDetailsSaved: (details) {
               // Add the symptom with details to selected symptoms
-              context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+              context
+                  .read<SymptomSearchCubit>()
+                  .addSymptomWithDetails(symptom, details.first);
             },
           ),
         ).then((_) {
@@ -377,7 +398,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
     } catch (e) {
       // Show error and fallback to basic details sheet
       print('Error loading symptom details: $e');
-      
+
       final symptomData = {
         'id': symptom.id,
         'info': {
@@ -385,7 +406,7 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
           'question_map': null,
         },
       };
-      
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -394,7 +415,9 @@ class _SymptomSearchScreenState extends State<SymptomSearchScreen> {
           symptoms: [symptomData],
           onDetailsSaved: (details) {
             // Add the symptom with details to selected symptoms
-            context.read<SymptomSearchCubit>().addSymptomWithDetails(symptom, details.first);
+            context
+                .read<SymptomSearchCubit>()
+                .addSymptomWithDetails(symptom, details.first);
           },
         ),
       );

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/health_tracker/health_tracker_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_dialog.dart';
-// import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
@@ -64,6 +62,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onTabTapped(int index) {
+    if (_currentIndex == index) return;
     setState(() {
       _currentIndex = index;
     });
@@ -1095,34 +1094,6 @@ class _InsightTabState extends State<InsightTab> {
     29: AppColors.insightMustard
   };
 
-// making symptom color dots
-  Widget buildSymptomDots(List<Symptom> symptoms) {
-    // Take the 10 most recent symptoms
-    final recentSymptoms = symptoms.length > 10
-        ? symptoms.sublist(symptoms.length - 10)
-        : symptoms;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: recentSymptoms.asMap().entries.map((entry) {
-        final index = entry.key;
-
-        // Use index from the sliced list, not the original one
-        final color = symptomColors[index] ?? Colors.grey; // fallback
-
-        return Container(
-          width: 6,
-          height: 6,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   Future<void> _getSymptomsForMonth() async {
     setState(() {
       _isLoading = true;
@@ -1203,72 +1174,6 @@ class _InsightTabState extends State<InsightTab> {
     }
   }
 
-  void _showSymptomsDialogm(BuildContext context, List<String> symptoms) {
-    showDialog(
-      context: context,
-      barrierDismissible: true, // tap outside to dismiss
-      builder: (context) {
-        return Dialog(
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.7, // 70% of screen
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFE9D3FF),
-                  Color(0xFFFFE5AA),
-                ],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                const Text(
-                  "Symptoms",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E3D48),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Symptoms List
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: symptoms.length,
-                    separatorBuilder: (_, __) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final symptom = symptoms[index];
-                      return ListTile(
-                        title: Text(symptom),
-                        trailing: Checkbox(
-                          value: false, // TODO: bind with state
-                          onChanged: (val) {},
-                          shape: const CircleBorder(), // Circle checkbox
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildCalendarGrid() {
     final firstDayOfMonth =
         DateTime(_currentMonth.year, _currentMonth.month, 1);
@@ -1277,114 +1182,119 @@ class _InsightTabState extends State<InsightTab> {
     final firstWeekday = firstDayOfMonth.weekday;
     final daysInMonth = lastDayOfMonth.day;
 
-    // Calculate total cells needed (including empty cells for days before month starts)
+    // Calculate all visible days (including empty ones at start)
     final totalCells = firstWeekday - 1 + daysInMonth;
-    final weeks = (totalCells / 7).ceil();
+    final totalSlots = (totalCells / 7).ceil() * 7;
 
-    return Column(
-      children: List.generate(weeks, (weekIndex) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(7, (dayIndex) {
-            final cellIndex = weekIndex * 7 + dayIndex;
-            final dayOfMonth = cellIndex - (firstWeekday - 1) + 1;
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(), // no scrolling
+      shrinkWrap: true,
+      itemCount: totalSlots,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisExtent: 70, // fixed height for each cell
+      ),
+      itemBuilder: (context, index) {
+        final dayOfMonth = index - (firstWeekday - 1) + 1;
 
-            if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
-              // Empty cell
-              return Container(
-                width: 32,
-                height: 40,
-                margin: const EdgeInsets.all(2),
+        if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
+          // Empty placeholder
+          return const SizedBox();
+        }
+
+        final date =
+            DateTime(_currentMonth.year, _currentMonth.month, dayOfMonth);
+        final isSelected = date.day == _selectedDate.day &&
+            date.month == _selectedDate.month &&
+            date.year == _selectedDate.year;
+        final symptomsOfTheDay = _symptomsOfTheMonth[date] ?? [];
+
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedDate = date;
+              _getUserSymptoms();
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => DaySymptomsDialog(
+                  symptoms: _userRecentSymptoms,
+                  date: _selectedDate,
+                ),
               );
-            }
-
-            final date =
-                DateTime(_currentMonth.year, _currentMonth.month, dayOfMonth);
-            final isSelected = date.day == _selectedDate.day &&
-                date.month == _selectedDate.month &&
-                date.year == _selectedDate.year;
-            final symptomsOfTheDay = _symptomsOfTheMonth[date] ?? [];
-
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedDate = date;
-                  _getUserSymptoms();
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true, // allows full-height
-                    backgroundColor:
-                        Colors.transparent, // so your custom container shows
-                    builder: (context) => DaySymptomsDialog(
-                      symptoms: _userRecentSymptoms, // pass your list
-                      date: _selectedDate,
-                    ),
-                  );
-                });
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Day circle
-                  Container(
-                    width: 36,
-                    height: 36,
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected ? AppColors.amethyst : Colors.transparent,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '$dayOfMonth',
-                      style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                        color: isSelected ? Colors.white : AppColors.primary01,
-                      ),
-                    ),
+            });
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.amethyst : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$dayOfMonth',
+                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                    color: isSelected ? Colors.white : AppColors.primary01,
                   ),
-
-                  // Symptom dots (shown below circle)
-                  if (dayOfMonth != 1 && symptomsOfTheDay.isNotEmpty)
-                    SizedBox(height: 2),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: buildSymptomDots(symptomsOfTheDay),
-                  ),
-                ],
+                ),
               ),
-              // ),
-            );
-          }),
+              const SizedBox(height: 4),
+              buildSymptomDots(symptomsOfTheDay),
+            ],
+          ),
         );
-      }),
+      },
     );
   }
 
-  Widget buildSymptomDotsd(List<Symptom> symptoms) {
-    // Take the 10 most recent symptoms
+  Widget buildSymptomDots(List<Symptom> symptoms) {
+    // Take the 10 most recent symptoms (max 2 rows)
     final recentSymptoms = symptoms.length > 10
         ? symptoms.sublist(symptoms.length - 10)
         : symptoms;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: recentSymptoms.asMap().entries.map((entry) {
-        final index = entry.key;
+    // Split into rows of up to 5 dots each
+    final rows = <List<Symptom>>[];
+    for (var i = 0; i < recentSymptoms.length; i += 5) {
+      rows.add(recentSymptoms.sublist(
+        i,
+        (i + 5 > recentSymptoms.length) ? recentSymptoms.length : i + 5,
+      ));
+    }
 
-        // Use index from the sliced list, not the original one
-        final color = symptomColors[index] ?? Colors.grey; // fallback
+    return SizedBox(
+      width: 50, // fixed cell width
+      height: 20, // enough for 2 rows
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: rows.map((row) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: row.asMap().entries.map((entry) {
+              final index = entry.key;
+              final symptom = entry.value;
+              final colorIndex = entry.key + (rows.indexOf(row) * 5);
+              final color = symptomColors[
+                  colorIndex % symptomColors.length]; // use different colors
 
-        return Container(
-          width: 6,
-          height: 6,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        );
-      }).toList(),
+              return Container(
+                width: 6,
+                height: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              );
+            }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -1404,8 +1314,7 @@ class _InsightTabState extends State<InsightTab> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    SymptomInsightsScreen(symptom: symptom),
+                builder: (context) => SymptomInsightsScreen(symptom: symptom),
               ),
             );
           },
