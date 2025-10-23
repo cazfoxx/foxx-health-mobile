@@ -9,14 +9,16 @@ class MedicationsScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
-  final String? currentValue; // ✅ Previously selected option
+  final String? currentValue;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const MedicationsScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -31,6 +33,7 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     super.initState();
     // ✅ Initialize with previous value if available
     _selectedAnswers = widget.currentValue;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   List<String> get _medicationOptions {
@@ -69,26 +72,27 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
     return _selectedAnswers != null && _selectedAnswers!.isNotEmpty;
   }
 
-  Widget _buildAnswerOption(String label) {
-    final isSelected = _selectedAnswers == label;
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasValidSelection());
+  }
 
+  Widget _buildAnswerOption(String option) {
+    final isSelected = _selectedAnswers == option;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.s12),
       child: SelectableOptionCard(
-        label: label,
+        label: option,
         isSelected: isSelected,
         isMultiSelect: false,
-        variant: SelectableOptionVariant.brandSecondary,
-        onTap: () => setState(() => _selectedAnswers = label),
+        onTap: () {
+          setState(() {
+            _selectedAnswers = option;
+            widget.onDataUpdate?.call(option);
+            _emitEligibility();
+          });
+        },
       ),
     );
-  }
-
-  void _onNext() {
-    if (!hasValidSelection()) return;
-    widget.onDataUpdate?.call(_selectedAnswers!);
-    FocusScope.of(context).unfocus();
-    widget.onNext?.call();
   }
 
   @override
@@ -115,22 +119,6 @@ class _MedicationsScreenState extends State<MedicationsScreen> {
               ),
               ..._medicationOptions.map(_buildAnswerOption).toList(),
             ],
-          ),
-        ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                onPressed: _onNext,
-              ),
-            ),
           ),
         ),
       ],

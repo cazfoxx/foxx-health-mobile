@@ -33,7 +33,7 @@ class OnboardingQuestionHeader extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.textBoxHorizontalWidget,
-        AppSpacing.s16,
+        AppSpacing.s24,
         AppSpacing.textBoxHorizontalWidget,
         AppSpacing.s16,
       ),

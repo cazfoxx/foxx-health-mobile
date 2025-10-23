@@ -13,6 +13,7 @@ class AddMedicationsScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(List<String>)? onDataUpdate;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   /// ✅ Optional: populate previously entered medications
   final List<String>? currentValue;
@@ -20,9 +21,10 @@ class AddMedicationsScreen extends StatefulWidget {
   const AddMedicationsScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -36,24 +38,10 @@ class _AddMedicationsScreenState extends State<AddMedicationsScreen> {
   @override
   void initState() {
     super.initState();
-
-    // ✅ Initialize controllers from currentValue or with five empty fields
-    if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
-      for (var med in widget.currentValue!) {
-        _medicationControllers.add(TextEditingController(text: med));
-        _focusNodes.add(FocusNode());
-      }
-      // Top up to at least 5 fields if fewer were restored
-      while (_medicationControllers.length < 5) {
-        _medicationControllers.add(TextEditingController());
-        _focusNodes.add(FocusNode());
-      }
-    } else {
-      for (int i = 0; i < 5; i++) {
-        _medicationControllers.add(TextEditingController());
-        _focusNodes.add(FocusNode());
-      }
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // This page is optional; allow proceeding even with empty list
+      widget.onEligibilityChanged?.call(true);
+    });
   }
 
   @override
@@ -155,16 +143,7 @@ class _AddMedicationsScreenState extends State<AddMedicationsScreen> {
             ],
           ),
         ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: FoxxNextButton(
-            text: 'Next',
-            isEnabled: true, // optional list; always enabled
-            onPressed: _onNext,
-          ),
-        ),
+
       ],
     );
   }

@@ -13,6 +13,7 @@ class AgeSelectionRevampScreen extends StatefulWidget {
   final Function(int)? onDataUpdate;
   final List<OnboardingQuestion>? questions;
   final int? currentValue; // ✅ Previously entered age
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const AgeSelectionRevampScreen({
     super.key,
@@ -20,6 +21,7 @@ class AgeSelectionRevampScreen extends StatefulWidget {
     this.onDataUpdate,
     this.questions,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -32,20 +34,27 @@ class _AgeSelectionRevampScreenState extends State<AgeSelectionRevampScreen> {
   late final FocusNode _ageFocusNode;
   String? _errorText; // track error
 
+  void _emitEligibility() {
+    final valid = hasTextInput() && _errorText == null;
+    widget.onEligibilityChanged?.call(valid);
+  }
+
   @override
   void initState() {
     super.initState();
     _ageFocusNode = FocusNode();
-    // ✅ Pre-fill age if currentValue exists
+
+    // Restore previous age if provided
     if (widget.currentValue != null) {
       _ageController.text = widget.currentValue!.toString();
     }
 
-    // Auto-show keyboard when screen loads
-    Future.delayed(Duration.zero, () {
+    // Auto-focus age field and emit initial eligibility
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         FocusScope.of(context).requestFocus(_ageFocusNode);
       }
+      _emitEligibility();
     });
   }
 
@@ -101,40 +110,28 @@ class _AgeSelectionRevampScreenState extends State<AgeSelectionRevampScreen> {
             // 🧍‍♀️ Age Input
             FoxxTextField(
               controller: _ageController,
-              focusNode: _ageFocusNode, // external focus node
+              focusNode: _ageFocusNode,
               hintText: '0',
               size: FoxxTextFieldSize.singleLine,
               unitLabel: 'Years',
-              keyboardType: TextInputType.number, // numeric keyboard
+              keyboardType: TextInputType.number,
               numericOnly: true,
               inputFormatters: [LengthLimitingTextInputFormatter(3)],
-              errorText: _errorText, // auto-highlight on error
+              errorText: _errorText,
               showClearButton: false,
               onChanged: (value) {
                 setState(() {
                   _validateAge(value);
+                  final selectedAge = getSelectedAge();
+                  if (selectedAge != null && _errorText == null) {
+                    widget.onDataUpdate?.call(selectedAge);
+                  }
+                  _emitEligibility();
                 });
               },
             ),
 
             const Spacer(),
-
-            // 🟣 Next Button
-            SizedBox(
-              width: double.infinity,
-              child: FoxxNextButton(
-                text: 'Next',
-                isEnabled: hasTextInput() && _errorText == null,
-                onPressed: () {
-                  final selectedAge = getSelectedAge();
-                  if (selectedAge != null && _errorText == null) {
-                    widget.onDataUpdate?.call(selectedAge);
-                    FocusScope.of(context).unfocus();
-                    widget.onNext?.call();
-                  }
-                },
-              ),
-            ),
           ],
         ),
       ),

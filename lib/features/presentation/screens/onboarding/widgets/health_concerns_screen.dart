@@ -10,6 +10,7 @@ class HealthConcernsScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(Set<String>)? onDataUpdate;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   /// ✅ Pre-fill previously selected concerns
   final Set<String>? currentValue;
@@ -20,6 +21,7 @@ class HealthConcernsScreen extends StatefulWidget {
     this.questions = const [],
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -32,18 +34,17 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
   bool _showSelfDescribeField = false;
   String _tempSelfDescribeText = '';
 
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(_canProceed);
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // ✅ Standardized restore logic (matches EthnicityScreen)
     if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
-      final storedValues = widget.currentValue!;
-
-      for (final value in storedValues) {
+      for (final value in widget.currentValue!) {
         final vNorm = value.toLowerCase().trim();
-
-        // Match to known options
         final canonical = _healthConcerns.firstWhere(
           (opt) => opt.toLowerCase().trim() == vNorm,
           orElse: () => '',
@@ -52,21 +53,28 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
         if (canonical.isNotEmpty) {
           _selectedAnswers.add(canonical);
           if (_isOtherLabel(canonical)) {
+            // Show field only if "Other" itself is selected
+            if (_tempSelfDescribeText.isNotEmpty) {
+              _selfDescribeController.text = _tempSelfDescribeText;
+            }
             _showSelfDescribeField = true;
           }
         } else if (value.isNotEmpty) {
-          // Unknown text — treat as self-describe
-          final otherLabel = _healthConcerns.firstWhere(
-            _isOtherLabel,
-            orElse: () => 'Other',
-          );
-          _selectedAnswers.add(otherLabel);
-          _showSelfDescribeField = true;
-          _selfDescribeController.text = value;
+          // Free text present, remember but do not auto-select "Other"
           _tempSelfDescribeText = value;
+          // Keep field hidden until "Other" is selected again
         }
       }
+
+      // If "Other" currently selected and we have remembered text, prefill
+      if (_selectedAnswers.any(_isOtherLabel) &&
+          _tempSelfDescribeText.isNotEmpty) {
+        _selfDescribeController.text = _tempSelfDescribeText;
+        _showSelfDescribeField = true;
+      }
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   /// ✅ Fetch options from API or use local fallback
@@ -112,6 +120,16 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
   }
 
   /// ✅ Handles selecting an option
+  /// Build payload of selected options plus self-describe text (if any)
+  Set<String> _buildPayload() {
+    final payload = Set<String>.from(_selectedAnswers);
+    final otherText = _selfDescribeController.text.trim();
+    if (_selectedAnswers.any(_isOtherLabel) && otherText.isNotEmpty) {
+      payload.add(otherText);
+    }
+    return payload;
+  }
+
   void _toggleOption(String option) {
     setState(() {
       final isSelected = _selectedAnswers.contains(option);
@@ -119,15 +137,22 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
         _selectedAnswers.remove(option);
         if (_isOtherLabel(option)) {
           _showSelfDescribeField = false;
-          _tempSelfDescribeText = '';
+          // Preserve previously typed text instead of clearing it
+          // _tempSelfDescribeText remains as-is
         }
       } else {
         _selectedAnswers.add(option);
         if (_isOtherLabel(option)) {
           _showSelfDescribeField = true;
+          if (_tempSelfDescribeText.isNotEmpty &&
+              _selfDescribeController.text.trim().isEmpty) {
+            _selfDescribeController.text = _tempSelfDescribeText;
+          }
         }
       }
     });
+    widget.onDataUpdate?.call(_buildPayload());
+    _emitEligibility();
   }
 
   /// ✅ Builds a single selectable option card
@@ -156,6 +181,8 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
           onChanged: (value) {
             _tempSelfDescribeText = value;
             setState(() {});
+            widget.onDataUpdate?.call(_buildPayload());
+            _emitEligibility();
           },
         ),
       ),
@@ -217,37 +244,7 @@ class _HealthConcernsScreenState extends State<HealthConcernsScreen> {
           ),
         ),
 
-        // Fixed "Next" button
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: _canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !_canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                isEnabled: _canProceed,
-                onPressed: () {
-                  final selected = Set<String>.from(_selectedAnswers);
 
-                  if (_selectedAnswers.any(_isOtherLabel) &&
-                      _selfDescribeController.text.trim().isNotEmpty) {
-                    selected.removeWhere(_isOtherLabel);
-                    selected.add(_selfDescribeController.text.trim());
-                  }
-
-                  /// 🟩 Persist the data before navigating
-                  widget.onDataUpdate?.call(selected);
-                  FocusScope.of(context).unfocus();
-                  widget.onNext?.call();
-                },
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

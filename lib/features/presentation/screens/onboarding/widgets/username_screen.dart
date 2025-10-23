@@ -3,20 +3,21 @@ import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
-import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_text_field.dart';
 
 class UsernameScreen extends StatefulWidget {
-  final VoidCallback? onNext;
   final Function(String)? onDataUpdate;
   final String? currentValue; // Previously entered username
+  final ValueChanged<bool>? onEligibilityChanged;
+  final VoidCallback? onNext;
 
   const UsernameScreen({
     super.key,
     this.onNext,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -27,46 +28,15 @@ class _UsernameScreenState extends State<UsernameScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final FocusNode _usernameFocusNode = FocusNode();
   bool _hasError = false;
-  String _errorMessage = '';
 
   // Username validation flags (login-style)
   bool _hasMinLength = false;
   bool _hasAllowedCharacters = false;
   bool _withinMaxLength = true;
 
-  @override
-  void initState() {
-    super.initState();
-    // Pre-fill if current value exists
-    if (widget.currentValue != null) {
-      _usernameController.text = widget.currentValue!;
-      _updateUsernameValidation();
-    }
-
-    // Auto-focus
-    Future.delayed(Duration.zero, () {
-      FocusScope.of(context).requestFocus(_usernameFocusNode);
-    });
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _usernameFocusNode.dispose();
-    super.dispose();
-  }
-
   String? getUsername() {
     final username = _usernameController.text.trim();
     return username.isNotEmpty ? username : null;
-  }
-
-  void _clearText() {
-    _usernameController.clear();
-    setState(() {
-      _hasError = false;
-      _errorMessage = '';
-    });
   }
 
   void _updateUsernameValidation() {
@@ -76,29 +46,31 @@ class _UsernameScreenState extends State<UsernameScreen> {
       _withinMaxLength = username.length <= 20;
       _hasAllowedCharacters = RegExp(r'^[a-zA-Z0-9_]*$').hasMatch(username);
       _hasError = false;
-      _errorMessage = '';
     });
   }
 
-  void _validateUsername(String username) {
-    if (username.isEmpty) {
-      setState(() {
-        _hasError = true;
-        _errorMessage = 'Please enter a username';
-      });
-      return;
+  void _emitEligibility() {
+    final isValid = getUsername() != null &&
+        _hasAllowedCharacters &&
+        _hasMinLength &&
+        _withinMaxLength &&
+        !_hasError;
+    widget.onEligibilityChanged?.call(isValid);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill if currentValue exists
+    if (widget.currentValue != null) {
+      _usernameController.text = widget.currentValue!;
     }
-    if (!(_hasMinLength && _withinMaxLength && _hasAllowedCharacters)) {
-      setState(() {
-        _hasError = true;
-        _errorMessage = 'Please fix the highlighted rules above';
-      });
-    } else {
-      setState(() {
-        _hasError = false;
-        _errorMessage = '';
-      });
-    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateUsernameValidation();
+      _emitEligibility();
+      FocusScope.of(context).requestFocus(_usernameFocusNode);
+    });
   }
 
   Widget _buildUsernameRule(String rule, bool isMet) {
@@ -152,6 +124,8 @@ class _UsernameScreenState extends State<UsernameScreen> {
                   showClearButton: true,
                   onChanged: (value) {
                     _updateUsernameValidation();
+                    widget.onDataUpdate?.call(value.trim());
+                    _emitEligibility();
                   },
                 ),
                 const SizedBox(height: 16),
@@ -187,47 +161,18 @@ class _UsernameScreenState extends State<UsernameScreen> {
                     ],
                   ),
                 ),
-                if (_hasError && _errorMessage.isNotEmpty)
+                if (_hasError)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
-                      _errorMessage,
+                      'Please enter a valid username',
                       style: AppTypography.bodySm.copyWith(
                         color: AppColors.textError,
                       ),
                     ),
                   ),
                 const Spacer(),
-                Padding(
-                  padding: EdgeInsets.only(bottom: AppSpacing.s24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FoxxNextButton(
-                      isEnabled: getUsername() != null &&
-                          _hasAllowedCharacters &&
-                          _hasMinLength &&
-                          _withinMaxLength &&
-                          !_hasError,
-                      onPressed: () {
-                        final username = getUsername();
-                        if (username == null) {
-                          setState(() {
-                            _hasError = true;
-                            _errorMessage = 'Please enter a username';
-                          });
-                          return;
-                        }
-                        _validateUsername(username);
-                        if (!_hasError) {
-                          widget.onDataUpdate?.call(username);
-                          FocusScope.of(context).unfocus();
-                          widget.onNext?.call();
-                        }
-                      },
-                      text: 'Next',
-                    ),
-                  ),
-                ),
+                // ✅ Local Next button removed; parent bottom bar handles navigation
               ],
             ),
           ),

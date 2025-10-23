@@ -324,7 +324,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                   ),
                     child: Center(
                       child: Text(
-                        "I feel good, no symptoms",
+                        "Nothing to report today",
                         style: AppTypography.titleMd,
                       ),
                     ),

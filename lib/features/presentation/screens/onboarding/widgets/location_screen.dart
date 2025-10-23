@@ -13,7 +13,8 @@ class LocationScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final Function(String)? onDataUpdate;
   final List<OnboardingQuestion> questions;
-  final String? currentValue; // ✅ Previously selected state
+  final String? currentValue;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const LocationScreen({
     super.key,
@@ -21,6 +22,7 @@ class LocationScreen extends StatefulWidget {
     this.onDataUpdate,
     this.questions = const [],
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -31,7 +33,7 @@ class _LocationScreenState extends State<LocationScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _locationFocusNode = FocusNode();
-  bool _isSearching = false;
+
   String? selectedState;
   List<String> filteredStates = [];
 
@@ -51,21 +53,34 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Restore previous selection
+
+    // Restore previous state if provided
     if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
       selectedState = widget.currentValue;
       _locationController.text = widget.currentValue!;
     }
+
     filteredStates = List.from(allStates);
+
+    _locationController.addListener(() {
+      widget.onDataUpdate?.call(_locationController.text);
+      _emitEligibility();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
-  void _filterStates(String query) {
-    setState(() {
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(_locationController.text.isNotEmpty);
+  }
+
+  void _filterStates(String query, StateSetter setModalState) {
+    setModalState(() {
       if (query.isEmpty) {
         filteredStates = List.from(allStates);
       } else {
         filteredStates = allStates
-            .where((state) => state.toLowerCase().contains(query.toLowerCase()))
+            .where((s) => s.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });
@@ -80,128 +95,114 @@ class _LocationScreenState extends State<LocationScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) => Container(
+            height: MediaQuery.of(context).size.height * 0.9,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(CupertinoIcons.xmark),
+                      ),
+                      Text(
+                        'Location',
+                        style: AppTypography.labelLgSemibold,
+                      ),
+                      const SizedBox(width: 50),
+                    ],
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: Icon(CupertinoIcons.xmark),
+
+                // Search bar
+                Container(
+                  color: AppColors.lightViolet,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search state',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
                         ),
-                        Text(
-                          'Location',
-                          style: AppTextStyles.bodyOpenSans.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _filterStates('', setModalState);
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (value) => _filterStates(value, setModalState),
+                    ),
+                  ),
+                ),
+
+                // List of states
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredStates.length,
+                    itemBuilder: (context, index) {
+                      final state = filteredStates[index];
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            selectedState = state;
+                            _locationController.text = state;
+                          });
+                          _searchController.clear();
+                          _filterStates('', setModalState);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade200),
+                            ),
+                          ),
+                          child: Text(
+                            state,
+                            style: AppTypography.bulletBodyMd,
                           ),
                         ),
-                        SizedBox(width: 50)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                color: AppColors.lightViolet,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search state',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _filterStates('');
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _filterStates(value);
-                      });
+                      );
                     },
                   ),
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredStates.length,
-                  itemBuilder: (context, index) {
-                    final state = filteredStates[index];
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedState = state;
-                          _locationController.text = state;
-                        });
-                        _searchController.clear();
-                        _filterStates('');
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey[200]!),
-                          ),
-                        ),
-                        child: Text(
-                          state,
-                          style: AppTextStyles.bodyOpenSans,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -238,9 +239,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   children: [
                     Text(
                       'Location',
-                      style: AppTextStyles.bodyOpenSans.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.labelMdSemibold,
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -253,13 +252,13 @@ class _LocationScreenState extends State<LocationScreen> {
                         focusNode: _locationFocusNode,
                         readOnly: true,
                         onTap: _showStateSelector,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Select state',
                           border: InputBorder.none,
                           prefixIcon:
-                              const Icon(Icons.search, color: Colors.grey),
+                              Icon(Icons.search, color: Colors.grey),
                           contentPadding:
-                              const EdgeInsets.symmetric(vertical: 12),
+                              EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                     ),
@@ -267,19 +266,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 ),
               ),
               const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: FoxxNextButton(
-                  isEnabled: _locationController.text.isNotEmpty,
-                  onPressed: () {
-                    if (_locationController.text.isNotEmpty) {
-                      widget.onDataUpdate?.call(_locationController.text);
-                    }
-                    widget.onNext?.call();
-                  },
-                  text: 'Next',
-                ),
-              ),
+              // Navigation handled by parent
             ],
           ),
         ),

@@ -12,6 +12,7 @@ class DiagnosisHistoryScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(Set<String>)? onDataUpdate;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   /// ✅ Pre-fill previously selected diagnoses
   final Set<String>? currentValue;
@@ -19,9 +20,10 @@ class DiagnosisHistoryScreen extends StatefulWidget {
   const DiagnosisHistoryScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -41,23 +43,39 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
   bool _showSelfDescribeField = false;
   String _tempSelfDescribeText = ''; // 🔹 store previous custom text
 
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(_canProceed);
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // 🩵 FIX: Restore previous selections, including custom "Other/self-describe" text
+    // Align restore logic with HealthConcerns template
     if (widget.currentValue != null) {
-      for (var option in widget.currentValue!) {
-        if (_isOtherLabel(option) || !_answers.contains(option)) {
-          _showSelfDescribeField = true;
-          _selfDescribeController.text = option;
-          _tempSelfDescribeText = option;
-          _selectedAnswers.add(option); // ensure it stays selected
-        } else {
-          _selectedAnswers.add(option);
+      for (var value in widget.currentValue!) {
+        final vNorm = value.toLowerCase().trim();
+        final canonical = _answers.firstWhere(
+          (opt) => opt.toLowerCase().trim() == vNorm,
+          orElse: () => '',
+        );
+        if (canonical.isNotEmpty) {
+          _selectedAnswers.add(canonical);
+          if (_isOtherLabel(canonical)) {
+            _showSelfDescribeField = true;
+          }
+        } else if (value.isNotEmpty) {
+          // Remember custom text without auto-selecting “Other”
+          _tempSelfDescribeText = value;
         }
       }
+      if (_selectedAnswers.any(_isOtherLabel) &&
+          _tempSelfDescribeText.isNotEmpty) {
+        _selfDescribeController.text = _tempSelfDescribeText;
+        _showSelfDescribeField = true;
+      }
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   bool _isOtherLabel(String label) =>
@@ -120,14 +138,14 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
         if (isSelected) {
           _selectedAnswers.remove(option);
           _showSelfDescribeField = false;
-
-          _tempSelfDescribeText = _selfDescribeController.text;
-          _selfDescribeController.clear();
+          // preserve _tempSelfDescribeText
         } else {
           _selectedAnswers.add(option);
           _showSelfDescribeField = true;
-
-          _selfDescribeController.text = _tempSelfDescribeText;
+          if (_tempSelfDescribeText.isNotEmpty &&
+              _selfDescribeController.text.trim().isEmpty) {
+            _selfDescribeController.text = _tempSelfDescribeText;
+          }
         }
         return;
       }
@@ -138,6 +156,8 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
         _selectedAnswers.add(option);
       }
     });
+    widget.onDataUpdate?.call(_buildPayload());
+    _emitEligibility();
   }
 
   Widget _buildAnswerOption(String option) {
@@ -161,11 +181,25 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
           controller: _selfDescribeController,
           hintText: 'Please specify',
           size: FoxxTextFieldSize.multiLine,
-          onChanged: (_) => setState(() {}), // refresh _canProceed
+          onChanged: (_) {
+            setState(() {});
+            widget.onDataUpdate?.call(_buildPayload());
+            _emitEligibility();
+          }, // refresh eligibility
         ),
       ),
     );
   }
+  
+  Set<String> _buildPayload() {
+    final payload = Set<String>.from(_selectedAnswers);
+    final selfText = _selfDescribeController.text.trim();
+    if (_selectedAnswers.any(_isOtherLabel) && selfText.isNotEmpty) {
+      payload.add(selfText);
+    }
+    return payload;
+  }
+
 
   @override
   void dispose() {
@@ -202,33 +236,7 @@ class _DiagnosisHistoryScreenState extends State<DiagnosisHistoryScreen>
             ),
           ),
         ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: _canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !_canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                isEnabled: _canProceed,
-                onPressed: () {
-                  final selected = Set<String>.from(_selectedAnswers);
-                  if (_selectedAnswers.any(_isOtherLabel) &&
-                      _selfDescribeController.text.trim().isNotEmpty) {
-                    selected.removeWhere(_isOtherLabel);
-                    selected.add(_selfDescribeController.text.trim());
-                  }
-                  widget.onDataUpdate?.call(selected);
-                  FocusScope.of(context).unfocus();
-                  widget.onNext?.call();
-                },
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }

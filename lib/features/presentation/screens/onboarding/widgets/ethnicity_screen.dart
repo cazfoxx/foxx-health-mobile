@@ -10,6 +10,7 @@ class EthnicityScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(Set<String>)? onDataUpdate;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   /// ✅ Pre-fill previously selected ethnicity
   final Set<String>? currentValue;
@@ -17,9 +18,10 @@ class EthnicityScreen extends StatefulWidget {
   const EthnicityScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -33,53 +35,51 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
   String _tempSelfDescribeText = '';
   Set<String>? _previousSelectedAnswers;
 
+  void _emitEligibility() {
+    final canProceed = _canProceed; // existing derived boolean
+    widget.onEligibilityChanged?.call(canProceed);
+  }
+
   @override
   void initState() {
     super.initState();
-
-    // ✅ Standardized restore logic (matches HealthConcernsScreen)
+    // Restore selections and hidden text using HealthConcerns template
     if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
-      final storedValues = widget.currentValue!;
-      for (final value in storedValues) {
-        final vNorm = value.toLowerCase().trim();
+      final values = widget.currentValue!;
+      final preferNotLabel =
+          _answers.firstWhere(_isPreferNotToSayLabel, orElse: () => '');
 
-        // Prefer not to say (mutually exclusive)
-        if (_isPreferNotToSayLabel(value)) {
-          final preferNotLabel = _answers.firstWhere(
-            _isPreferNotToSayLabel,
-            orElse: () => value,
+      // Handle exclusive "Prefer not to say"
+      if (preferNotLabel.isNotEmpty &&
+          values.any((v) =>
+              v.toLowerCase().trim() == preferNotLabel.toLowerCase().trim())) {
+        _selectedAnswers
+          ..clear()
+          ..add(preferNotLabel);
+        _showSelfDescribeField = false;
+        _selfDescribeController.clear();
+      } else {
+        for (final v in values) {
+          final canonical = _answers.firstWhere(
+            (opt) => opt.toLowerCase().trim() == v.toLowerCase().trim(),
+            orElse: () => '',
           );
-          _selectedAnswers
-            ..clear()
-            ..add(preferNotLabel);
-          _showSelfDescribeField = false;
-          break;
-        }
-
-        // Match known options
-        final canonical = _answers.firstWhere(
-          (opt) => opt.toLowerCase().trim() == vNorm,
-          orElse: () => '',
-        );
-
-        if (canonical.isNotEmpty) {
-          _selectedAnswers.add(canonical);
-          if (_isSelfDescribeLabel(canonical)) {
-            _showSelfDescribeField = true;
+          if (canonical.isNotEmpty) {
+            _selectedAnswers.add(canonical);
+            if (_isSelfDescribeLabel(canonical)) {
+              _showSelfDescribeField = true;
+            }
+          } else {
+            // Remember free text (self-describe) but do not auto-select
+            _tempSelfDescribeText = v;
           }
-        } else if (value.isNotEmpty) {
-          // Unknown value → treat as self-describe
-          final selfDescribeLabel = _answers.firstWhere(
-            (e) => _isSelfDescribeLabel(e) || _isOtherLabel(e),
-            orElse: () => 'Prefer to self-describe',
-          );
-          _selectedAnswers.add(selfDescribeLabel);
-          _selfDescribeController.text = value;
-          _tempSelfDescribeText = value;
-          _showSelfDescribeField = true;
+        }
+        if (_showSelfDescribeField && _tempSelfDescribeText.isNotEmpty) {
+          _selfDescribeController.text = _tempSelfDescribeText;
         }
       }
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   bool _isPreferNotToSayLabel(String label) =>
@@ -128,6 +128,15 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
         : text;
   }
 
+  Set<String> _buildPayload() {
+    final payload = Set<String>.from(_selectedAnswers);
+    final selfText = _selfDescribeController.text.trim();
+    if (_selectedAnswers.any(_isSelfDescribeLabel) && selfText.isNotEmpty) {
+      payload.add(selfText);
+    }
+    return payload;
+  }
+
   void _toggleOption(String option) {
     setState(() {
       final isSelected = _selectedAnswers.contains(option);
@@ -166,6 +175,8 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
         if (_isSelfDescribeLabel(option)) _showSelfDescribeField = true;
       }
     });
+    widget.onDataUpdate?.call(_buildPayload());
+    _emitEligibility();
   }
 
   bool get _canProceed {
@@ -198,7 +209,11 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
           controller: _selfDescribeController,
           hintText: hintText,
           size: FoxxTextFieldSize.multiLine,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) {
+            setState(() {});
+            widget.onDataUpdate?.call(_buildPayload());
+            _emitEligibility();
+          },
         ),
       ),
     );
@@ -247,33 +262,7 @@ class _EthnicityScreenState extends State<EthnicityScreen> {
             ],
           ),
         ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: _canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !_canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                isEnabled: _canProceed,
-                onPressed: () {
-                  final selected = Set<String>.from(_selectedAnswers);
-                  if (_selectedAnswers.any(_isSelfDescribeLabel) &&
-                      _selfDescribeController.text.trim().isNotEmpty) {
-                    selected.removeWhere(_isSelfDescribeLabel);
-                    selected.add(_selfDescribeController.text.trim());
-                  }
-                  widget.onDataUpdate?.call(selected);
-                  FocusScope.of(context).unfocus();
-                  widget.onNext?.call();
-                },
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }

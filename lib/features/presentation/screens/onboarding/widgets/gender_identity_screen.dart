@@ -12,13 +12,15 @@ class GenderIdentityScreen extends StatefulWidget {
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
   final String? currentValue; // ✅ Previously selected gender
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const GenderIdentityScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -40,35 +42,36 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
   @override
   void initState() {
     super.initState();
-    // Restore previous selection properly, including self-describe custom text
+
     final cv = widget.currentValue?.trim();
     if (cv == null || cv.isEmpty) {
       _selectedGender = null;
       _isSelfDescribeSelected = false;
-      return;
-    }
-
-    // Compare against known options (case-insensitive)
-    final options = _genderOptions;
-    final matchesOption = options.any(
-      (o) => o.trim().toLowerCase() == cv.toLowerCase(),
-    );
-
-    if (matchesOption) {
-      // It's a predefined option
-      _selectedGender = cv;
-      _isSelfDescribeSelected = _isSelfDescribeLabel(cv);
     } else {
-      // It's a custom self-describe value
-      _isSelfDescribeSelected = true;
-      // Pick the self-describe label present in options; fallback if missing
-      final selfDescribeLabel = options.firstWhere(
-        (o) => _isSelfDescribeLabel(o),
-        orElse: () => 'Prefer to self describe',
+      final options = _genderOptions;
+      final matchesOption = options.any(
+        (o) => o.trim().toLowerCase() == cv.toLowerCase(),
       );
-      _selectedGender = selfDescribeLabel;
-      _selfDescribeController.text = cv; // restore input
+      if (matchesOption) {
+        _selectedGender = cv;
+        _isSelfDescribeSelected = _isSelfDescribeLabel(cv);
+      } else {
+        _isSelfDescribeSelected = true;
+        final selfDescribeLabel = options.firstWhere(
+          (o) => _isSelfDescribeLabel(o),
+          orElse: () => 'Prefer to self describe',
+        );
+        _selectedGender = selfDescribeLabel;
+        _selfDescribeController.text = cv;
+      }
     }
+
+    _selfDescribeController.addListener(() {
+      widget.onDataUpdate?.call(_selfDescribeController.text.trim());
+      _emitEligibility();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   List<String> get _genderOptions {
@@ -99,19 +102,14 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
   }
 
   bool hasValidSelection() {
-    return _isSelfDescribeSelected
-        ? _selfDescribeController.text.trim().isNotEmpty
-        : _selectedGender != null;
-  }
-
-  void _onNext() {
     final value = _isSelfDescribeSelected
         ? _selfDescribeController.text.trim()
         : _selectedGender;
-    if (value != null && value.isNotEmpty) {
-      widget.onDataUpdate?.call(value);
-      widget.onNext?.call();
-    }
+    return value != null && value.isNotEmpty;
+  }
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasValidSelection());
   }
 
   Widget _buildOptionCard(String label) {
@@ -201,22 +199,7 @@ class _GenderIdentityScreenState extends State<GenderIdentityScreen> {
             ],
           ),
         ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                onPressed: _onNext,
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }

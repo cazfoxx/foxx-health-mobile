@@ -12,6 +12,7 @@ class WeightInputScreen extends StatefulWidget {
   final Function(double)? onDataUpdate;
   final List<OnboardingQuestion>? questions;
   final double? currentValue; // ✅ Previously entered weight
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const WeightInputScreen({
     super.key,
@@ -19,6 +20,7 @@ class WeightInputScreen extends StatefulWidget {
     this.onDataUpdate,
     this.questions,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -45,6 +47,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
         FocusScope.of(context).requestFocus(_weightFocusNode);
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   @override
@@ -60,6 +63,10 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
   }
 
   bool hasTextInput() => _weightController.text.isNotEmpty;
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasTextInput());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,24 +104,17 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
                 LengthLimitingTextInputFormatter(4),
               ],
               showClearButton: false,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) {
+                setState(() {});
+                final w = getWeight();
+                if (w != null) {
+                  widget.onDataUpdate?.call(w);
+                }
+                _emitEligibility();
+              },
             ),
             const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: FoxxNextButton(
-                isEnabled: hasTextInput(),
-                onPressed: () {
-                  final weight = getWeight();
-                  if (weight != null) {
-                    widget.onDataUpdate?.call(weight);
-                  }
-                  FocusScope.of(context).unfocus();
-                  widget.onNext?.call();
-                },
-                text: 'Next',
-              ),
-            ),
+
           ],
         ),
       ),

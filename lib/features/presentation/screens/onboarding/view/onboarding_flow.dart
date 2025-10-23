@@ -24,6 +24,7 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_app_bar.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_buttons.dart';
 
 
 abstract class HasNextButtonState {
@@ -325,21 +326,97 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   List<Widget> get screens => [
-        UsernameScreen(onNext: _nextPage, onDataUpdate: _updateUsername, currentValue: username),
-        GenderIdentityScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateGender, currentValue: genderIdentity),
-        AgeSelectionRevampScreen(onNext: _nextPage, onDataUpdate: _updateAge, questions: _questions, currentValue: age),
-        WeightInputScreen(onNext: _nextPage, onDataUpdate: _updateWeight, questions: _questions, currentValue: weight),
-        HeightInputScreen(onNext: _nextPage, onDataUpdate: _updateHeight, questions: _questions, currentValue: height),
-        EthnicityScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateEthnicity, currentValue: ethnicity),
-        LocationScreen(onNext: _nextPage, onDataUpdate: _updateLocation, currentValue: location),
-        IncomeScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateIncome, currentValue: income),
-        HealthConcernsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateHealthConcerns, currentValue: healthConcerns),
-        DiagnosisHistoryScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateDiagnoses, currentValue: diagnoses),
-        MedicationsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateMedicationStatus, currentValue: medicationStatus),
-        AddMedicationsScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateMedications, currentValue: medications),
-        LifeStageScreen(onNext: _nextPage, questions: _questions, onDataUpdate: _updateLifeStage, currentValue: lifeStage),
-        DataPrivacyScreen(onNext: _nextPage),
-      ];
+    UsernameScreen(
+      onNext: _nextPage,
+      onDataUpdate: _updateUsername,
+      currentValue: username,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    GenderIdentityScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateGender,
+      currentValue: genderIdentity,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    AgeSelectionRevampScreen(
+      onNext: _nextPage,
+      onDataUpdate: _updateAge,
+      questions: _questions,
+      currentValue: age,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    WeightInputScreen(
+      onNext: _nextPage,
+      onDataUpdate: _updateWeight,
+      questions: _questions,
+      currentValue: weight,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    HeightInputScreen(
+      onNext: _nextPage,
+      onDataUpdate: _updateHeight,
+      questions: _questions,
+      currentValue: height,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    EthnicityScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateEthnicity,
+      currentValue: ethnicity,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    LocationScreen(
+      onNext: _nextPage,
+      onDataUpdate: _updateLocation,
+      currentValue: location,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    IncomeScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateIncome,
+      currentValue: income,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    HealthConcernsScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateHealthConcerns,
+      currentValue: healthConcerns,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    DiagnosisHistoryScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateDiagnoses,
+      currentValue: diagnoses,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    MedicationsScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateMedicationStatus,
+      currentValue: medicationStatus,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    AddMedicationsScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateMedications,
+      currentValue: medications,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    LifeStageScreen(
+      onNext: _nextPage,
+      questions: _questions,
+      onDataUpdate: _updateLifeStage,
+      currentValue: lifeStage,
+      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+    ),
+    DataPrivacyScreen(onNext: _nextPage),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -408,22 +485,18 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                   itemCount: screens.length,
                                   itemBuilder: (context, index) {
                                     final child = screens[index];
-                                    // Pages with full-bleed (no side padding)
                                     final noPaddingPages = [screens.length - 1]; // DataPrivacyScreen
-                                    // Pages that should scroll with side padding
                                     final scrollablePages = [1, 5, 7, 8, 9, 10, 11, 12];
                                     
                                     if (noPaddingPages.contains(index)) {
-                                      return child; // Full-bleed, no padding
+                                      return child;
                                     }
-                                    
                                     if (scrollablePages.contains(index)) {
                                       return SingleChildScrollView(
                                         padding: AppSpacing.safeAreaHorizontalPadding,
                                         child: child,
                                       );
                                     }
-                                    
                                     return Padding(
                                       padding: AppSpacing.safeAreaHorizontalPadding,
                                       child: child,
@@ -432,6 +505,19 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                 ),
                 ],
               ),
+            ),
+            // Keyboard-aware bottom bar for consistent actions
+            bottomNavigationBar: ValueListenableBuilder<bool>(
+              valueListenable: _canProceedNotifier,
+              builder: (context, canProceed, _) {
+                return KeyboardAwareBottomBar(
+                  primaryButton: PrimaryButton(
+                    label: 'Next',
+                    onPressed: _nextPage,
+                    isEnabled: canProceed, // bind eligibility
+                  ),
+                );
+              },
             ),
           ),
         ),

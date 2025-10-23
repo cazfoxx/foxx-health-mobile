@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
- 
+
 // Top-level enums and helpers
 enum FoxxButtonSize { large, xs }
 
@@ -24,6 +24,78 @@ double _radiusForSize(FoxxButtonSize size) {
   }
 }
 
+// Base button builder to avoid repetition
+class _BaseFoxxButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color textColor;
+  final bool isEnabled;
+  final FoxxButtonSize size;
+  final double? height;
+  final BorderRadius? borderRadius;
+
+  const _BaseFoxxButton({
+    required this.label,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.textColor,
+    required this.isEnabled,
+    required this.size,
+    this.height,
+    this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveHeight = height ?? _heightForSize(size);
+    final effectiveRadius =
+        borderRadius ?? BorderRadius.circular(_radiusForSize(size));
+
+    return SizedBox(
+      width: double.infinity,
+      height: effectiveHeight,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: effectiveRadius,
+        child: InkWell(
+          borderRadius: effectiveRadius,
+          onTap: isEnabled ? onPressed : null,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.pressed)) {
+              return AppColors.gray900.withOpacity(0.2); // 20% overlay
+            }
+            return Colors.transparent;
+          }),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border.all(color: borderColor, width: 2),
+              borderRadius: effectiveRadius,
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: AppTypography.labelMdSemibold.copyWith(
+                  color: textColor,
+                  height: 20 / AppTypography.sizeMd,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ----------------------------
+// Primary Button
+// ----------------------------
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -44,49 +116,29 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveHeight = height ?? _heightForSize(size);
-    final effectiveRadius = borderRadius ?? BorderRadius.circular(_radiusForSize(size));
-    return SizedBox(
-      width: double.infinity,
-      height: effectiveHeight,
-      child: ElevatedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled
-              ? AppButtonColors.buttonPrimaryBackgroundEnabled
-              : AppButtonColors.buttonPrimaryBackgroundDisabled,
-          side: BorderSide(
-            color: isEnabled
-                ? AppButtonColors.buttonPrimaryBorderEnabled
-                : AppButtonColors.buttonPrimaryBorderDisabled,
-            width: 2,
-            strokeAlign: BorderSide.strokeAlignInside,
-          ),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: effectiveRadius,
-          ),
-        ).copyWith(
-          overlayColor: MaterialStateProperty.all(Colors.transparent),
-          splashFactory: NoSplash.splashFactory,
-          elevation: MaterialStateProperty.all(0),
-          shadowColor: MaterialStateProperty.all(Colors.transparent),
-          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.labelMdSemibold.copyWith(
-            color: isEnabled
-                ? AppButtonColors.buttonPrimaryTextEnabled
-                : AppButtonColors.buttonPrimaryTextDisabled,
-            height: 20 / AppTypography.sizeMd, // override line-height to 20px
-          ),
-        ),
-      ),
+    return _BaseFoxxButton(
+      label: label,
+      onPressed: onPressed,
+      backgroundColor: isEnabled
+          ? AppButtonColors.buttonPrimaryBackgroundEnabled
+          : AppButtonColors.buttonPrimaryBackgroundDisabled,
+      borderColor: isEnabled
+          ? AppButtonColors.buttonPrimaryBorderEnabled
+          : AppButtonColors.buttonPrimaryBorderDisabled,
+      textColor: isEnabled
+          ? AppButtonColors.buttonPrimaryTextEnabled
+          : AppButtonColors.buttonPrimaryTextDisabled,
+      isEnabled: isEnabled,
+      size: size,
+      height: height,
+      borderRadius: borderRadius,
     );
   }
 }
 
+// ----------------------------
+// Secondary Button
+// ----------------------------
 class SecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -107,49 +159,29 @@ class SecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveHeight = height ?? _heightForSize(size);
-    final effectiveRadius = borderRadius ?? BorderRadius.circular(_radiusForSize(size));
-    return SizedBox(
-      width: double.infinity,
-      height: effectiveHeight,
-      child: ElevatedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled
-              ? AppButtonColors.buttonSecondaryBackgroundEnabled
-              : AppButtonColors.buttonSecondaryBackgroundDisabled,
-          side: BorderSide(
-            color: isEnabled
-                ? AppButtonColors.buttonSecondaryBorderEnabled
-                : AppButtonColors.buttonSecondaryBorderDisabled,
-            width: 2,
-            strokeAlign: BorderSide.strokeAlignInside,
-          ),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: effectiveRadius,
-          ),
-        ).copyWith(
-          overlayColor: MaterialStateProperty.all(Colors.transparent),
-          splashFactory: NoSplash.splashFactory,
-          elevation: MaterialStateProperty.all(0),
-          shadowColor: MaterialStateProperty.all(Colors.transparent),
-          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.labelMdSemibold.copyWith(
-            color: isEnabled
-                ? AppButtonColors.buttonSecondaryTextEnabled
-                : AppButtonColors.buttonSecondaryTextDisabled,
-            height: 20 / AppTypography.sizeMd,
-          ),
-        ),
-      ),
+    return _BaseFoxxButton(
+      label: label,
+      onPressed: onPressed,
+      backgroundColor: isEnabled
+          ? AppButtonColors.buttonSecondaryBackgroundEnabled
+          : AppButtonColors.buttonSecondaryBackgroundDisabled,
+      borderColor: isEnabled
+          ? AppButtonColors.buttonSecondaryBorderEnabled
+          : AppButtonColors.buttonSecondaryBorderDisabled,
+      textColor: isEnabled
+          ? AppButtonColors.buttonSecondaryTextEnabled
+          : AppButtonColors.buttonSecondaryTextDisabled,
+      isEnabled: isEnabled,
+      size: size,
+      height: height,
+      borderRadius: borderRadius,
     );
   }
 }
 
+// ----------------------------
+// Outline Button
+// ----------------------------
 class OutlineButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -170,49 +202,29 @@ class OutlineButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveHeight = height ?? _heightForSize(size);
-    final effectiveRadius = borderRadius ?? BorderRadius.circular(_radiusForSize(size));
-    return SizedBox(
-      width: double.infinity,
-      height: effectiveHeight,
-      child: OutlinedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: isEnabled
-              ? AppButtonColors.buttonOutlineBackgroundEnabled
-              : AppButtonColors.buttonOutlineBackgroundDisabled,
-          side: BorderSide(
-            color: isEnabled
-                ? AppButtonColors.buttonOutlineBorderEnabled
-                : AppButtonColors.buttonOutlineBorderDisabled,
-            width: 2,
-            strokeAlign: BorderSide.strokeAlignInside,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: effectiveRadius,
-          ),
-        ).copyWith(
-          overlayColor: MaterialStateProperty.all(Colors.transparent),
-          splashFactory: NoSplash.splashFactory,
-          elevation: MaterialStateProperty.all(0),
-          shadowColor: MaterialStateProperty.all(Colors.transparent),
-          surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
-        ),
-        child: Text(
-          label,
-          style: AppTypography.labelMdSemibold.copyWith(
-            color: isEnabled
-                ? AppButtonColors.buttonOutlineTextEnabled
-                : AppButtonColors.buttonOutlineTextDisabled,
-            height: 20 / AppTypography.sizeMd, // override line-height to 20px
-          ),
-        ),
-      ),
+    return _BaseFoxxButton(
+      label: label,
+      onPressed: onPressed,
+      backgroundColor: isEnabled
+          ? AppButtonColors.buttonOutlineBackgroundEnabled
+          : AppButtonColors.buttonOutlineBackgroundDisabled,
+      borderColor: isEnabled
+          ? AppButtonColors.buttonOutlineBorderEnabled
+          : AppButtonColors.buttonOutlineBorderDisabled,
+      textColor: isEnabled
+          ? AppButtonColors.buttonOutlineTextEnabled
+          : AppButtonColors.buttonOutlineTextDisabled,
+      isEnabled: isEnabled,
+      size: size,
+      height: height,
+      borderRadius: borderRadius,
     );
   }
 }
 
-/// Convenience widget to stack two buttons with standard spacing.
+// ----------------------------
+// Convenience widgets
+// ----------------------------
 class StackedButtons extends StatelessWidget {
   final Widget top;
   final Widget bottom;
@@ -232,14 +244,16 @@ class StackedButtons extends StatelessWidget {
   }
 }
 
-// FixedBottomBar: SafeArea + padded column with buttons and optional copy text
+// ----------------------------
+// FixedBottomBar: safe area + padding
+// ----------------------------
 class FixedBottomBar extends StatelessWidget {
-  final Widget primaryButton;           // Full-width button 1
-  final Widget? secondaryButton;        // Optional full-width button 2
-  final String? copyText;               // Optional text centered below buttons
-  final TextStyle? copyTextStyle;       // Optional styling for copy text
-  final EdgeInsets? padding;            // Override bottom bar padding if needed
-  final bool useSafeArea;               // Toggle SafeArea usage
+  final Widget primaryButton;
+  final Widget? secondaryButton;
+  final String? copyText;
+  final TextStyle? copyTextStyle;
+  final EdgeInsets? padding;
+  final bool useSafeArea;
 
   const FixedBottomBar({
     super.key,
@@ -259,16 +273,11 @@ class FixedBottomBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Button 1
           primaryButton,
-
-          // Gap + Button 2 (optional)
           if (secondaryButton != null) ...[
             SizedBox(height: AppSpacing.stackedButtons),
             secondaryButton!,
           ],
-
-          // Gap + CopyText (optional, centered)
           if (copyText != null && copyText!.isNotEmpty) ...[
             SizedBox(height: AppSpacing.stackedButtons),
             Align(
@@ -287,7 +296,6 @@ class FixedBottomBar extends StatelessWidget {
       ),
     );
 
-    // SafeArea wrapping with adjustable bottom padding usage
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -295,6 +303,82 @@ class FixedBottomBar extends StatelessWidget {
             ? SafeArea(top: false, bottom: true, child: content)
             : content,
       ],
+    );
+  }
+}
+
+// ----------------------------
+// KeyboardAwareBottomBar: moves above keyboard
+// ----------------------------
+class KeyboardAwareBottomBar extends StatelessWidget {
+  final Widget primaryButton;
+  final Widget? secondaryButton;
+  final String? copyText;
+  final TextStyle? copyTextStyle;
+  final EdgeInsets? paddingWhenClosed;
+
+  const KeyboardAwareBottomBar({
+    super.key,
+    required this.primaryButton,
+    this.secondaryButton,
+    this.copyText,
+    this.copyTextStyle,
+    this.paddingWhenClosed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = bottomInset > 0;
+
+    final innerPadding = isKeyboardOpen
+        ? const EdgeInsets.all(AppSpacing.s8)
+        : (paddingWhenClosed ?? AppSpacing.bottomBarPadding);
+
+    final content = Container(
+      width: double.infinity,
+      color: isKeyboardOpen
+          ? AppColors.grayWhite.withOpacity(0.8) // make background 80% opacity
+          : Colors.transparent,
+      child: Padding(
+        padding: innerPadding,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            primaryButton,
+            if (secondaryButton != null) ...[
+              SizedBox(height: AppSpacing.stackedButtons),
+              secondaryButton!,
+            ],
+            if (copyText != null && copyText!.isNotEmpty) ...[
+              SizedBox(height: AppSpacing.stackedButtons),
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  copyText!,
+                  style: copyTextStyle ??
+                      AppTypography.labelSmSemibold.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: content,
+      ),
     );
   }
 }

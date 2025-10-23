@@ -13,6 +13,7 @@ class IncomeScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
+  final ValueChanged<bool>? onEligibilityChanged;
 
   /// ✅ Optional initial selection to restore when navigating back
   final String? currentValue;
@@ -20,9 +21,10 @@ class IncomeScreen extends StatefulWidget {
   const IncomeScreen({
     super.key,
     this.onNext,
-    this.questions = const [],
+    required this.questions,
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -40,6 +42,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
     if (widget.currentValue != null) {
       _selectedAnswers = widget.currentValue;
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   // ✅ API-first options with local fallback
@@ -84,7 +87,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
   }
 
   // ✅ Only valid if a selection exists
-  bool hasValidSelection() => _selectedAnswers != null && _selectedAnswers!.isNotEmpty;
+  bool hasValidSelection() => _selectedAnswers != null;
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasValidSelection());
+  }
 
   // ✅ Builds single-select option card
   Widget _buildAnswerOption(String option) {
@@ -97,7 +104,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
         isSelected: isSelected,
         isMultiSelect: false,
         variant: SelectableOptionVariant.brandSecondary,
-        onTap: () => setState(() => _selectedAnswers = option),
+        onTap: () {
+          setState(() {
+            _selectedAnswers = option;
+            widget.onDataUpdate?.call(option);
+            _emitEligibility();
+          });
+        },
       ),
     );
   }
@@ -138,23 +151,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           ),
         ),
 
-        // ✅ Fixed bottom Next button
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                onPressed: _onNext,
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }

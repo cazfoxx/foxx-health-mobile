@@ -56,7 +56,7 @@ class AppSpacing {
   // SafeArea content padding tokens
   static const EdgeInsets safeAreaContentPadding = EdgeInsets.all(s16);
   static const EdgeInsets safeAreaHorizontalPadding = EdgeInsets.symmetric(horizontal: s16);
-  static const double appBarHeight = 56.0;
+  static const double appBarHeight = 52.0;
 
   // Component semantics
   static const double stackedButtons = s12; // standard gap between stacked buttons

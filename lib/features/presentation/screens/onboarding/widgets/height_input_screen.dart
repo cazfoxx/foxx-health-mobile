@@ -13,6 +13,7 @@ class HeightInputScreen extends StatefulWidget {
   final Function(Map<String, dynamic>)? onDataUpdate;
   final List<OnboardingQuestion>? questions;
   final Map<String, dynamic>? currentValue; // ✅ Previously entered height
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const HeightInputScreen({
     super.key,
@@ -20,6 +21,7 @@ class HeightInputScreen extends StatefulWidget {
     this.onDataUpdate,
     this.questions,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
@@ -52,6 +54,7 @@ class _HeightInputScreenState extends State<HeightInputScreen> {
         FocusScope.of(context).requestFocus(_feetFocusNode);
       }
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
   @override
@@ -65,6 +68,10 @@ class _HeightInputScreenState extends State<HeightInputScreen> {
 
   bool hasTextInput() {
     return _feetController.text.isNotEmpty || _inchesController.text.isNotEmpty;
+  }
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasTextInput());
   }
 
   Map<String, dynamic>? getHeight() {
@@ -119,7 +126,14 @@ class _HeightInputScreenState extends State<HeightInputScreen> {
                       LengthLimitingTextInputFormatter(2),
                     ],
                     showClearButton: false,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      setState(() {});
+                      final h = getHeight();
+                      if (h != null) {
+                        widget.onDataUpdate?.call(h);
+                      }
+                      _emitEligibility();
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -136,7 +150,14 @@ class _HeightInputScreenState extends State<HeightInputScreen> {
                       LengthLimitingTextInputFormatter(2),
                     ],
                     showClearButton: false,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      setState(() {});
+                      final h = getHeight();
+                      if (h != null) {
+                        widget.onDataUpdate?.call(h);
+                      }
+                      _emitEligibility();
+                    },
                   ),
                 ),
               ],
@@ -144,21 +165,7 @@ class _HeightInputScreenState extends State<HeightInputScreen> {
 
             const Spacer(),
 
-            SizedBox(
-              width: double.infinity,
-              child: FoxxNextButton(
-                isEnabled: hasTextInput(),
-                onPressed: () {
-                  final height = getHeight();
-                  if (height != null) {
-                    widget.onDataUpdate?.call(height);
-                  }
-                  FocusScope.of(context).unfocus();
-                  widget.onNext?.call();
-                },
-                text: 'Next',
-              ),
-            ),
+
           ],
         ),
       ),

@@ -12,6 +12,7 @@ class LifeStageScreen extends StatefulWidget {
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
   final String? currentValue; // ✅ Previously selected life stage
+  final ValueChanged<bool>? onEligibilityChanged;
 
   const LifeStageScreen({
     super.key,
@@ -19,32 +20,57 @@ class LifeStageScreen extends StatefulWidget {
     this.questions = const [],
     this.onDataUpdate,
     this.currentValue,
+    this.onEligibilityChanged,
   });
 
   @override
   State<LifeStageScreen> createState() => _LifeStageScreenState();
 }
 
-class _LifeStageScreenState extends State<LifeStageScreen> {
+class _LifeStageScreenState extends State<LifeStageScreen> with AutomaticKeepAliveClientMixin {
   final Set<String> _selectedAnswers = {};
   final TextEditingController _selfDescribeController = TextEditingController();
   bool _showSelfDescribeField = false;
+  String _tempSelfDescribeText = '';
+
+  @override
+  bool get wantKeepAlive => true;
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(_canProceed);
+  }
 
   @override
   void initState() {
     super.initState();
 
-    // ✅ Pre-fill previously selected value
-    if (widget.currentValue != null && widget.currentValue!.isNotEmpty) {
-      final otherLabels = _lifeStages.where(_isOtherLabel);
-      if (otherLabels.contains(widget.currentValue)) {
-        _selectedAnswers.add(widget.currentValue!);
-        _showSelfDescribeField = true;
-        _selfDescribeController.text = widget.currentValue!;
+    // ✅ Restore from currentValue: match canonical option or treat as free text
+    final cv = widget.currentValue?.trim();
+    if (cv != null && cv.isNotEmpty) {
+      final canonical = _lifeStages.firstWhere(
+        (opt) => opt.toLowerCase().trim() == cv.toLowerCase(),
+        orElse: () => '',
+      );
+
+      if (canonical.isNotEmpty) {
+        _selectedAnswers.add(canonical);
+        if (_isOtherLabel(canonical)) {
+          _showSelfDescribeField = true; // don't prefill text for canonical "Other"
+        }
       } else {
-        _selectedAnswers.add(widget.currentValue!);
+        // Free text → select "Other" and fill the field
+        final otherLabel = _lifeStages.firstWhere(_isOtherLabel, orElse: () => 'Other');
+        _selectedAnswers.add(otherLabel);
+        _showSelfDescribeField = true;
+        _selfDescribeController.text = cv;
       }
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final payload = _buildPayload();
+      if (payload != null) widget.onDataUpdate?.call(payload);
+      _emitEligibility();
+    });
   }
 
   List<String> get _lifeStages {
@@ -87,6 +113,21 @@ class _LifeStageScreenState extends State<LifeStageScreen> {
       label.toLowerCase().contains('other') ||
       label.toLowerCase().contains('self');
 
+  String? _buildPayload() {
+    // Prefer a canonical selection; otherwise use "Other" text if valid
+    final normal = _selectedAnswers.firstWhere(
+      (a) => !_isOtherLabel(a),
+      orElse: () => '',
+    );
+    if (normal.isNotEmpty) return normal;
+
+    if (_selectedAnswers.any(_isOtherLabel)) {
+      final txt = _selfDescribeController.text.trim();
+      if (txt.isNotEmpty) return txt;
+    }
+    return null;
+  }
+
   void _toggleOption(String label) {
     final isOther = _isOtherLabel(label);
     final isSelected = _selectedAnswers.contains(label);
@@ -96,15 +137,24 @@ class _LifeStageScreenState extends State<LifeStageScreen> {
         _selectedAnswers.remove(label);
         if (isOther) {
           _showSelfDescribeField = false;
-          _selfDescribeController.clear();
+          // Preserve text instead of clearing, so it can be restored
+          _tempSelfDescribeText = _selfDescribeController.text.trim();
         }
       } else {
         _selectedAnswers.add(label);
         if (isOther) {
           _showSelfDescribeField = true;
+          if (_selfDescribeController.text.trim().isEmpty &&
+              _tempSelfDescribeText.isNotEmpty) {
+            _selfDescribeController.text = _tempSelfDescribeText;
+          }
         }
       }
     });
+
+    final payload = _buildPayload();
+    if (payload != null) widget.onDataUpdate?.call(payload);
+    _emitEligibility();
   }
 
   Widget _buildAnswerOption(String label) {
@@ -128,7 +178,12 @@ class _LifeStageScreenState extends State<LifeStageScreen> {
           controller: _selfDescribeController,
           hintText: 'Please specify',
           size: FoxxTextFieldSize.singleLine,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) {
+            setState(() {});
+            final payload = _buildPayload();
+            if (payload != null) widget.onDataUpdate?.call(payload);
+            _emitEligibility();
+          },
         ),
       ),
     );
@@ -167,6 +222,7 @@ class _LifeStageScreenState extends State<LifeStageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // keep-alive hook
     return Stack(
       children: [
         Padding(
@@ -190,22 +246,7 @@ class _LifeStageScreenState extends State<LifeStageScreen> {
             ],
           ),
         ),
-        Positioned(
-          left: AppSpacing.textBoxHorizontalWidget,
-          right: AppSpacing.textBoxHorizontalWidget,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          child: AnimatedOpacity(
-            opacity: _canProceed ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 250),
-            child: IgnorePointer(
-              ignoring: !_canProceed,
-              child: FoxxNextButton(
-                text: 'Next',
-                onPressed: _onNext,
-              ),
-            ),
-          ),
-        ),
+
       ],
     );
   }

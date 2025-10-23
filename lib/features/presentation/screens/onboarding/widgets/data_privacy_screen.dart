@@ -61,22 +61,7 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
                 ),
               ),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: true,
-                    onPressed: () {
-                      // Data privacy is accepted when user proceeds from this screen
-                      widget.onDataUpdate?.call(true);
-                      // Close keyboard
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    },
-                    text: 'Next'),
-                ),
-              ),
+
             ],
           ),
         ),

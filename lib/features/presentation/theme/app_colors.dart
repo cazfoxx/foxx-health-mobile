@@ -242,7 +242,7 @@ class AppButtonColors {
 
   // Text
   static const Color buttonPrimaryTextEnabled = AppColors.foxxWhite;
-  static const Color buttonPrimaryTextDisabled = AppColors.gray500;
+  static const Color buttonPrimaryTextDisabled = AppColors.foxxWhite; // keep white when disabled
 
   // Border (usually same as background for primary buttons)
   static const Color buttonPrimaryBorderEnabled = AppColors.amethyst;

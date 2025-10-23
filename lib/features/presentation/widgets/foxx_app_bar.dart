@@ -81,7 +81,7 @@ class FoxxAppBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 48),
 
                 // Add gap between back and middle section
-                SizedBox(width: AppSpacing.s8),
+                SizedBox(width: AppSpacing.s12),
 
                 // Middle Section → Title / Progress Bar
                 Expanded(
@@ -89,7 +89,7 @@ class FoxxAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
                 // Add gap between middle section and right action
-                SizedBox(width: AppSpacing.s8),
+                SizedBox(width: AppSpacing.s12),
 
                 // Right Section → Action Text Button
                 _buildRightSection(),
