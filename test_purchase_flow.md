@@ -9,7 +9,7 @@
    - [ ] Product IDs match between app and App Store Connect
 
 2. **App Store Connect Setup**
-   - [ ] Products are created: `foxx_health_yearly_premium` and `foxx_health_monthly_premium`
+   - [ ] Products are created: `com.foxxhealth.foxxapp.premium_yearly` and `com.foxxhealth.foxxapp.premium_monthly`
    - [ ] Products are approved and available
    - [ ] Shared secret is generated and configured
    - [ ] Bundle ID matches your app
@@ -43,11 +43,11 @@
 
 ### Successful Flow:
 ```
-Starting ios purchase verification for product: foxx_health_yearly_premium
+Starting ios purchase verification for product: com.foxxhealth.foxxapp.premium_yearly
 Sending verification request to backend...
 Backend verification response: 200
 Verification successful: {...}
-Purchase verification successful: foxx_health_yearly_premium
+Purchase verification successful: com.foxxhealth.foxxapp.premium_yearly
 ```
 
 ### Sandbox Receipt Handling:
@@ -111,7 +111,7 @@ curl -X POST https://your-backend.com/api/v1/subscriptions/verify-purchase \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "ios",
-    "product_id": "foxx_health_yearly_premium",
+    "product_id": "com.foxxhealth.foxxapp.premium_yearly",
     "transaction_id": "test_transaction",
     "receipt_data": "base64_receipt_data_here"
   }'
@@ -123,7 +123,7 @@ Expected response:
   "success": true,
   "message": "Purchase verified successfully",
   "subscription": {
-    "product_id": "foxx_health_yearly_premium",
+    "product_id": "com.foxxhealth.foxxapp.premium_yearly",
     "transaction_id": "actual_transaction_id",
     "expires_date": "timestamp",
     "environment": "sandbox"

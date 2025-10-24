@@ -21,7 +21,7 @@ import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/medi
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/add_medications_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/life_stage_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/data_privacy_screen.dart';
-import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_screen.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_app_bar.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_buttons.dart';
@@ -183,16 +183,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         if (registrationResponse['direct_login'] == true) {
           await _completeOnboardingAfterLogin(onboardingCubit);
         } else {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => OTPVerificationSheet(
-              email: widget.email,
-              onSuccess: () async {
-                Navigator.of(context).pop();
-                await _completeOnboardingAfterLogin(onboardingCubit);
-              },
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => OTPVerificationScreen(
+                email: widget.email,
+                onSuccess: () async {
+                  Navigator.of(context).pop();
+                  await _completeOnboardingAfterLogin(onboardingCubit);
+                },
+              ),
             ),
           );
         }

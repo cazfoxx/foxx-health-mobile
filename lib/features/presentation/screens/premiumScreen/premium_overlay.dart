@@ -28,9 +28,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   bool _isAvailable = false;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
-  // Product IDs - replace with your actual product IDs from App Store/Google Play
-  static const String yearlyProductId = 'foxx_health_yearly_premium';
-  static const String monthlyProductId = 'foxx_health_monthly_premium';
+  // Product IDs - iOS App Store product IDs
+  static const String yearlyProductId = 'com.foxxhealth.foxxapp.premium_yearly';
+  static const String monthlyProductId = 'com.foxxhealth.foxxapp.premium_monthly';
 
   @override
   void initState() {

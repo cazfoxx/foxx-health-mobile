@@ -207,6 +207,39 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
+  Future<bool> resendRegistrationOTP(String email) async {
+    try {
+      emit(LoginLoading());
+
+      final response = await _apiClient.post(
+        '/api/v1/auth/resend-registration-otp',
+        data: {
+          'email_address': email,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('🔍 Resend OTP Response: ${response.data}');
+        emit(LoginSuccess());
+        return true;
+      } else {
+        await _analytics.logError(
+          errorName: 'Resend OTP Failed',
+          errorDescription: 'Status code: ${response.statusCode}',
+        );
+        emit(LoginError('Resend OTP failed: ${response.data}'));
+        return false;
+      }
+    } catch (e) {
+      await _analytics.logError(
+        errorName: 'Resend OTP Error',
+        errorDescription: e.toString(),
+      );
+      emit(LoginError('Resend OTP failed: $e'));
+      return false;
+    }
+  }
+
   Future<bool> signInWithEmail(String email, String password) async {
     try {
       emit(LoginLoading());

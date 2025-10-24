@@ -14,7 +14,7 @@ The mobile app will send the following data:
 ```json
 {
   "platform": "ios", // or "android"
-  "product_id": "foxx_health_yearly_premium", // or "foxx_health_monthly_premium"
+  "product_id": "com.foxxhealth.foxxapp.premium_yearly", // or "com.foxxhealth.foxxapp.premium_monthly"
   "transaction_id": "1000000123456789",
   "receipt_data": "base64_encoded_receipt_data" // for iOS
 }
@@ -24,7 +24,7 @@ For Android:
 ```json
 {
   "platform": "android",
-  "product_id": "foxx_health_yearly_premium",
+  "product_id": "com.foxxhealth.foxxapp.premium_yearly",
   "transaction_id": "GPA.1234-5678-9012-34567",
   "purchase_token": "purchase_token_here",
   "package_name": "com.foxxhealth"
@@ -171,8 +171,8 @@ async def verify_purchase(request: PurchaseVerificationRequest):
    - Copy the "Shared Secret"
 
 2. **Product IDs**: Make sure these match exactly:
-   - `foxx_health_yearly_premium`
-   - `foxx_health_monthly_premium`
+   - `com.foxxhealth.foxxapp.premium_yearly`
+   - `com.foxxhealth.foxxapp.premium_monthly`
 
 3. **Bundle ID**: Ensure your iOS bundle ID matches what's in App Store Connect
 
