@@ -198,6 +198,15 @@ class AppTypography {
     color: AppTypography.textPrimary,
   );
 
+    static TextStyle titleLg = TextStyle(
+    fontFamily: AppTypography.fontOs,
+    fontWeight: AppTypography.semibold,
+    fontSize: AppTypography.sizeLg,
+    height: AppTypography.lhSm / AppTypography.sizeLg,
+    letterSpacing: AppTypography.lsBase,
+    color: AppTypography.textPrimary,
+  );
+
   static TextStyle titleMd = TextStyle(
     fontFamily: AppTypography.fontOs,
     fontWeight: AppTypography.semibold,
