@@ -20,6 +20,7 @@ class OnboardingQuestion {
   final int id;
   final String createdAt;
   final String updatedAt;
+  final String question;
 
   OnboardingQuestion({
     required this.choices,
@@ -33,6 +34,7 @@ class OnboardingQuestion {
     required this.id,
     required this.createdAt,
     required this.updatedAt,
+    required this.question,
   });
 
   factory OnboardingQuestion.fromJson(Map<String, dynamic> json) {
@@ -42,12 +44,13 @@ class OnboardingQuestion {
       type: json['type'],
       fieldName: json['field_name'],
       isPremium: json['is_premium'],
-      description: json['description'],
+      description: json['description'] ?? '',
       dataType: json['data_type'],
       flowType: json['flow_type'],
       id: json['id'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      question: json['question'] ?? '',
     );
   }
 }
@@ -379,13 +382,23 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   }
 
   // Service functions moved from OnboardingService
+  static final Map<String, List<String>> cachedChoicesByType = {};
   Future<List<OnboardingQuestion>> getOnboardingQuestions() async {
     try {
       final response = await _apiClient.get('/api/v1/questions/onboarding');
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = response.data;
-        return jsonData.map((json) => OnboardingQuestion.fromJson(json)).toList();
+        final questions = jsonData.map((json) => OnboardingQuestion.fromJson(json)).toList();
+
+        // Cache choices by type (preserve exact strings and order)
+        for (final q in questions) {
+          if (q.choices.isNotEmpty) {
+            cachedChoicesByType[q.type] = List<String>.from(q.choices);
+          }
+        }
+
+        return questions;
       } else {
         throw Exception('Failed to load onboarding questions: ${response.statusCode}');
       }
@@ -394,6 +407,10 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     } catch (e) {
       throw Exception('Error fetching onboarding questions: $e');
     }
+  }
+
+  List<String>? getCachedChoicesByType(String type) {
+    return cachedChoicesByType[type];
   }
 
   OnboardingQuestion? getQuestionByType(List<OnboardingQuestion> questions, String type) {
