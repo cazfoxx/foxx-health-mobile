@@ -1,111 +1,158 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
+import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
+import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
+import 'package:foxxhealth/features/presentation/widgets/onboarding_question_header.dart';
+import 'package:foxxhealth/features/presentation/widgets/foxx_selectable_option_card.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/widgets/neumorphic_card.dart';
-import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
-import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 
 class IncomeScreen extends StatefulWidget {
   final VoidCallback? onNext;
   final List<OnboardingQuestion> questions;
   final Function(String)? onDataUpdate;
-  
-  const IncomeScreen({super.key, this.onNext, this.questions = const [], this.onDataUpdate});
+  final ValueChanged<bool>? onEligibilityChanged;
+
+  /// ✅ Optional initial selection to restore when navigating back
+  final String? currentValue;
+
+  const IncomeScreen({
+    super.key,
+    this.onNext,
+    required this.questions,
+    this.onDataUpdate,
+    this.currentValue,
+    this.onEligibilityChanged,
+  });
 
   @override
   State<IncomeScreen> createState() => _IncomeScreenState();
 }
 
 class _IncomeScreenState extends State<IncomeScreen> {
-  String? _selectedIncome;
+  // ✅ Single-select: tracks selected income
+  String? _selectedAnswers;
 
-  List<String> get _incomeRanges {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'HOUSEHOLD_INCOME_RANGE');
-    if (question != null) {
-      return question.choices;
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Restore previous selection if available
+    if (widget.currentValue != null) {
+      _selectedAnswers = widget.currentValue;
     }
-    // Fallback options if API data is not available
-    return [
-      'Under 25,000',
-      '\$25,000 – \$50,000',
-      '\$50,001 – \$75,000',
-      '\$75,001 – \$100,000',
-      '\$100,001 – \$150,000',
-      '\$151,001 – \$200,000',
-      'Prefer not to answer',
-    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) => _emitEligibility());
   }
 
+  // ✅ API-first options with local fallback
+  List<String> get _incomeRanges {
+    final question = OnboardingCubit().getQuestionByType(
+      widget.questions,
+      'HOUSEHOLD_INCOME_RANGE',
+    );
+    final cached = OnboardingCubit.cachedChoicesByType['HOUSEHOLD_INCOME_RANGE'];
+    final apiChoices = (question?.choices.isNotEmpty ?? false) ? question!.choices : (cached ?? []);
+
+    return apiChoices.isNotEmpty
+        ? apiChoices
+        : [
+            'Under 25,000',
+            '\$25,000 – \$50,000',
+            '\$50,001 – \$75,000',
+            '\$75,001 – \$100,000',
+            '\$100,001 – \$150,000',
+            '\$151,001 – \$200,000',
+            'Prefer not to answer',
+          ];
+  }
+
+  // ✅ Question text with API fallback
+  String get _question {
+    final question = OnboardingCubit().getQuestionByType(
+      widget.questions,
+      'HOUSEHOLD_INCOME_RANGE',
+    );
+    return question?.question ?? "What's your approximate household income?";
+  }
+
+  // ✅ Description text with API fallback
   String get _description {
-    final question = OnboardingCubit().getQuestionByType(widget.questions, 'HOUSEHOLD_INCOME_RANGE');
-    return question?.description ?? 'What\'s your approximate household income?';
+    final question = OnboardingCubit().getQuestionByType(
+      widget.questions,
+      'HOUSEHOLD_INCOME_RANGE',
+    );
+    return question?.description ??
+        'Sharing your household income helps us tailor resources and insights. You can skip if you prefer.';
   }
 
-  Widget _buildIncomeOption(String option) {
-    final bool isSelected = _selectedIncome == option;
-    
+  // ✅ Only valid if a selection exists
+  bool hasValidSelection() => _selectedAnswers != null;
+
+  void _emitEligibility() {
+    widget.onEligibilityChanged?.call(hasValidSelection());
+  }
+
+  // ✅ Builds single-select option card
+  Widget _buildAnswerOption(String option) {
+    final bool isSelected = _selectedAnswers == option;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: NeumorphicOptionCard(
-        text: option,
+      padding: const EdgeInsets.only(bottom: AppSpacing.s12),
+      child: SelectableOptionCard(
+        label: option,
         isSelected: isSelected,
+        isMultiSelect: false,
+        variant: SelectableOptionVariant.brandSecondary,
         onTap: () {
           setState(() {
-            _selectedIncome = option;
+            _selectedAnswers = option;
+            widget.onDataUpdate?.call(option);
+            _emitEligibility();
           });
         },
       ),
     );
   }
 
+  // ✅ Next button handler
+  void _onNext() {
+    if (!hasValidSelection()) return;
+    widget.onDataUpdate?.call(_selectedAnswers!);
+    FocusScope.of(context).unfocus();
+    widget.onNext?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    final canProceed = hasValidSelection();
+
+    return Stack(
+      children: [
+        // ✅ Main content
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.textBoxHorizontalWidget,
+            0,
+            AppSpacing.textBoxHorizontalWidget,
+            AppSpacing.s80,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _description.split('?')[0] + '?',
-                style: AppHeadingTextStyles.h4,
+              OnboardingQuestionHeader(
+                questions: widget.questions,
+                questionType: 'HOUSEHOLD_INCOME_RANGE',
+                questionOverride: _question,
+                descriptionOverride: _description,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _description.split('?').length > 1 ? _description.split('?')[1] : '',
-                style: AppOSTextStyles.osMd
-                    .copyWith(color: AppColors.primary01),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: _incomeRanges.map(_buildIncomeOption).toList(),
-                  ),
-                ),
-              ),
-              if (_selectedIncome != null)
-                SizedBox(
-                  width: double.infinity,
-                  child: FoxxNextButton(
-                    isEnabled: true,
-                    onPressed: () {
-                      if (_selectedIncome != null) {
-                        widget.onDataUpdate?.call(_selectedIncome!);
-                      }
-                      // Close keyboard
-                      FocusScope.of(context).unfocus();
-                      widget.onNext?.call();
-                    },
-                    text: 'Next'),
-                ),
+              ..._incomeRanges.map(_buildAnswerOption).toList(),
             ],
           ),
         ),
-      ),
+
+
+      ],
     );
   }
 }
