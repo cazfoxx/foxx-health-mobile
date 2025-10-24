@@ -22,6 +22,7 @@ import 'package:foxxhealth/features/presentation/screens/health_profile/health_p
 import 'package:foxxhealth/features/presentation/screens/feedback/index.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:flutter_svg/svg.dart';
 
 class RevampHomeScreen extends StatefulWidget {
   const RevampHomeScreen({Key? key}) : super(key: key);
@@ -319,15 +320,13 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                     // Date
                     Text(
                       DateFormat('EEEE, MMM d').format(DateTime.now()),
-                      style: AppOSTextStyles.osMdSemiboldLabel
-                          .copyWith(color: AppColors.davysGray),
+                      style: AppTypography.labelMdSemibold,
                     ),
 
                     // Greeting
                     Text(
                       'Hi, $_userName',
-                      style: AppHeadingTextStyles.h2
-                          .copyWith(color: AppColors.primary01),
+                      style: AppTypography.h2,
                     ),
                     const SizedBox(height: 24),
                     // How are you feeling card
@@ -357,9 +356,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 'Failed to load banners',
-                                style: AppTextStyles.bodyOpenSans.copyWith(
-                                  color: AppColors.davysGray,
-                                ),
+                                style: AppTypography.bodyMd,
                               ),
                             ],
                           ),
@@ -384,8 +381,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
                     // Recent Items
                     Text('Recent Items',
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01)),
+                        style: AppTypography.h4),
                     const SizedBox(height: 12),
                     // Recent Item Cards
                     SizedBox(
@@ -459,15 +455,16 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.mauve50,
-                  child: Icon(Icons.timeline, color: AppColors.amethyst),
+                  child: SvgPicture.asset(
+                    'assets/svg/home/home-health-tracker.svg',
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'How are you feeling?',
-                  style: AppOSTextStyles.osMdSemiboldLink.copyWith(
-                    color: AppColors.primary01,
-                    decoration: TextDecoration.underline,
-                  ),
+                  style: AppTypography.h4,
                 ),
               ],
             ),
@@ -500,9 +497,8 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        "I feel good, no symptoms",
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01),
+                        "Nothing to report today",
+                        style: AppTypography.titleMd,
                       ),
                     ),
                   ),
@@ -525,8 +521,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
                     child: Center(
                       child: Text(
                         "Log my symptoms",
-                        style: AppOSTextStyles.osMdSemiboldTitle
-                            .copyWith(color: AppColors.primary01),
+                        style: AppTypography.titleMd,
                       ),
                     ),
                   ),
@@ -550,17 +545,22 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
         padding: const EdgeInsets.all(16),
         decoration: AppColors.glassCardDecoration,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.add_box, color: AppColors.amethyst, size: 32),
-            const SizedBox(height: 8),
-            Text('Create',
-                style: AppOSTextStyles.osMdSemiboldTitle
-                    .copyWith(color: AppColors.primary01)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/svg/home/home-create.svg',
+                  width: 48,
+                  height: 48,
+                ),
+                const SizedBox(width: 12),
+                Text('Create', style: AppTypography.titleXl),
+              ],
+            ),
             const SizedBox(height: 4),
-            Text('Appointment companion',
-                style: AppOSTextStyles.osSmSemiboldBody
-                    .copyWith(color: AppColors.primary01),
-                textAlign: TextAlign.center),
+            Text('Appointment companion', style: AppTypography.bodyMd),
           ],
         ),
       ),
@@ -580,17 +580,32 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
         padding: const EdgeInsets.all(16),
         decoration: AppColors.glassCardDecoration,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.favorite, color: AppColors.amethyst, size: 32),
-            const SizedBox(height: 8),
-            Text('Health Profile',
-                style: AppOSTextStyles.osMdSemiboldTitle
-                    .copyWith(color: AppColors.primary01)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/svg/home/home-health-profile.svg',
+                  width: 48,
+                  height: 48,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Health Profile',
+                    style: AppTypography.titleXl,
+                    softWrap: true,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 4),
-            Text('Help us get to know you',
-                style: AppOSTextStyles.osSmSemiboldBody
-                    .copyWith(color: AppColors.primary01),
-                textAlign: TextAlign.center),
+            Text(
+              'Help us get to know you',
+              style: AppTypography.bodyMd,
+              softWrap: true,
+            ),  
           ],
         ),
       ),
@@ -618,16 +633,14 @@ class _RecentItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: AppOSTextStyles.osMdSemiboldTitle
-                  .copyWith(color: AppColors.primary01)),
+          Text(title, style: AppTypography.titleLg),
           const SizedBox(height: 4),
           Text('Last Edited: $lastEdited',
-              style: AppOSTextStyles.osSmSemiboldBody
-                  .copyWith(color: AppColors.primary01)),
+              style: AppTypography.bodyMdSemibold),
           const SizedBox(height: 12),
         ],
       ),
     );
   }
 }
+
