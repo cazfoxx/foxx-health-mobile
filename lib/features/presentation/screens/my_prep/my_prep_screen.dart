@@ -7,6 +7,7 @@ import 'package:foxxhealth/features/presentation/screens/appointment/view/appoin
 import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/screens/my_prep/appointment_companion_details_screen.dart';
 
 class MyPrepScreen extends StatefulWidget {
   const MyPrepScreen({Key? key}) : super(key: key);
@@ -67,7 +68,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
           leading: FoxxBackButton(),
           title: Text(
             'My Prep',
-            style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
+            style: AppTypography.h2,
           ),
         ),
         body: SafeArea(
@@ -83,8 +84,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                   children: [
                     Text(
                       'Tags',
-                      style: AppOSTextStyles.osSmSemiboldLabel
-                          .copyWith(color: AppColors.davysGray),
+                      style: AppTypography.labelSmBold,
                     ),
                     const SizedBox(height: 12),
                     _buildTagsSection(),
@@ -102,8 +102,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                   children: [
                     Text(
                       'My Prep',
-                      style: AppHeadingTextStyles.h2
-                          .copyWith(color: AppColors.primary01),
+                      style: AppTypography.h2,
                     ),
                     Row(
                       children: [
@@ -111,10 +110,8 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => AppointmentFlow(
-                                  onRefresh: _loadAppointmentCompanions,
-                                ),
-                              ),
+                                builder: (context) => AppointmentCompanionDetailsScreen(),  
+                                ),                              
                             );
                           },
                           child: _buildActionButton('New', Icons.add),
@@ -200,7 +197,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: text.isNotEmpty
             ? Text(
                 text,
-                style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                style: AppTypography.labelSmSemibold.copyWith(
                   color: AppColors.amethyst,
                 ),
               )
