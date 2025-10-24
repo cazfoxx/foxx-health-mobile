@@ -60,6 +60,9 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
     // Load products with retry mechanism
     await _loadProductsWithRetry();
+    
+    // Restore previous purchases to check for existing subscriptions
+    await _restorePurchases();
   }
 
   Future<void> _loadProductsWithRetry({int maxRetries = 3}) async {
@@ -123,6 +126,57 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     }
   }
 
+  Future<void> _restorePurchases() async {
+    try {
+      log('Restoring previous purchases...');
+      setState(() {
+        _isLoading = true;
+      });
+      
+      await _inAppPurchase.restorePurchases();
+      log('Purchase restoration completed');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Purchases restored successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      log('Error restoring purchases: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to restore purchases: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<bool> _checkExistingSubscription(String productId) async {
+    try {
+      log('Checking for existing subscription: $productId');
+      
+      // For now, we'll rely on the purchase stream to detect existing purchases
+      // The restorePurchases() call in _initializeStore() will trigger any existing purchases
+      // to be sent through the purchase stream, which we handle in _handlePurchaseUpdates
+      
+      // This is a simplified approach - in a production app, you might want to store
+      // purchase state locally or check with your backend
+      log('Subscription check completed for: $productId');
+      return false;
+    } catch (e) {
+      log('Error checking existing subscription: $e');
+      return false;
+    }
+  }
+
   Future<void> initializePayment() async {
     if (!_isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,6 +203,18 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         orElse: () =>
             throw 'Product not found: $productId. This usually means the app is still under review.',
       );
+
+      // Check if user already has an active subscription
+      final bool hasActiveSubscription = await _checkExistingSubscription(productId);
+      if (hasActiveSubscription) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You already have an active subscription!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        return;
+      }
 
       final PurchaseParam purchaseParam =
           PurchaseParam(productDetails: product);
@@ -458,6 +524,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                 ),
 
                 _buildTrialButton(),
+                _buildRestoreButton(),
                 // if (_products.isEmpty) _buildRefreshButton(),
                 const SizedBox(height: 10),
                 const Padding(
@@ -684,6 +751,25 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildRestoreButton() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.only(bottom: 16),
+      width: double.infinity,
+      child: TextButton(
+        onPressed: _isLoading ? null : _restorePurchases,
+        child: const Text(
+          'Restore Purchases',
+          style: TextStyle(
+            color: AppColors.amethystViolet,
+            fontSize: 14,
+            decoration: TextDecoration.underline,
+          ),
+        ),
       ),
     );
   }
