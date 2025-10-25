@@ -9,6 +9,7 @@ import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_sc
 import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_screen.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:dio/dio.dart';
 
 class PremiumOverlay extends StatefulWidget {
@@ -363,10 +364,21 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
       if (verificationSuccess) {
         log('Purchase verification successful: ${purchaseDetails.productID}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Purchase successful! Welcome to Premium!')),
-        );
+        
+        // Set premium status to true
+        await PremiumService.instance.enablePremium();
+        log('🔓 Premium status enabled in SharedPreferences');
+        
+        // Show success snackbar (the backend verification already shows one, but this is a fallback)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🎉 Purchase successful! Welcome to Premium!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
 
         // Close the premium overlay
         if (mounted) {
@@ -377,9 +389,24 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       }
     } catch (e) {
       log('Purchase verification error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchase verification failed: $e')),
-      );
+      
+      // Show detailed error snackbar
+      if (mounted) {
+        String errorMessage = 'Purchase verification failed';
+        if (e.toString().contains('No receipt data available')) {
+          errorMessage = 'Receipt data not available - please try again';
+        } else if (e.toString().contains('Purchase verification failed')) {
+          errorMessage = 'Verification failed - please contact support';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ $errorMessage'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -422,13 +449,74 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       if (response.statusCode == 200) {
         final responseData = response.data;
         log('Verification successful: $responseData');
+        
+        // Set premium status to true
+        await PremiumService.instance.enablePremium();
+        log('🔓 Premium status enabled in SharedPreferences');
+        
+        // Show success snackbar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Purchase verified successfully! Welcome to Premium!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
         return true;
       } else {
         log('Verification failed with status: ${response.statusCode}');
+        
+        // Show error snackbar for non-200 status
+        if (mounted) {
+          String errorMessage = 'Server error';
+          if (response.statusCode == 401) {
+            errorMessage = 'Authentication failed - please log in again';
+          } else if (response.statusCode == 400) {
+            errorMessage = 'Invalid receipt data - please try again';
+          } else if (response.statusCode == 500) {
+            errorMessage = 'Server error - please try again later';
+          } else if (response.statusCode == 422) {
+            errorMessage = 'Invalid receipt format - please try again';
+          }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ $errorMessage (${response.statusCode})'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
         return false;
       }
     } catch (e) {
       log('Backend verification error: $e');
+
+      // Show error snackbar for exceptions
+      if (mounted) {
+        String errorMessage = 'Network error';
+        if (e.toString().contains('401')) {
+          errorMessage = 'Authentication failed - please log in again';
+        } else if (e.toString().contains('timeout') || e.toString().contains('TimeoutException')) {
+          errorMessage = 'Request timeout - please check your connection';
+        } else if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
+          errorMessage = 'No internet connection';
+        } else if (e.toString().contains('500') || e.toString().contains('502') || e.toString().contains('503')) {
+          errorMessage = 'Server error - please try again later';
+        } else if (e.toString().contains('422')) {
+          errorMessage = 'Invalid receipt format - please try again';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ $errorMessage'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
 
       // If it's a network error or server error, we should still allow the purchase
       // to complete to avoid blocking legitimate purchases due to temporary server issues

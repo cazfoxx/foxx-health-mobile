@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_dialog.dart';
@@ -63,6 +64,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onTabTapped(int index) {
     if (_currentIndex == index) return;
+    
+    // Check premium status for premium tabs (My Prep, Tracker, Insight)
+    if (index == 1 || index == 2 || index == 3) { // My Prep, Tracker, Insight
+      if (!PremiumService.instance.hasPremiumAccess()) {
+        _showPremiumRequiredDialog(context, _tabLabels[index]);
+        return;
+      }
+    }
+    
     setState(() {
       _currentIndex = index;
     });
@@ -70,6 +80,77 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       index,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+    );
+  }
+  
+  void _showPremiumRequiredDialog(BuildContext context, String featureName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.lock, color: AppColors.primary01),
+              const SizedBox(width: 8),
+              Text('Premium Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$featureName is a premium feature. Upgrade to access advanced tracking and insights.',
+                style: AppOSTextStyles.osSmSemiboldLabel,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary01.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: AppColors.primary01, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Get unlimited access to all premium features',
+                        style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                          color: AppColors.primary01,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate to premium screen
+                // You can add navigation to premium screen here
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary01,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('Upgrade Now'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -179,7 +260,59 @@ class MyPrepTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!PremiumService.instance.hasPremiumAccess()) {
+      return _buildPremiumRequiredScreen('My Prep');
+    }
     return const MyPrepScreen();
+  }
+  
+  Widget _buildPremiumRequiredScreen(String featureName) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 80,
+                color: AppColors.gray400,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Premium Required',
+                style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                  color: AppColors.gray800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '$featureName is a premium feature. Upgrade to access advanced preparation tools and personalized recommendations.',
+                textAlign: TextAlign.center,
+                style: AppOSTextStyles.osMd.copyWith(
+                  color: AppColors.gray600,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to premium screen
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary01,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Upgrade Now'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -239,9 +372,62 @@ class _TrackerTabState extends State<TrackerTab> {
       });
     }
   }
+  
+  Widget _buildPremiumRequiredScreen(String featureName) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 80,
+                color: AppColors.gray400,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Premium Required',
+                style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                  color: AppColors.gray800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '$featureName is a premium feature. Upgrade to access advanced health tracking and detailed insights.',
+                textAlign: TextAlign.center,
+                style: AppOSTextStyles.osMd.copyWith(
+                  color: AppColors.gray600,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to premium screen
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary01,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Upgrade Now'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!PremiumService.instance.hasPremiumAccess()) {
+      return _buildPremiumRequiredScreen('Tracker');
+    }
+    
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -842,9 +1028,62 @@ class _InsightTabState extends State<InsightTab> {
     _getSymptomsForMonth();
     _getUserSymptoms();
   }
+  
+  Widget _buildPremiumRequiredScreen(String featureName) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 80,
+                color: AppColors.gray400,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Premium Required',
+                style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                  color: AppColors.gray800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '$featureName is a premium feature. Upgrade to access detailed health insights and analytics.',
+                textAlign: TextAlign.center,
+                style: AppOSTextStyles.osMd.copyWith(
+                  color: AppColors.gray600,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to premium screen
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary01,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Upgrade Now'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!PremiumService.instance.hasPremiumAccess()) {
+      return _buildPremiumRequiredScreen('Insights');
+    }
+    
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
