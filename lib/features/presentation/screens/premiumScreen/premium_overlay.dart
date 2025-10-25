@@ -272,11 +272,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         final monthlyPrice = product.rawPrice / 12;
         return '${product.currencySymbol}${monthlyPrice.toStringAsFixed(2)}/month';
       } else {
-        return '${product.currencySymbol}${product.rawPrice}/month';
+        // For monthly subscription, don't show per-unit price to avoid duplication
+        return '';
       }
     } catch (e) {
       // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$1.67/month' : '\$2.00/month';
+      return productId == yearlyProductId ? '\$1.67/month' : '';
     }
   }
 
@@ -575,7 +576,8 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            isMonthlySelected = true;
+                            isYearlySelected = true;
+                            isMonthlySelected = false;
                           });
                         },
                         child: _buildSubscriptionOption(
@@ -583,14 +585,15 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                           price: _getProductPrice(yearlyProductId),
                           pricePerUnit: _getPricePerUnit(yearlyProductId),
                           description: _getProductDescription(yearlyProductId),
-                          isSelected: !isMonthlySelected,
+                          isSelected: isYearlySelected,
                         ),
                       ),
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            isMonthlySelected = false;
+                            isMonthlySelected = true;
+                            isYearlySelected = false;
                           });
                         },
                         child: _buildSubscriptionOption(
@@ -705,15 +708,17 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                 const SizedBox(height: 4),
                 Text(description,
                     style: AppTextStyles.captionOpenSans.copyWith()),
-                const SizedBox(height: 2),
-                Text(
-                  pricePerUnit,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.amethystViolet,
-                    fontWeight: FontWeight.w500,
+                if (pricePerUnit.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    pricePerUnit,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.amethystViolet,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -740,16 +745,6 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     );
   }
 
-  Widget _buildTestimonial() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.7,
-      child: Text(
-        "Every woman deserves a tool like the FoXx Health app",
-        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w400),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
 
   Widget _buildTermsOfService() {
     return Center(
@@ -862,81 +857,4 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     );
   }
 
-  Widget _buildRefreshButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.orange.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.shade200),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Colors.orange.shade700,
-                  size: 24,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Products not available',
-                  style: TextStyle(
-                    color: Colors.orange.shade700,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'This is normal during development or if your app is under review. Tap refresh to try again.',
-                  style: TextStyle(
-                    color: Colors.orange.shade600,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                log('User tapped refresh button');
-                await _loadProductsWithRetry();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_products.isEmpty
-                          ? 'Products still not available. Check App Store Connect configuration.'
-                          : 'Products loaded successfully!'),
-                      backgroundColor:
-                          _products.isEmpty ? Colors.orange : Colors.green,
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh Products'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.amethystViolet,
-                side: BorderSide(color: AppColors.amethystViolet),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
