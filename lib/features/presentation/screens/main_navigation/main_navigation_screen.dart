@@ -15,6 +15,7 @@ import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_
 import 'package:foxxhealth/features/presentation/cubits/symptom_search/symptom_search_cubit.dart';
 import 'package:foxxhealth/features/data/models/health_tracker_model.dart';
 import 'package:foxxhealth/features/data/models/symptom_model.dart';
+import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -137,8 +138,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // Navigate to premium screen
-                // You can add navigation to premium screen here
+                // Show premium overlay
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => Container(
+                    height: MediaQuery.of(context).size.height * 0.9,
+                    decoration: BoxDecoration(
+                      color: AppColors.amethystViolet.withOpacity(0.97),
+                    ),
+                    child: const PremiumOverlay(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary01,
@@ -261,12 +273,12 @@ class MyPrepTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!PremiumService.instance.hasPremiumAccess()) {
-      return _buildPremiumRequiredScreen('My Prep');
+      return _buildPremiumRequiredScreen(context, 'My Prep');
     }
     return const MyPrepScreen();
   }
   
-  Widget _buildPremiumRequiredScreen(String featureName) {
+  Widget _buildPremiumRequiredScreen(BuildContext context, String featureName) {
     return Scaffold(
       body: Center(
         child: Padding(
@@ -297,7 +309,19 @@ class MyPrepTab extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to premium screen
+                  // Show premium overlay
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Container(
+                      height: MediaQuery.of(context).size.height * 0.9,
+                      decoration: BoxDecoration(
+                        color: AppColors.amethystViolet.withOpacity(0.97),
+                      ),
+                      child: const PremiumOverlay(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary01,
@@ -373,7 +397,7 @@ class _TrackerTabState extends State<TrackerTab> {
     }
   }
   
-  Widget _buildPremiumRequiredScreen(String featureName) {
+  Widget _buildPremiumRequiredScreen(BuildContext context, String featureName) {
     return Scaffold(
       body: Center(
         child: Padding(
@@ -404,7 +428,19 @@ class _TrackerTabState extends State<TrackerTab> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to premium screen
+                  // Show premium overlay
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Container(
+                      height: MediaQuery.of(context).size.height * 0.9,
+                      decoration: BoxDecoration(
+                        color: AppColors.amethystViolet.withOpacity(0.97),
+                      ),
+                      child: const PremiumOverlay(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary01,
@@ -425,7 +461,7 @@ class _TrackerTabState extends State<TrackerTab> {
   @override
   Widget build(BuildContext context) {
     if (!PremiumService.instance.hasPremiumAccess()) {
-      return _buildPremiumRequiredScreen('Tracker');
+      return _buildPremiumRequiredScreen(context, 'Tracker');
     }
     
     return Foxxbackground(
@@ -1029,7 +1065,7 @@ class _InsightTabState extends State<InsightTab> {
     _getUserSymptoms();
   }
   
-  Widget _buildPremiumRequiredScreen(String featureName) {
+  Widget _buildPremiumRequiredScreen(BuildContext context, String featureName) {
     return Scaffold(
       body: Center(
         child: Padding(
@@ -1060,7 +1096,19 @@ class _InsightTabState extends State<InsightTab> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to premium screen
+                  // Show premium overlay
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Container(
+                      height: MediaQuery.of(context).size.height * 0.9,
+                      decoration: BoxDecoration(
+                        color: AppColors.amethystViolet.withOpacity(0.97),
+                      ),
+                      child: const PremiumOverlay(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary01,
@@ -1081,7 +1129,7 @@ class _InsightTabState extends State<InsightTab> {
   @override
   Widget build(BuildContext context) {
     if (!PremiumService.instance.hasPremiumAccess()) {
-      return _buildPremiumRequiredScreen('Insights');
+      return _buildPremiumRequiredScreen(context, 'Insights');
     }
     
     return Foxxbackground(
