@@ -292,7 +292,7 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       },
     );
   }
-
+  
   void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) {
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       if (purchaseDetails.status == PurchaseStatus.pending) {
@@ -300,6 +300,11 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         log('Purchase pending');
       } else if (purchaseDetails.status == PurchaseStatus.purchased) {
         // Verify purchase
+        log('New purchase: ${purchaseDetails.productID}');
+        await _verifyPurchase(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.restored) {
+        // Verify purchase
+        log('Restored purchase: ${purchaseDetails.productID}');
         await _verifyPurchase(purchaseDetails);
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         // Handle error
