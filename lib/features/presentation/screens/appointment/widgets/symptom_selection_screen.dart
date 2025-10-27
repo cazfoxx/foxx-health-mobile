@@ -9,10 +9,10 @@ class SymptomSelectionScreen extends StatefulWidget {
   final AppointmentQuestion? question;
 
   const SymptomSelectionScreen({
-    Key? key,
+    super.key,
     required this.onDataUpdate,
     this.question,
-  }) : super(key: key);
+  });
 
   @override
   State<SymptomSelectionScreen> createState() => _SymptomSelectionScreenState();
@@ -200,6 +200,6 @@ class _SymptomSelectionScreenState extends State<SymptomSelectionScreen> {
   }
 
   bool _canProceed() {
-    return selectedSymptoms.isNotEmpty;
+    return true;//selectedSymptoms.isNotEmpty;
   }
 }
