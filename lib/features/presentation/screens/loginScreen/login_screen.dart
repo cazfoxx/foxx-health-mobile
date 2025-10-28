@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/components/privacy_policy_bottom_sheet.dart';
+import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/otp_verification_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
 import 'package:foxxhealth/core/utils/snackbar_utils.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
@@ -45,7 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
     setState(() {
       _hasMinLength = password.length >= 8;
-      _hasLetterAndNumber = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
+      _hasLetterAndNumber =
+          RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
       _hasCapitalLetter = RegExp(r'[A-Z]').hasMatch(password);
       _updateButtonState();
     });
@@ -60,7 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool validatePassword(String password) {
     final hasMinLength = password.length >= 8;
-    final hasLetterAndNumber = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
+    final hasLetterAndNumber =
+        RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(password);
     final hasCapitalLetter = RegExp(r'[A-Z]').hasMatch(password);
 
     return hasMinLength && hasLetterAndNumber && hasCapitalLetter;
@@ -69,16 +72,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void _updateButtonState() {
     setState(() {
       if (widget.isSign) {
-        _isButtonEnabled = _formKey.currentState?.validate() ?? false &&
-            _emailController.text.trim().isNotEmpty &&
-            _passwordController.text.trim().isNotEmpty;
+        _isButtonEnabled = _formKey.currentState?.validate() ??
+            false &&
+                _emailController.text.trim().isNotEmpty &&
+                _passwordController.text.trim().isNotEmpty;
       } else {
         final emailValid = _formKey.currentState?.validate() ?? false;
         final emailNotEmpty = _emailController.text.trim().isNotEmpty;
         final passwordValid = validatePassword(_passwordController.text);
         final checkboxesChecked = _agreeToTerms && _isOver16;
 
-        _isButtonEnabled = emailValid && emailNotEmpty && passwordValid && checkboxesChecked;
+        _isButtonEnabled =
+            emailValid && emailNotEmpty && passwordValid && checkboxesChecked;
       }
     });
   }
@@ -97,25 +102,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 40),
-                  
+
                   // Header
                   _buildHeader(),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Form
                   _buildLoginForm(),
-                  
+
                   const SizedBox(height: 40),
-                  
+
                   // Bottom Button
                   _buildBottomButton(),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Toggle Sign In/Sign Up
                   _buildToggleSign(),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -159,18 +164,19 @@ class _LoginScreenState extends State<LoginScreen> {
           if (widget.isSign) ...[
             SizedBox(height: 8),
             Text(
-           'Welcome back',
-            style: AppTypography.bodyLg.copyWith(fontWeight: AppTypography.regular),
-          ),
+              'Welcome back',
+              style: AppTypography.bodyLg
+                  .copyWith(fontWeight: AppTypography.regular),
+            ),
           ],
           const SizedBox(height: 8),
           if (!widget.isSign) ...[
-         
             const SizedBox(height: 4),
-             Text(
+            Text(
               'Your health details are always protected. Logging in simply unlocks your private account.',
               textAlign: TextAlign.start,
-              style: AppTypography.bodyLg.copyWith(fontWeight: AppTypography.regular),
+              style: AppTypography.bodyLg
+                  .copyWith(fontWeight: AppTypography.regular),
             ),
           ],
         ],
@@ -213,19 +219,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 _formKey.currentState?.validate();
                 _updateButtonState();
               },
-              style: AppTypography.bodyMd.copyWith(fontWeight: AppTypography.regular),
+              style: AppTypography.bodyMd
+                  .copyWith(fontWeight: AppTypography.regular),
               decoration: InputDecoration(
                 hintText: 'Email',
-                hintStyle: AppTypography.bodyMd.copyWith(fontWeight: AppTypography.regular, color: AppColors.textInputPlaceholder),
-                errorStyle: AppTypography.labelXsSemibold.copyWith(color: AppColors.red),
+                hintStyle: AppTypography.bodyMd.copyWith(
+                    fontWeight: AppTypography.regular,
+                    color: AppColors.textInputPlaceholder),
+                errorStyle: AppTypography.labelXsSemibold
+                    .copyWith(color: AppColors.red),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Password Field
           Container(
             decoration: BoxDecoration(
@@ -244,9 +255,11 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: _obscurePassword,
               validator: (value) {
                 if (!widget.isSign) {
-                  if (value == null || value.isEmpty) return 'Must be at least 8 characters';
+                  if (value == null || value.isEmpty)
+                    return 'Must be at least 8 characters';
                   if (value.length < 8) return 'Must be at least 8 characters';
-                  if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Must contain a capital letter';
+                  if (!RegExp(r'[A-Z]').hasMatch(value))
+                    return 'Must contain a capital letter';
                   if (!RegExp(r'(?=.*[a-zA-Z])(?=.*\d)').hasMatch(value)) {
                     return 'Must contain letters and numbers';
                   }
@@ -260,13 +273,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 _formKey.currentState?.validate();
                 _updateButtonState();
               },
-              style: AppTypography.bodyMd.copyWith(fontWeight: AppTypography.regular),
+              style: AppTypography.bodyMd
+                  .copyWith(fontWeight: AppTypography.regular),
               decoration: InputDecoration(
                 hintText: 'Password',
-                hintStyle: AppTypography.bodyMd.copyWith(fontWeight: AppTypography.regular, color: AppColors.textInputPlaceholder),
-                errorStyle: AppTypography.labelXsSemibold.copyWith(color: AppColors.red),
+                hintStyle: AppTypography.bodyMd.copyWith(
+                    fontWeight: AppTypography.regular,
+                    color: AppColors.textInputPlaceholder),
+                errorStyle: AppTypography.labelXsSemibold
+                    .copyWith(color: AppColors.red),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -281,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // Password Requirements (only for sign up)
           if (!widget.isSign) ...[
             const SizedBox(height: 16),
@@ -302,14 +320,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildPasswordRule('Length: at least 8 characters', _hasMinLength),
-                  _buildPasswordRule('Must include at least one letter and one number', _hasLetterAndNumber),
-                  _buildPasswordRule('Must include capital letters', _hasCapitalLetter),
+                  _buildPasswordRule(
+                      'Length: at least 8 characters', _hasMinLength),
+                  _buildPasswordRule(
+                      'Must include at least one letter and one number',
+                      _hasLetterAndNumber),
+                  _buildPasswordRule(
+                      'Must include capital letters', _hasCapitalLetter),
                 ],
               ),
             ),
           ],
-          
+
           // Forgot Password (only for sign in)
           if (widget.isSign) ...[
             const SizedBox(height: 16),
@@ -333,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ],
-          
+
           // Checkboxes (only for sign up)
           if (!widget.isSign) ...[
             const SizedBox(height: 24),
@@ -371,7 +393,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ..onTap = () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const TermsOfUseScreen(),
+                                  builder: (context) =>
+                                      const TermsOfUseScreen(),
                                 ),
                               );
                             },
@@ -437,42 +460,63 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             );
           }
-          } else if (state is LoginError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message,
-                  style: AppTypography.bodySmSemibold.copyWith(
-              color: AppColors.buttonTextPrimary,
-                  ),
+        } else if (state is LoginError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.message,
+                style: AppTypography.bodySmSemibold.copyWith(
+                  color: AppColors.buttonTextPrimary,
                 ),
-                backgroundColor: AppColors.red,
               ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Container(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isButtonEnabled
-                  ? () {
+              backgroundColor: AppColors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Container(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            onPressed: _isButtonEnabled
+                ? () {
                     final loginCubit = context.read<LoginCubit>();
                     loginCubit.setUserDetails(
                       email: _emailController.text,
                       password: _passwordController.text,
                     );
                     if (!widget.isSign) {
+                      // 🔹 Navigate to OTPVerificationScreen
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => OnboardingFlow(
+                          builder: (_) => OTPVerificationScreen(
                             email: _emailController.text,
-                            password: _passwordController.text,
+                            onSuccess: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OnboardingFlow(
+                                    email: _emailController.text,
+                                    password: _passwordController.text,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       );
+                      // // 🔹 Navigate to OnboardingScreen
+                      // Navigator.pushReplacement(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => OnboardingFlow(
+                      //       email: _emailController.text,
+                      //       password: _passwordController.text,
+                      //     ),
+                      //   ),
+                      // );
                     } else {
                       loginCubit.signInWithEmail(
                         _emailController.text,
@@ -481,19 +525,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   }
                 : null,
-              style: ElevatedButton.styleFrom(
-              backgroundColor: _isButtonEnabled ? AppColors.amethystViolet : AppColors.gray300,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isButtonEnabled
+                  ? AppColors.amethystViolet
+                  : AppColors.gray300,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(25),
               ),
             ),
             child: state is LoginLoading
-                  ? const CircularProgressIndicator(color: AppColors.buttonTextPrimary)
+                ? const CircularProgressIndicator(
+                    color: AppColors.buttonTextPrimary)
                 : Text(
                     widget.isSign ? 'Sign In' : 'Create An Account',
                     style: AppTypography.labelMdSemibold.copyWith(
-              color: _isButtonEnabled ? AppColors.buttonTextPrimary : AppColors.gray600,
+                      color: _isButtonEnabled
+                          ? AppColors.buttonTextPrimary
+                          : AppColors.gray600,
                     ),
                   ),
           ),
@@ -513,7 +562,9 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            widget.isSign ? "Don't have an account?" : 'Already have an account?',
+            widget.isSign
+                ? "Don't have an account?"
+                : 'Already have an account?',
             style: AppTypography.bodySmSemibold,
           ),
           Text(
@@ -542,7 +593,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Text(
               rule,
               style: AppTypography.labelXsSemibold.copyWith(
-                color: isMet ? AppColors.insightPineGreen : AppColors.textPrimary,
+                color:
+                    isMet ? AppColors.insightPineGreen : AppColors.textPrimary,
               ),
             ),
           ),
