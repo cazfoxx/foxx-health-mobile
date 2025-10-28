@@ -47,8 +47,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   }
 
   Future<void> _initializeStore() async {
+    log('=== INITIALIZING IN-APP PURCHASE STORE ===');
+    
     final bool available = await _inAppPurchase.isAvailable();
+    log('In-App Purchase Available: $available');
+    
     if (!available) {
+      log('In-App Purchases are not available on this device');
       setState(() {
         _isAvailable = false;
       });
@@ -64,25 +69,59 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     
     // Restore previous purchases to check for existing subscriptions
     await _restorePurchases();
+    
+    log('=== STORE INITIALIZATION COMPLETE ===');
   }
 
-  Future<void> _loadProductsWithRetry({int maxRetries = 3}) async {
+  Future<void> _refreshProducts() async {
+    log('Manually refreshing products...');
+    setState(() {
+      _isLoading = true;
+    });
+    
+    await _loadProductsWithRetry();
+    
+    setState(() {
+      _isLoading = false;
+    });
+    
+    if (_products.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Products refreshed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load products. Using fallback prices.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadProductsWithRetry({int maxRetries = 5}) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       log('Loading products - attempt $attempt of $maxRetries');
       await _loadProducts();
 
       if (_products.isNotEmpty) {
         log('Products loaded successfully on attempt $attempt');
+        log('Loaded products: ${_products.map((p) => '${p.id}: ${p.currencySymbol}${p.rawPrice}').join(', ')}');
         return;
       }
 
       if (attempt < maxRetries) {
-        log('No products found, retrying in 2 seconds...');
-        await Future.delayed(const Duration(seconds: 2));
+        final delay = Duration(seconds: attempt * 2); // Exponential backoff
+        log('No products found, retrying in ${delay.inSeconds} seconds...');
+        await Future.delayed(delay);
       }
     }
 
     log('Failed to load products after $maxRetries attempts');
+    log('This means the app will use fallback prices until products are available');
   }
 
   Future<void> _loadProducts() async {
@@ -97,6 +136,19 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       log('- Found products: ${response.productDetails.length}');
       log('- Not found IDs: ${response.notFoundIDs}');
       log('- Error: ${response.error}');
+
+      // Log detailed information about each product found
+      for (final product in response.productDetails) {
+        log('=== PRODUCT DETAILS FROM APP STORE CONNECT ===');
+        log('Product ID: ${product.id}');
+        log('Product Title: ${product.title}');
+        log('Product Description: ${product.description}');
+        log('Raw Price (exact): ${product.rawPrice}');
+        log('Currency Code: ${product.currencyCode}');
+        log('Currency Symbol: ${product.currencySymbol}');
+        log('Formatted Price: ${product.currencySymbol}${product.rawPrice.toStringAsFixed(2)}');
+        log('=== END PRODUCT DETAILS ===');
+      }
 
       if (response.notFoundIDs.isNotEmpty) {
         log('Products not found: ${response.notFoundIDs}');
@@ -116,6 +168,11 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         log('3. Testing on simulator (use real device for testing)');
         log('4. Incomplete tax/banking information in developer account');
         log('5. Bundle ID mismatch between app and App Store Connect');
+        log('6. Network connectivity issues');
+        log('7. App Store servers are temporarily unavailable');
+        log('8. Products are not in "Ready to Submit" or "Approved" status');
+        log('9. Missing App Store Connect agreement acceptance');
+        log('10. Testing with wrong Apple ID (need sandbox account)');
       }
 
       setState(() {
@@ -124,6 +181,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     } catch (e) {
       log('Error loading products: $e');
       log('This could indicate a network issue or App Store Connect configuration problem');
+      log('Error type: ${e.runtimeType}');
+      if (e.toString().contains('timeout')) {
+        log('This appears to be a timeout error - try again later');
+      } else if (e.toString().contains('network')) {
+        log('This appears to be a network error - check internet connection');
+      }
     }
   }
 
@@ -245,10 +308,18 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   String _getProductPrice(String productId) {
     try {
       final product = _products.firstWhere((p) => p.id == productId);
-      return product.currencySymbol + product.rawPrice.toString();
+      // Debug logging to help identify currency issues
+      log('Product: $productId');
+      log('Raw Price: ${product.rawPrice}');
+      log('Currency Code: ${product.currencyCode}');
+      log('Currency Symbol: ${product.currencySymbol}');
+      log('Formatted Price: ${product.currencySymbol}${product.rawPrice.toStringAsFixed(2)}');
+      
+      return product.currencySymbol + product.rawPrice.toStringAsFixed(2);
     } catch (e) {
-      // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$22' : '\$2';
+      // Fallback prices if products are not loaded - MUST match App Store Connect configuration
+      log('Using fallback price for $productId');
+      return productId == yearlyProductId ? '\$19.99' : '\$2.00';
     }
   }
 
@@ -276,8 +347,8 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         return '';
       }
     } catch (e) {
-      // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$1.67/month' : '';
+      // Fallback prices if products are not loaded - MUST match App Store Connect
+      return productId == yearlyProductId ? '\$1.67/month' : ''; // $19.99/12 = $1.67
     }
   }
 
@@ -616,12 +687,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
                 _buildTrialButton(),
                 _buildRestoreButton(),
-                // if (_products.isEmpty) _buildRefreshButton(),
+                if (_products.isEmpty) _buildRefreshButton(),
+                _buildPriceSourceIndicator(),
                 const SizedBox(height: 10),
                 const Padding(
                   padding: EdgeInsets.only(left: 32.0),
                   child: Text(
-                      'Once your free trial ends, your subscription renews automatically at \$2/month',
+                      'Once your free trial ends, your subscription renews automatically at the selected plan price',
                       style: TextStyle(color: AppColors.gray700, fontSize: 16)),
                 )
               ],
@@ -853,6 +925,61 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
             decoration: TextDecoration.underline,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRefreshButton() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.only(bottom: 16),
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _refreshProducts,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orange,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Refresh Products',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPriceSourceIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _products.isNotEmpty ? Icons.check_circle : Icons.warning,
+            color: _products.isNotEmpty ? Colors.green : Colors.orange,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _products.isNotEmpty 
+                ? 'Prices loaded from App Store Connect' 
+                : 'Using fallback prices - tap Refresh Products',
+            style: TextStyle(
+              color: _products.isNotEmpty ? Colors.green : Colors.orange,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
