@@ -1,23 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/features/data/repositories/community_den_repository.dart';
-import 'feed_event.dart';
-import 'feed_state.dart';
+import 'my_feed_event.dart';
+import 'my_feed_state.dart';
 
-class FeedBloc extends Bloc<FeedEvent, FeedState> {
+class MyFeedBloc extends Bloc<MyFeedEvent, FeedState> {
   final CommunityDenRepository _repository;
   static const int _limit = 1;
   int _skip = 0;
   bool _isFetching = false;
 
-  FeedBloc({required CommunityDenRepository feedRepository})
+  MyFeedBloc({required CommunityDenRepository feedRepository})
       : _repository = feedRepository,
         super(FeedInitial()) {
-    on<LoadFeeds>(_onLoadFeeds);
+    on<LoadMyFeeds>(_onLoadFeeds);
     on<LoadMoreFeeds>(_onLoadMoreFeeds);
-    on<RefreshFeeds>(_onRefreshFeeds);
+    on<RefreshMyFeeds>(_onRefreshFeeds);
+  
   }
-
-  Future<void> _onLoadFeeds(LoadFeeds event, Emitter<FeedState> emit) async {
+// Load own feed for den screen
+  Future<void> _onLoadFeeds(LoadMyFeeds event, Emitter<FeedState> emit) async {
     emit(FeedLoading());
     _skip = 0;
 
@@ -61,7 +62,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   }
 
   Future<void> _onRefreshFeeds(
-      RefreshFeeds event, Emitter<FeedState> emit) async {
+      RefreshMyFeeds event, Emitter<FeedState> emit) async {
     _skip = 0;
     try {
       final feed = await _repository

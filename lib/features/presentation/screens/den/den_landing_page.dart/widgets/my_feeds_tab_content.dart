@@ -4,9 +4,9 @@ import 'package:foxxhealth/core/components/foxx_button.dart';
 import 'package:foxxhealth/core/components/paginated_list_view.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/community_den_feed/feed_block.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/community_den_feed/feed_event.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/community_den_feed/feed_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_event.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_state.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_landing_page.dart/widgets/feed_card.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/explore_den_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -27,7 +27,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
   @override
   void initState() {
     super.initState();
-    context.read<FeedBloc>().add(LoadFeeds());
+    context.read<MyFeedBloc>().add(LoadMyFeeds());
   }
 
   List<Post> filterPosts(FeedState state) {
@@ -97,7 +97,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<FeedBloc, FeedState>(
+    return BlocBuilder<MyFeedBloc, FeedState>(
       builder: (context, state) {
         if (state is FeedLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -113,7 +113,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
                   ),
                   TextButton(
                       onPressed: () {
-                        context.read<FeedBloc>().add(RefreshFeeds());
+                        context.read<MyFeedBloc>().add(RefreshMyFeeds());
                       },
                       child: const Text("Retry"))
                 ],
@@ -132,7 +132,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
           // ✅ Use the reusable pagination component
           return RefreshIndicator(
             onRefresh: () async {
-              context.read<FeedBloc>().add(RefreshFeeds());
+              context.read<MyFeedBloc>().add(RefreshMyFeeds());
             },
             child: PaginatedListView<Post>(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -140,7 +140,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
               hasMore: state.hasMore,
               fetchMore: () async {
                 // trigger the bloc event to load more
-                context.read<FeedBloc>().add(LoadMoreFeeds());
+                context.read<MyFeedBloc>().add(LoadMoreFeeds());
               },
               itemBuilder: (context, post) => FeedCard(
                 post: post,

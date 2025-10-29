@@ -9,6 +9,7 @@ import 'package:foxxhealth/features/presentation/screens/den/pages/explore_den_s
 class CommunityDenRepository {
   final ApiClient _apiClient = ApiClient();
 
+// fectch list of dens
   Future<List<CommunityDenModel>> getCommunityDens() async {
     try {
       final response = await _apiClient.get('/api/v1/community-den');
@@ -88,6 +89,7 @@ class CommunityDenRepository {
     }
   }
 
+// join multiple dens
   Future<bool> bulkJoinDen(List<int> ids) async {
     try {
       final response = await _apiClient.post(
@@ -184,6 +186,7 @@ class CommunityDenRepository {
   }
 
 
+// get feed of particular den
   Future<FeedModel> getDenFeeds({Map<String, dynamic>? queryParms, required int denId}) async {
     try {
       final response = await _apiClient.get('/api/v1/community-den/posts/den/${denId}',
@@ -203,7 +206,7 @@ class CommunityDenRepository {
     }
   }
 
-  // get feeds
+  // get own feeds
   Future<FeedModel> getFeeds({Map<String, dynamic>? queryParms}) async {
     try {
       final response = await _apiClient.get('/api/v1/community-den/posts/feed',
@@ -263,6 +266,7 @@ class CommunityDenRepository {
     }
   }
 
+// search den
   Future<List<CommunityDenModel>> searchDens({ required String search, int skip =0, int limit=20}) async {
     try {
       final response = await _apiClient

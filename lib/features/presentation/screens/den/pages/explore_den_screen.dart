@@ -14,7 +14,6 @@ import 'package:foxxhealth/features/presentation/screens/den/pages/request_den/r
 import 'package:foxxhealth/features/presentation/screens/den/widgets/den_search_bar.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 
 // Define the data for the category grid

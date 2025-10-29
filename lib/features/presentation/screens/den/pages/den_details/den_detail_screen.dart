@@ -80,7 +80,9 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
                             Expanded(
                                 child: TabBarView(children: [
                               DenAboutPage(den: den),
-                              const DenFeedPage(),
+                              DenFeedPage(
+                                den: den,
+                              ),
                               const DenTalkEventPage(),
                             ]))
                           ],

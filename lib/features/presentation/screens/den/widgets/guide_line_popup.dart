@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/components/foxx_button.dart';
-import 'package:foxxhealth/core/constants/shared_pref_keys.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/den_community_guideline_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/join_conversation_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// the popup is shown only for the first time user opens the den screen
 

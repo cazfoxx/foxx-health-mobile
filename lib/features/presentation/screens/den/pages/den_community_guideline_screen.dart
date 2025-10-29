@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
 
 /// guide line model. For now have kept in same file
 /// can be moved to separate file later if needed

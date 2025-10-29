@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foxxhealth/core/components/foxx_tab_bar.dart';
-import 'package:foxxhealth/core/utils/app_ui_helper.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/community_den_user_profile/community_den_profile_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/community_den_user_profile/community_den_profile_state.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_profile_search/den_profile_tab_bar_contents/user_post_tab_content.dart';
@@ -95,15 +94,15 @@ class _DenUserProfilePageState extends State<DenUserProfilePage>
       },
       body:
           //Todo; Implement search result data
-          TabBarView(controller: tabController, children: [
+          TabBarView(controller: tabController, children:const [
         UserPostTabContent(
           // userName: widget.userName ,
           userName: "popular72",
 
         ),
-        const Text(""),
-        const Text(""),
-        const Text("")
+        Text(""),
+        Text(""),
+        Text("")
       ]),
     ));
   }
