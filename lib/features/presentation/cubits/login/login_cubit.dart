@@ -106,7 +106,6 @@ class LoginCubit extends Cubit<LoginState> {
         data: {
           'email_address': _email,
           'password': _password,
-          'role': 'user',
         },
       );
 
