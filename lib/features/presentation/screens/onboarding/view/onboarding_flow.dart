@@ -183,17 +183,30 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         if (registrationResponse['direct_login'] == true) {
           await _completeOnboardingAfterLogin(onboardingCubit);
         } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => OTPVerificationScreen(
-                email: widget.email,
-                onSuccess: () async {
-                  Navigator.of(context).pop();
-                  await _completeOnboardingAfterLogin(onboardingCubit);
-                },
-              ),
+          // New user → must verify OTP first
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => OTPVerificationScreen(
+              email: widget.email,
+              onSuccess: () async {
+                if (!mounted) return;
+                // After OTP verified & login successful
+                await _completeOnboardingAfterLogin(onboardingCubit);
+              },
             ),
-          );
+          ),
+        );
+          // Navigator.of(context).push(
+          //   MaterialPageRoute(
+          //     builder: (context) => OTPVerificationScreen(
+          //       email: widget.email,
+          //       onSuccess: () async {
+          //         Navigator.of(context).pop();
+          //         await _completeOnboardingAfterLogin(onboardingCubit);
+          //       },
+          //     ),
+          //   ),
+          // );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

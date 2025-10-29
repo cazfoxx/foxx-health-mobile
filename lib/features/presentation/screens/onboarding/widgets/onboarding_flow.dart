@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
+import 'package:foxxhealth/features/presentation/screens/home_screen/revamp_home_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/main_navigation/main_navigation_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
 import 'package:foxxhealth/features/presentation/screens/onboarding/widgets/username_screen.dart';
@@ -83,14 +85,27 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   void _nextPage() {
-    if (_currentPage < 13) { // Updated to include all 14 screens (0-13)
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+    // if (_currentPage < 13) { // Updated to include all 14 screens (0-13)
+    //   _pageController.nextPage(
+    //     duration: const Duration(milliseconds: 300),
+    //     curve: Curves.easeInOut,
+    //   );
+    final nextPage = _currentPage + 1;
+  if (nextPage < screens.length) {
+    _pageController.animateToPage(
+      nextPage,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     } else {
       // Complete onboarding and navigate to home
       // Navigator.of(context).pushReplacement(...)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(),
+        ),
+      );
     }
   }
 

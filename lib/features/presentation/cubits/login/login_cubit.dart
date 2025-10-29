@@ -50,7 +50,7 @@ class LoginCubit extends Cubit<LoginState> {
     String? pronoun,
   }) {
     // Only update fields that are not null
-    if (fullName != null) fullName = fullName;
+    if (fullName != null) this.fullName = fullName;
     if (email != null) _email = email;
     if (password != null) _password = password;
     if (username != null) _username = username;
@@ -131,7 +131,18 @@ class LoginCubit extends Cubit<LoginState> {
             title: 'Registration Successful',
             message: 'OTP sent to your email address');
 
-        emit(LoginSuccess());
+                                        Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OnboardingFlow(
+                                    email: _email!,
+                                    password: _password!,
+                                  ),),
+                                );
+        // emit(LoginSuccess());
+
+      // emit state to notify UI to show OTP screen
+      emit(LoginOtpSent(_email!));
         // // 🔹 Navigate to OTPVerificationScreen
         // Navigator.pushReplacement(
         //   context,
@@ -240,9 +251,26 @@ class LoginCubit extends Cubit<LoginState> {
       );
 
       if (response.statusCode == 200) {
-        print('🔍 OTP Verification Response: ${response.data}');
-        emit(LoginSuccess());
-        return true;
+      // If API returns access_token here, save it; otherwise do login step
+      final data = response.data;
+      if (data != null && data['access_token'] != null) {
+        await _saveEmailToPrefs(email, data['access_token'], '');
+      } else {
+        // Fallback: call login to obtain token
+        final loginOk = await signInWithEmail(email, _password ?? '');
+        if (!loginOk) {
+          emit(LoginError('Login after OTP verification failed'));
+          return false;
+        }
+      }
+
+      emit(LoginOtpVerified());
+      return true;
+
+      // if (response.statusCode == 200) {
+      //   print('🔍 OTP Verification Response: ${response.data}');
+      //   emit(LoginSuccess());
+      //   return true;
       } else {
         await _analytics.logError(
           errorName: 'OTP Verification Failed',

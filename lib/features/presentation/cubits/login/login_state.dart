@@ -13,6 +13,13 @@ class LoginLoading extends LoginState {}
 
 class LoginSuccess extends LoginState {}
 
+class LoginOtpSent extends LoginState {
+  final String email;
+  const LoginOtpSent(this.email);
+}
+
+class LoginOtpVerified extends LoginState {}
+
 class LoginError extends LoginState {
   final String message;
 

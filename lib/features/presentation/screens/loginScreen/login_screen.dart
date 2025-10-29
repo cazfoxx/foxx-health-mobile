@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _hasLetterAndNumber = false;
   bool _hasCapitalLetter = false;
 
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -433,123 +433,416 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildBottomButton() {
-    return BlocConsumer<LoginCubit, LoginState>(
-      listener: (context, state) {
-        if (state is LoginSuccess) {
-          if (!widget.isSign) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OnboardingFlow(
-                  email: _emailController.text,
-                  password: _passwordController.text,
-                ),
-              ),
-            );
-          } else {
-            SnackbarUtils.showSuccess(
-              context: context,
-              title: 'Welcome back',
-              message: _emailController.text.split('@')[0],
-            );
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MainNavigationScreen(),
-              ),
-            );
-          }
-        } else if (state is LoginError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.message,
-                style: AppTypography.bodySmSemibold.copyWith(
-                  color: AppColors.buttonTextPrimary,
-                ),
-              ),
-              backgroundColor: AppColors.red,
-            ),
-          );
-        }
-      },
-      builder: (context, state) {
-        return Container(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isButtonEnabled
-                ? () {
-                    final loginCubit = context.read<LoginCubit>();
-                    loginCubit.setUserDetails(
-                      email: _emailController.text,
-                      password: _passwordController.text,
-                    );
-                    if (!widget.isSign) {
-                      // 🔹 Navigate to OTPVerificationScreen
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => OTPVerificationScreen(
-                            email: _emailController.text,
-                            onSuccess: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => OnboardingFlow(
-                                    email: _emailController.text,
-                                    password: _passwordController.text,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                      // // 🔹 Navigate to OnboardingScreen
-                      // Navigator.pushReplacement(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => OnboardingFlow(
-                      //       email: _emailController.text,
-                      //       password: _passwordController.text,
-                      //     ),
-                      //   ),
-                      // );
-                    } else {
-                      loginCubit.signInWithEmail(
-                        _emailController.text,
-                        _passwordController.text,
-                      );
-                    }
-                  }
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isButtonEnabled
-                  ? AppColors.amethystViolet
-                  : AppColors.gray300,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            child: state is LoginLoading
-                ? const CircularProgressIndicator(
-                    color: AppColors.buttonTextPrimary)
-                : Text(
-                    widget.isSign ? 'Sign In' : 'Create An Account',
-                    style: AppTypography.labelMdSemibold.copyWith(
-                      color: _isButtonEnabled
-                          ? AppColors.buttonTextPrimary
-                          : AppColors.gray600,
+//   Widget _buildBottomButton() {
+//   return SizedBox(
+//     width: double.infinity,
+//     height: 50,
+//     child: ElevatedButton(
+//       onPressed: _isButtonEnabled
+//           ? () {
+//               final loginCubit = context.read<LoginCubit>();
+//               loginCubit.setUserDetails(
+//                 email: _emailController.text,
+//                 password: _passwordController.text,
+//               );
+
+//               if (!widget.isSign) {
+//                 loginCubit.registerUser(context); // triggers OTP sending
+//               } else {
+//                 loginCubit.signInWithEmail(
+//                   _emailController.text,
+//                   _passwordController.text,
+//                 );
+//               }
+//             }
+//           : null,
+//       style: ElevatedButton.styleFrom(
+//         backgroundColor:
+//             _isButtonEnabled ? AppColors.amethystViolet : AppColors.gray300,
+//         elevation: 0,
+//         shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(25),
+//         ),
+//       ),
+//       child: _buildLoginForm(),
+//       // child: const Text('Continue'), // Simplified for example
+//     ),
+//   );
+// }
+
+// Widget _buildBottomButton() {
+//   return BlocListener<LoginCubit, LoginState>(
+//     listener: (context, state) {
+//       if (!mounted) return;
+
+//       if (state is LoginOtpSent) {
+//         Navigator.push(
+//           context,
+//           MaterialPageRoute(
+//             builder: (_) => OTPVerificationScreen(
+//               email: state.email,
+//               onSuccess: () async {
+//                 if (!mounted) return;
+//                 await Navigator.pushReplacement(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (_) => OnboardingFlow(
+//                       email: state.email,
+//                       password: context.read<LoginCubit>().password ?? '',
+//                     ),
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         );
+//       } else if (state is LoginSuccess) {
+//         Navigator.pushReplacement(
+//           context,
+//           MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+//         );
+//       } else if (state is LoginError) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: Text(
+//               state.message,
+//               style: AppTypography.bodySmSemibold.copyWith(
+//                 color: AppColors.buttonTextPrimary,
+//               ),
+//             ),
+//             backgroundColor: AppColors.red,
+//           ),
+//         );
+//       }
+//     },
+//     // ✅ Only the button here, not the form
+//     child: SizedBox(
+//       width: double.infinity,
+//       height: 50,
+//       child: ElevatedButton(
+//         onPressed: _isButtonEnabled
+//             ? () {
+//                 final loginCubit = context.read<LoginCubit>();
+//                 loginCubit.setUserDetails(
+//                   email: _emailController.text,
+//                   password: _passwordController.text,
+//                 );
+
+//                 if (!widget.isSign) {
+//                   // Trigger OTP sending
+//                   loginCubit.registerUser(context);
+//                 } else {
+//                   // Sign in
+//                   loginCubit.signInWithEmail(
+//                     _emailController.text,
+//                     _passwordController.text,
+//                   );
+//                 }
+//               }
+//             : null,
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor:
+//               _isButtonEnabled ? AppColors.amethystViolet : AppColors.gray300,
+//           elevation: 0,
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(25),
+//           ),
+//         ),
+//         child: _isButtonEnabled
+//             ? Text(
+//                 widget.isSign ? 'Sign In' : 'Create An Account',
+//                 style: AppTypography.labelMdSemibold.copyWith(
+//                   color: AppColors.buttonTextPrimary,
+//                 ),
+//               )
+//             : const SizedBox(),
+//       ),
+//     ),
+//   );
+// }
+
+Widget _buildBottomButton() {
+  return BlocListener<LoginCubit, LoginState>(
+    listener: (context, state) {
+      // if (!mounted) return;
+
+      if (state is LoginOtpSent) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OTPVerificationScreen(
+              email: state.email,
+              onSuccess: () async {
+                if (!mounted) return;
+                await Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OnboardingFlow(
+                      email: state.email,
+                      password: context.read<LoginCubit>().password ?? '',
                     ),
                   ),
+                );
+              },
+            ),
           ),
         );
-      },
-    );
-  }
+      } else if (state is LoginSuccess) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+        );
+      } else if (state is LoginError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              state.message,
+              style: AppTypography.bodySmSemibold.copyWith(
+                color: AppColors.buttonTextPrimary,
+              ),
+            ),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
+    },
+    // ✅ Only the button here, not the form
+    child: SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isButtonEnabled
+            ? () {
+                final loginCubit = context.read<LoginCubit>();
+                loginCubit.setUserDetails(
+                  email: _emailController.text,
+                  password: _passwordController.text,
+                );
+
+                if (!widget.isSign) {
+                  // Trigger OTP sending
+                  loginCubit.registerUser(context);
+                } else {
+                  // Sign in
+                  loginCubit.signInWithEmail(
+                    _emailController.text,
+                    _passwordController.text,
+                  );
+                }
+              }
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              _isButtonEnabled ? AppColors.amethystViolet : AppColors.gray300,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+        child: _isButtonEnabled
+            ? Text(
+                widget.isSign ? 'Sign In' : 'Create An Account',
+                style: AppTypography.labelMdSemibold.copyWith(
+                  color: AppColors.buttonTextPrimary,
+                ),
+              )
+            : const SizedBox(),
+      ),
+    ),
+  );
+}
+
+
+
+
+  // Widget _buildBottomButton() {
+  //   return BlocListener<LoginCubit, LoginState>(
+  //     listener: (context, state) {
+  //       if (!mounted) return;
+  //       if (state is LoginOtpSent) {
+  //         // 🔹 Step 1: navigate to OTP screen when OTP is sent
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (_) => OTPVerificationScreen(
+  //               email: state.email,
+  //               // 🔹 Pass callback for success
+  //               onSuccess: () async {
+  //                 if (!mounted) return;
+  //                 await Navigator.pushReplacement(
+  //                   context,
+  //                   MaterialPageRoute(
+  //                     builder: (_) => OnboardingFlow(
+  //                       email: state.email,
+  //                       password: context.read<LoginCubit>().password ?? '',
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //         );
+  //       }
+
+  //       // 🔹 Step 2: if you also want to handle direct login or post-OTP navigation centrally
+  //       else if (state is LoginOtpVerified) {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (_) => OnboardingFlow(
+  //               email: context.read<LoginCubit>().password ?? '',
+  //               password: context.read<LoginCubit>().password ?? '',
+  //             ),
+  //           ),
+  //         );
+  //       }
+
+  //       // 🔹 Step 3: handle success (for sign-in flow)
+  //       else if (state is LoginSuccess) {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+  //         );
+  //       }
+
+  //       // 🔹 Step 4: handle errors
+  //       else if (state is LoginError) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               state.message,
+  //               style: AppTypography.bodySmSemibold.copyWith(
+  //                 color: AppColors.buttonTextPrimary,
+  //               ),
+  //             ),
+  //             backgroundColor: AppColors.red,
+  //           ),
+  //         );
+  //       }
+  //     },
+      
+  //     child: _buildLoginForm(),
+  //   );
+  // }
+
+  // Widget _buildBottomButton() {
+  //   return BlocConsumer<LoginCubit, LoginState>(
+  //     listener: (context, state) {
+  //       if (state is LoginOtpSent){//LoginSuccess) {
+  //       // Open OTP screen as replacement so user can't go back to create account
+  //         if (!widget.isSign) {
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) => OnboardingFlow(
+  //                 email: _emailController.text,
+  //                 password: _passwordController.text,
+  //               ),
+  //             ),
+  //           );
+  //         } else {
+  //           SnackbarUtils.showSuccess(
+  //             context: context,
+  //             title: 'Welcome back',
+  //             message: _emailController.text.split('@')[0],
+  //           );
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) => const MainNavigationScreen(),
+  //             ),
+  //           );
+  //         }
+  //       } else if (state is LoginError) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               state.message,
+  //               style: AppTypography.bodySmSemibold.copyWith(
+  //                 color: AppColors.buttonTextPrimary,
+  //               ),
+  //             ),
+  //             backgroundColor: AppColors.red,
+  //           ),
+  //         );
+  //       }
+  //     },
+  //     builder: (context, state) {
+  //       return Container(
+  //         width: double.infinity,
+  //         height: 50,
+  //         child: ElevatedButton(
+  //           onPressed: _isButtonEnabled
+  //               ? () {
+  //                   final loginCubit = context.read<LoginCubit>();
+  //                   loginCubit.setUserDetails(
+  //                     email: _emailController.text,
+  //                     password: _passwordController.text,
+  //                   );
+  //                   if (!widget.isSign) {
+  //                     // 🔹 Navigate to OTPVerificationScreen
+  //                     Navigator.pushReplacement(
+  //                       context,
+  //                       MaterialPageRoute(
+  //                         builder: (_) => OTPVerificationScreen(
+  //                           email: _emailController.text,
+  //                           onSuccess: () {
+  //                             Navigator.pushReplacement(
+  //                               context,
+  //                               MaterialPageRoute(
+  //                                 builder: (_) => OnboardingFlow(
+  //                                   email: _emailController.text,
+  //                                   password: _passwordController.text,
+  //                                 ),
+  //                               ),
+  //                             );
+  //                           },
+  //                         ),
+  //                       ),
+  //                     );
+  //                     // // 🔹 Navigate to OnboardingScreen
+  //                     // Navigator.pushReplacement(
+  //                     //   context,
+  //                     //   MaterialPageRoute(
+  //                     //     builder: (context) => OnboardingFlow(
+  //                     //       email: _emailController.text,
+  //                     //       password: _passwordController.text,
+  //                     //     ),
+  //                     //   ),
+  //                     // );
+  //                   } else {
+  //                     loginCubit.signInWithEmail(
+  //                       _emailController.text,
+  //                       _passwordController.text,
+  //                     );
+  //                   }
+  //                 }
+  //               : null,
+  //           style: ElevatedButton.styleFrom(
+  //             backgroundColor: _isButtonEnabled
+  //                 ? AppColors.amethystViolet
+  //                 : AppColors.gray300,
+  //             elevation: 0,
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(25),
+  //             ),
+  //           ),
+  //           child: state is LoginLoading
+  //               ? const CircularProgressIndicator(
+  //                   color: AppColors.buttonTextPrimary)
+  //               : Text(
+  //                   widget.isSign ? 'Sign In' : 'Create An Account',
+  //                   style: AppTypography.labelMdSemibold.copyWith(
+  //                     color: _isButtonEnabled
+  //                         ? AppColors.buttonTextPrimary
+  //                         : AppColors.gray600,
+  //                   ),
+  //                 ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildToggleSign() {
     return GestureDetector(
