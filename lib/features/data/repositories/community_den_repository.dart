@@ -185,11 +185,12 @@ class CommunityDenRepository {
     }
   }
 
-
 // get feed of particular den
-  Future<FeedModel> getDenFeeds({Map<String, dynamic>? queryParms, required int denId}) async {
+  Future<FeedModel> getDenFeeds(
+      {Map<String, dynamic>? queryParms, required int denId}) async {
     try {
-      final response = await _apiClient.get('/api/v1/community-den/posts/den/${denId}',
+      final response = await _apiClient.get(
+          '/api/v1/community-den/posts/den/$denId',
           queryParameters: queryParms);
 
       if (response.statusCode == 200) {
@@ -224,10 +225,10 @@ class CommunityDenRepository {
       throw Exception(
           "Unable to fetch community den details. Please try again later.");
     }
-  } 
+  }
 
   //My bookmark  - get saved dens
-   Future<FeedModel> getMyBookmark({Map<String, dynamic>? queryParms}) async {
+  Future<FeedModel> getMyBookmark({Map<String, dynamic>? queryParms}) async {
     try {
       final response = await _apiClient.get('/api/v1/community-den/posts/saved',
           queryParameters: queryParms);
@@ -267,10 +268,11 @@ class CommunityDenRepository {
   }
 
 // search den
-  Future<List<CommunityDenModel>> searchDens({ required String search, int skip =0, int limit=20}) async {
+  Future<List<CommunityDenModel>> searchDens(
+      {required String search, int skip = 0, int limit = 20}) async {
     try {
-      final response = await _apiClient
-          .get('/api/v1/community-den/search', queryParameters: {"q": search,  "skip" : skip, "limit":limit });
+      final response = await _apiClient.get('/api/v1/community-den/search',
+          queryParameters: {"q": search, "skip": skip, "limit": limit});
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data["dens"];
@@ -298,6 +300,27 @@ class CommunityDenRepository {
     } catch (e, stack) {
       log(' Error fetching my dens: $e', stackTrace: stack);
       throw Exception('Unable to load your dens. Please try again later.');
+    }
+  }
+
+  // Like post
+
+  Future<bool> likePost({required int postID}) async {
+    try {
+      final response = await _apiClient.post(
+        '/api/v1/community-den/engagement/posts/$postID/like',
+      );
+
+      if (response.statusCode == 200) {
+        log('Like post success: ${jsonEncode(response.data)}');
+        return true;
+      }
+
+      log('Like failed with status: ${response.statusCode}');
+      return false;
+    } catch (e, stack) {
+      log(' Error leaving den: $e', stackTrace: stack);
+      return false;
     }
   }
 }

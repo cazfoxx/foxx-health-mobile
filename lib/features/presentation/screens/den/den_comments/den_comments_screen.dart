@@ -10,6 +10,8 @@ import 'package:foxxhealth/features/data/models/comments_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/my_feed_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/feed_event.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/report_comment/report_comment_page.dart';
 import 'package:foxxhealth/features/presentation/screens/den/widgets/den_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';

@@ -9,7 +9,7 @@ import 'package:foxxhealth/features/data/repositories/community_den_repository.d
 import 'package:foxxhealth/features/data/repositories/den_comments_repository.dart';
 import 'package:foxxhealth/features/data/repositories/den_profile_repositoty.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/my_feed_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/community_den_user_profile/community_den_profile_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/my_bookmarks/my_bookmark_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
@@ -92,7 +92,7 @@ class _DenScreenState extends State<DenScreen>
       providers: [
         BlocProvider<MyFeedBloc>(
           create: (context) =>
-              MyFeedBloc(feedRepository: _repository),
+              MyFeedBloc( _repository),
         ),
         BlocProvider<DenProfilePostBloc>(
           create: (context) => DenProfilePostBloc(
@@ -106,6 +106,11 @@ class _DenScreenState extends State<DenScreen>
        BlocProvider<MyBookmarkBloc>(
           create: (context) =>
               MyBookmarkBloc(repository: _repository),
+        ),
+
+          BlocProvider<CommentBloc>(
+          create: (context) =>
+              CommentBloc(CommentRepository()),
         ),
       ],
       child: Foxxbackground(

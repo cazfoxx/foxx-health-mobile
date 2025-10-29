@@ -1,12 +1,17 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/components/foxx_button.dart';
 import 'package:foxxhealth/core/components/paginated_list_view.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_event.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/my_den_feed/my_feed_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/my_feed_bloc.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/feed_event.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/feed_state.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_landing_page.dart/widgets/feed_card.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/explore_den_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -27,7 +32,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
   @override
   void initState() {
     super.initState();
-    context.read<MyFeedBloc>().add(LoadMyFeeds());
+    context.read<MyFeedBloc>().add(LoadFeeds());
   }
 
   List<Post> filterPosts(FeedState state) {
@@ -54,46 +59,6 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
     }).toList();
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return BlocBuilder<FeedBloc, FeedState>(
-  //     builder: (context, state) {
-  //       if (state is FeedLoading) {
-  //         return const Center(child: CircularProgressIndicator());
-  //       } else if (state is FeedError) {
-  //         return Container();
-  //       } else if (state is FeedLoaded) {
-  //         final posts = filterPosts(state);
-  //         if (posts.isEmpty) {
-  //           return const Align(
-  //             alignment: Alignment.topCenter,
-  //             child: JoinDenSection(),
-  //           );
-  //         }
-  //         PaginatedListView(
-  //           fetchPage: (skip, limit) async {
-  //             // Call repository or bloc event to get paginated posts
-  //             final bloc = context.read<FeedBloc>();
-  //             final result = await bloc.(
-  //               skip: skip,
-  //               limit: limit,
-  //             );
-  //           },
-  //         );
-  //         // return ListView.builder(
-  //         //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-  //         //   itemCount: posts.length,
-  //         //   itemBuilder: (context, index) {
-  //         //     final post = posts[index];
-  //         //     return FeedCard(post: post);
-  //         //   },
-  //         // );
-  //       }
-  //       return const SizedBox.shrink();
-  //     },
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -113,7 +78,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
                   ),
                   TextButton(
                       onPressed: () {
-                        context.read<MyFeedBloc>().add(RefreshMyFeeds());
+                        context.read<MyFeedBloc>().add(RefreshFeeds());
                       },
                       child: const Text("Retry"))
                 ],
@@ -130,25 +95,51 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
           }
 
           // ✅ Use the reusable pagination component
-          return RefreshIndicator(
-            onRefresh: () async {
-              context.read<MyFeedBloc>().add(RefreshMyFeeds());
+          return BlocListener<CommentBloc, CommentState>(
+            listener: (context, state) {
+              debugPrint("🎯 Global listener triggered");
+
+              if (state is AddCommentSuccess) {
+                final postId = state.postId; // make sure comment has postId
+                final newCommentCount = state.comments.length;
+
+                debugPrint(
+                    "Updating post $postId comment count to $newCommentCount");
+
+                context.read<MyFeedBloc>().add(
+                      UpdatedComments(
+                        postId: postId!,
+                        commentLength: newCommentCount,
+                      ),
+                    );
+              }
             },
-            child: PaginatedListView<Post>(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              data: posts,
-              hasMore: state.hasMore,
-              fetchMore: () async {
-                // trigger the bloc event to load more
-                context.read<MyFeedBloc>().add(LoadMoreFeeds());
+            child: RefreshIndicator(
+              onRefresh: () async {
+                context.read<MyFeedBloc>().add(RefreshFeeds());
               },
-              itemBuilder: (context, post) => FeedCard(
-                post: post,
-                userName: UserProfileConstants.getDisplayName(),
-              ),
-              emptyWidget: const Align(
-                alignment: Alignment.topCenter,
-                child: JoinDenSection(),
+              child: PaginatedListView<Post>(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                data: posts,
+                hasMore: state.hasMore,
+                fetchMore: () async {
+                  // trigger the bloc event to load more
+                  context.read<MyFeedBloc>().add(const LoadMoreFeeds());
+                },
+                itemBuilder: (context, post) => FeedCard(
+                  post: post,
+                  userName: UserProfileConstants.getDisplayName(),
+                  onLikeToggled: (post, isLiked) {
+                    context
+                        .read<MyFeedBloc>()
+                        .add(UpdateLikes(postId: post.id, isLiked: isLiked));
+                  },
+                ),
+                emptyWidget: const Align(
+                  alignment: Alignment.topCenter,
+                  child: JoinDenSection(),
+                ),
               ),
             ),
           );

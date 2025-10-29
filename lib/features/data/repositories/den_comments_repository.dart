@@ -43,16 +43,20 @@ class CommentRepository {
 
   /// delete a new comment to a post
   Future<bool> deleteComment({required int commentID}) async {
-    final url = "/api/v1/community-den/comments/$commentID}";
+    final url = "/api/v1/community-den/comments/$commentID";
 
-    final response = await client.put(url, data: {});
+    try {
+      final response = await client.delete(url);
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return true;
-    } else {
-      throw Exception(
-        'Failed to add comment (status: ${response.statusCode})',
-      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(
+          'Failed to add comment (status: ${response.statusCode})',
+        );
+      }
+    } catch (e, _) {
+      rethrow;
     }
   }
 }

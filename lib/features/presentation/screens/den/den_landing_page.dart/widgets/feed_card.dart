@@ -16,7 +16,14 @@ class FeedCard extends StatefulWidget {
   final Post post;
   final String?
       userName; // for own feed , if user name is not available for post
-  const FeedCard({super.key, required this.post, this.userName});
+  final void Function(Post post, bool isLiked)? onLikeToggled;
+
+  const FeedCard({
+    super.key,
+    required this.post,
+    this.userName,
+    this.onLikeToggled,
+  });
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -25,6 +32,44 @@ class FeedCard extends StatefulWidget {
 class _FeedCardState extends State<FeedCard> {
   bool _isExpanded = false;
   static const int _truncateLength = 220;
+
+  bool _isLiked = false;
+  // int _likesCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = widget.post.userLiked;
+    // _likesCount = widget.post.likesCount;
+  }
+
+  // void _handleLikeToggle() async {
+  //   setState(() {
+  //     _isLiked = !_isLiked;
+  //     _likesCount += _isLiked ? 1 : -1;
+  //   });
+
+  //   // Optional: call API to sync like state
+  //   try {
+  //     // await FeedRepository().toggleLike(widget.post.id, _isLiked);
+  //   } catch (e) {
+  //     // Rollback UI if API fails
+  //     setState(() {
+  //       _isLiked = !_isLiked;
+  //       _likesCount += _isLiked ? 1 : -1;
+  //     });
+  //   }
+  // }
+
+  void _handleLocalToggle() {
+    setState(() {
+      _isLiked = !_isLiked;
+      // _likesCount += _isLiked ? 1 : -1;
+    });
+
+    widget.onLikeToggled?.call(widget.post, _isLiked);
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = widget.post.content;
@@ -101,30 +146,6 @@ class _FeedCardState extends State<FeedCard> {
           ),
           const SizedBox(height: 12),
 
-          // Post content
-          // Text(
-          //   widget.post.content,
-          //   style: AppOSTextStyles.osMd.copyWith(
-          //     color: Colors.black,
-          //     height: 1.4,
-          //   ),
-          // ),
-          // if (widget.post. == true) ...[
-          //   const SizedBox(height: 4),
-          //   GestureDetector(
-          //     onTap: () {
-          //       // Show full content
-          //     },
-          //     child: Text(
-          //       'More',
-          //       style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-          //         color: const Color(0xFF9B7EDE), // Purple color
-          //       ),
-          //     ),
-          //   ),
-          // ],
-          // const SizedBox(height: 8),
-
           RichText(
             text: TextSpan(
               style: AppOSTextStyles.osMd.copyWith(
@@ -184,9 +205,9 @@ class _FeedCardState extends State<FeedCard> {
               Row(
                 children: [
                   HeartToggleButton(
-                      isLiked: false,
+                      isLiked: widget.post.userLiked,
                       onToggle: () async {
-                        await Future.delayed(const Duration(milliseconds: 300));
+                        _handleLocalToggle();
                       }),
                   const SizedBox(width: 4),
                   Text(
@@ -204,9 +225,10 @@ class _FeedCardState extends State<FeedCard> {
                 onTap: () {
                   AppHelper.showBottomModalSheet(
                     context: context,
-                    child: BlocProvider(
-                      create: (_) => CommentBloc(CommentRepository())
-                        ..add(FetchComments(widget.post.id)),
+                    child: BlocProvider.value(
+                      value:  context.read<CommentBloc>(),
+                      // create: (_) => CommentBloc(CommentRepository())
+                      //   ..add(FetchComments(widget.post.id)),
                       child: DenCommentsScreen(postId: widget.post.id),
                     ),
                   );

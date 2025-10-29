@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:foxxhealth/features/data/models/comments_model.dart';
 
 class CommentState extends Equatable {
+  final int? postId;
   final List<Comment> comments;
   final bool isLoadingComments;
   final bool isPostingComment;
@@ -11,9 +12,10 @@ class CommentState extends Equatable {
 
   const CommentState({
     this.comments = const [],
+     this.postId,
     this.isLoadingComments = false,
     this.isPostingComment = false,
-    this.isDeletingComment= false,
+    this.isDeletingComment = false,
     this.error,
   });
 
@@ -21,10 +23,12 @@ class CommentState extends Equatable {
     List<Comment>? comments,
     bool? isLoadingComments,
     bool? isPostingComment,
-    bool ? isDeletingComment,
+    bool? isDeletingComment,
     String? error,
+    int? postId,
   }) {
     return CommentState(
+      postId: postId ?? this.postId,
       comments: comments ?? this.comments,
       isLoadingComments: isLoadingComments ?? this.isLoadingComments,
       isPostingComment: isPostingComment ?? this.isPostingComment,
@@ -33,5 +37,6 @@ class CommentState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [comments, isLoadingComments, isPostingComment, error];
+  List<Object?> get props =>
+      [comments, isLoadingComments, isPostingComment, error];
 }

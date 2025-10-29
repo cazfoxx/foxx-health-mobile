@@ -19,8 +19,13 @@ class AddComment extends CommentEvent {
 }
 
 class AddCommentSuccess extends CommentEvent {
+  final int postId;
   final Comment comment;
-  const AddCommentSuccess(this.comment);
+
+ const AddCommentSuccess({
+    required this.postId,
+    required this.comment,
+  });
 }
 
 class AddCommentFailure extends CommentEvent {
