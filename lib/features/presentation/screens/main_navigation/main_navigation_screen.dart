@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Icons.assignment,
     Icons.timeline,
     Icons.search,
-    Icons.group,
+    // Icons.group,
   ];
   @override
   void initState() {
