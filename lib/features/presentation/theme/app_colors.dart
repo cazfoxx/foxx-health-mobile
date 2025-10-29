@@ -139,6 +139,7 @@ class AppColors {
   static const Color buttonBorderOutlineDisabled = gray400; // DEPRECATED: prefer AppButtonColors.buttonOutlineBorderDisabled
   static const Color brandText = textBrand; // DEPRECATED: use textBrand
   static const Color optionBg = optionBG;
+  static const Color secondaryTxtLight = Color(0xff2D3748); // secondary-txt-light
 
   // Surface
   static const crossGlassBase = grayWhite;
@@ -273,6 +274,8 @@ class AppButtonColors {
   // Text
   static const Color buttonOutlineTextEnabled = AppColors.amethyst;
   static const Color buttonOutlineTextDisabled = AppColors.gray400;
+   
+
 
   // Border
   static const Color buttonOutlineBorderEnabled = AppColors.amethyst;

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/features/presentation/cubits/profile/profile_cubit.dart';
+import 'package:foxxhealth/features/presentation/screens/den/den_landing_page.dart/den_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/health_tracker_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/main_navigation/day_symptom_dialog.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
-import 'package:foxxhealth/features/presentation/screens/den/den_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/home_screen/revamp_home_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/my_prep/my_prep_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/health_tracker/symptom_details_bottom_sheet.dart';
@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Icons.assignment,
     Icons.timeline,
     Icons.search,
-    // Icons.group,
+    Icons.group,
   ];
   @override
   void initState() {

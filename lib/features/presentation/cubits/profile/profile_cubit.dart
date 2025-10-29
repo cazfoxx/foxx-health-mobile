@@ -21,7 +21,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       // Store accountId in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(SharedPrefKeys.accountId, data['accountId']);
+      await prefs.setInt(SharedPrefKeys.accountId, data['account_id']);
 
       // Store user profile data in constants
       UserProfileConstants.updateProfileData(

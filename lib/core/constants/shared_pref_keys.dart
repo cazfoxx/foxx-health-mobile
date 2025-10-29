@@ -13,6 +13,7 @@ class SharedPrefKeys {
   
   // App State related keys
   static const String isFirstLaunch = 'isFirstLaunch';
+  static const String hasSeenDenPopup = 'hasSeenDenPopup';
   static const String isLoggedIn = 'isLoggedIn';
   
   // Settings related keys

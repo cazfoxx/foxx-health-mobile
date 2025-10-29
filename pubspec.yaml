@@ -98,6 +98,7 @@ flutter:
     - assets/svg/main_nav_tabs/
     - assets/svg/MyPrep_Appt_Companion/
     - assets/svg/icons/
+    - assets/svg/dens/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
