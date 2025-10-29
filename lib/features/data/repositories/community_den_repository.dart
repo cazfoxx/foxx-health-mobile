@@ -170,7 +170,7 @@ class CommunityDenRepository {
             (topic) => topic.title.toLowerCase() == den.name.toLowerCase(),
             orElse: () => DenTopic(title: den.name, svgPath: DenIcons.foxx),
           );
-          return den.copyWith(svgPath: matchedTopic.svgPath);
+          return den.copyWith(svgPath: matchedTopic.svgPath, isJoined:  true );
         }).toList();
 
         return dens;

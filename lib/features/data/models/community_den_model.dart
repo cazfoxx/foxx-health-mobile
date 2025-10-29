@@ -9,6 +9,7 @@ class CommunityDenModel {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final isJoined;
 
   final String? svgPath; // map the icon from asset 
 
@@ -23,7 +24,8 @@ class CommunityDenModel {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
-    this.svgPath
+    this.svgPath,
+    this.isJoined = false
   });
 
   factory CommunityDenModel.fromJson(Map<String, dynamic> json) {
@@ -48,7 +50,7 @@ class CommunityDenModel {
   }
 
 
-  CommunityDenModel copyWith({String? svgPath}) {
+  CommunityDenModel copyWith({String? svgPath, bool ? isJoined}) {
     return CommunityDenModel(
       name: name,
       description: description,
@@ -61,6 +63,7 @@ class CommunityDenModel {
       createdAt: createdAt,
       updatedAt: updatedAt,
       svgPath: svgPath ?? this.svgPath,
+      isJoined: isJoined ?? this.isJoined
     );
   }
 

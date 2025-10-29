@@ -31,6 +31,7 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
   void initState() {
     super.initState();
     fetchDenDetails();
+    isMember =widget.den.isJoined;
   }
 
   fetchDenDetails() {
