@@ -45,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     Icons.assignment,
     Icons.timeline,
     Icons.search,
-    // Icons.group,
+    Icons.group,
   ];
   @override
   void initState() {
@@ -77,10 +77,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _currentIndex = index;
     });
-    _pageController.animateToPage(
+    _pageController.jumpToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
     );
   }
   
@@ -92,10 +90,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: Row(
+          title: const Row(
             children: [
               Icon(Icons.lock, color: AppColors.primary01),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text('Premium Required'),
             ],
           ),
@@ -115,7 +113,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.star, color: AppColors.primary01, size: 20),
+                    const Icon(Icons.star, color: AppColors.primary01, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -133,7 +131,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -158,7 +156,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text('Upgrade Now'),
+              child: const Text('Upgrade Now'),
             ),
           ],
         );
@@ -286,7 +284,7 @@ class MyPrepTab extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -330,7 +328,7 @@ class MyPrepTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
@@ -405,7 +403,7 @@ class _TrackerTabState extends State<TrackerTab> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -449,7 +447,7 @@ class _TrackerTabState extends State<TrackerTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
@@ -1073,7 +1071,7 @@ class _InsightTabState extends State<InsightTab> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -1117,7 +1115,7 @@ class _InsightTabState extends State<InsightTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
