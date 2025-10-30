@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
 
 FeedModel feedModelFromJson(String str) =>
@@ -16,13 +17,14 @@ class FeedModel {
     required this.posts,
     required this.totalCount,
     required this.hasMore,
-    this.userName
+    this.userName,
   });
 
   FeedModel copyWith({
     List<Post>? posts,
     int? totalCount,
     bool? hasMore,
+    FeedType ?feedType
   }) =>
       FeedModel(
         posts: posts ?? this.posts,
@@ -78,6 +80,7 @@ class Post {
     this.mediaUrls,
     required this.accountId,
     required this.isActive,
+    
     // required this.createdAt,
     // required this.updatedAt,
     this.den,
@@ -112,6 +115,7 @@ class Post {
     bool? userSaved,
     bool? isReported,
     String? reportStatus,
+    FeedType? feedType,
   }) =>
       Post(
         id: id ?? this.id,

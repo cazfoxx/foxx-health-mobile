@@ -35,8 +35,8 @@ class AddCommentFailure extends CommentEvent {
 
 // New events for deleting comment
 class DeleteComment extends CommentEvent {
-  final int commentId;
- const DeleteComment(this.commentId);
+  final Comment comment;
+ const DeleteComment({required this.comment});
 }
 
 class DeleteCommentSuccess extends CommentEvent {

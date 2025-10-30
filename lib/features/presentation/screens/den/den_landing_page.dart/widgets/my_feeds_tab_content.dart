@@ -1,10 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/components/foxx_button.dart';
 import 'package:foxxhealth/core/components/paginated_list_view.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
@@ -32,7 +31,9 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
   @override
   void initState() {
     super.initState();
-    context.read<MyFeedBloc>().add(LoadFeeds());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MyFeedBloc>().add(const LoadFeeds(feedType: FeedType.feed));
+    });
   }
 
   List<Post> filterPosts(FeedState state) {
@@ -62,92 +63,146 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<MyFeedBloc, FeedState>(
+
+    return BlocBuilder<FeedManagerCubit, FeedManagerState>(
       builder: (context, state) {
-        if (state is FeedLoading) {
+        const FeedType feed = FeedType.feed;
+        final posts = state.feedMap[feed]?.posts ?? <Post>[];
+
+        if (state.isLoading(feed)) {
           return const Center(child: CircularProgressIndicator());
-        } else if (state is FeedError) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Something went wrong. Please try again.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        context.read<MyFeedBloc>().add(RefreshFeeds());
-                      },
-                      child: const Text("Retry"))
-                ],
-              ),
-            ),
-          );
-        } else if (state is FeedLoaded) {
-          final posts = state.posts;
-          if (posts.isEmpty) {
-            return const Align(
-              alignment: Alignment.topCenter,
-              child: JoinDenSection(),
-            );
-          }
-
-          // ✅ Use the reusable pagination component
-          return BlocListener<CommentBloc, CommentState>(
-            listener: (context, state) {
-              debugPrint("🎯 Global listener triggered");
-
-              if (state is AddCommentSuccess) {
-                final postId = state.postId; // make sure comment has postId
-                final newCommentCount = state.comments.length;
-
-                debugPrint(
-                    "Updating post $postId comment count to $newCommentCount");
-
-                context.read<MyFeedBloc>().add(
-                      UpdatedComments(
-                        postId: postId!,
-                        commentLength: newCommentCount,
-                      ),
-                    );
-              }
-            },
-            child: RefreshIndicator(
-              onRefresh: () async {
-                context.read<MyFeedBloc>().add(RefreshFeeds());
-              },
-              child: PaginatedListView<Post>(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                data: posts,
-                hasMore: state.hasMore,
-                fetchMore: () async {
-                  // trigger the bloc event to load more
-                  context.read<MyFeedBloc>().add(const LoadMoreFeeds());
-                },
-                itemBuilder: (context, post) => FeedCard(
-                  post: post,
-                  userName: UserProfileConstants.getDisplayName(),
-                  onLikeToggled: (post, isLiked) {
-                    context
-                        .read<MyFeedBloc>()
-                        .add(UpdateLikes(postId: post.id, isLiked: isLiked));
-                  },
-                ),
-                emptyWidget: const Align(
-                  alignment: Alignment.topCenter,
-                  child: JoinDenSection(),
-                ),
-              ),
-            ),
-          );
         }
 
-        return const SizedBox.shrink();
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<MyFeedBloc>().add(const RefreshFeeds(feedType: feed));
+          },
+          child: PaginatedListView<Post>(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            data: posts,
+            hasMore: context.read<FeedManagerCubit>().hasMore(FeedType.feed),
+            fetchMore: () async {
+              // trigger the bloc event to load more
+              context
+                  .read<MyFeedBloc>()
+                  .add(const LoadMoreFeeds(feedType: feed));
+            },
+            itemBuilder: (context, post) => FeedCard(
+              post: post,
+              userName: UserProfileConstants.getDisplayName(),
+              onLikeToggled: (post, isLiked) {
+                context
+                    .read<MyFeedBloc>()
+                    .add(UpdateLikes(postId: post.id, isLiked: isLiked));
+                context.read<FeedManagerCubit>().toggleLike(post.id, isLiked);
+              },
+              onToggleBookMark: (post, isSaved) {
+                context.read<MyFeedBloc>().add(
+                    UpdateBookmark(postId: post.id, isBookmarked: isSaved));
+                context
+                    .read<FeedManagerCubit>()
+                    .toggleBookmark(post.id, isSaved);
+              },
+            ),
+            emptyWidget: const Align(
+              alignment: Alignment.center,
+              child: JoinDenSection(),
+            ),
+          ),
+        );
       },
     );
+
+    // return BlocBuilder<MyFeedBloc, FeedState>(
+    //   builder: (context, state) {
+    //     if (state is FeedLoading) {
+    //       return const Center(child: CircularProgressIndicator());
+    //     } else if (state is FeedError) {
+    //       return Padding(
+    //         padding: const EdgeInsets.symmetric(vertical: 24),
+    //         child: Center(
+    //           child: Column(
+    //             children: [
+    //               Text(
+    //                 'Something went wrong. Please try again.',
+    //                 style: Theme.of(context).textTheme.bodyMedium,
+    //               ),
+    //               TextButton(
+    //                   onPressed: () {
+    //                     context.read<MyFeedBloc>().add(RefreshFeeds());
+    //                   },
+    //                   child: const Text("Retry"))
+    //             ],
+    //           ),
+    //         ),
+    //       );
+    //     } else if (state is FeedLoaded) {
+    //       final posts = state.posts;
+    //       if (posts.isEmpty) {
+    //         return const Align(
+    //           alignment: Alignment.topCenter,
+    //           child: JoinDenSection(),
+    //         );
+    //       }
+
+    //       // ✅ Use the reusable pagination component
+    //       return BlocListener<CommentBloc, CommentState>(
+    //         listener: (context, state) {
+    //           debugPrint("🎯 Global listener triggered");
+
+    //           if (state is AddCommentSuccess) {
+    //             final postId = state.postId; // make sure comment has postId
+    //             final newCommentCount = state.comments.length;
+
+    //             debugPrint(
+    //                 "Updating post $postId comment count to $newCommentCount");
+
+    //             context.read<MyFeedBloc>().add(
+    //                   UpdatedComments(
+    //                     postId: postId!,
+    //                     commentLength: newCommentCount,
+    //                   ),
+    //                 );
+    //           }
+    //         },
+    //         child: RefreshIndicator(
+    //           onRefresh: () async {
+    //             context.read<MyFeedBloc>().add(const RefreshFeeds());
+    //           },
+    //           child: PaginatedListView<Post>(
+    //             padding:
+    //                 const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    //             data: posts,
+    //             hasMore: state.hasMore,
+    //             fetchMore: () async {
+    //               // trigger the bloc event to load more
+    //               context.read<MyFeedBloc>().add(const LoadMoreFeeds());
+    //             },
+    //             itemBuilder: (context, post) => FeedCard(
+    //               post: post,
+    //               userName: UserProfileConstants.getDisplayName(),
+    //               onLikeToggled: (post, isLiked) {
+    //                 context
+    //                     .read<MyFeedBloc>()
+    //                     .add(UpdateLikes(postId: post.id, isLiked: isLiked));
+    //               },
+    //               onToggleBookMark: (post, isSaved) {
+    //                 context.read<MyFeedBloc>().add(
+    //                     UpdateBookmark(postId: post.id, isBookmarked: isSaved));
+    //               },
+    //             ),
+    //             emptyWidget: const Align(
+    //               alignment: Alignment.topCenter,
+    //               child: JoinDenSection(),
+    //             ),
+    //           ),
+    //         ),
+    //       );
+    //     }
+
+    //     return const SizedBox.shrink();
+    //   },
+    // );
   }
 }
 

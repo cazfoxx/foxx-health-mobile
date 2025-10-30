@@ -6,9 +6,7 @@ import 'package:foxxhealth/core/components/heart_toggle_button.dart';
 import 'package:foxxhealth/core/utils/app_ui_helper.dart';
 import 'package:foxxhealth/core/utils/share.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
-import 'package:foxxhealth/features/data/repositories/den_comments_repository.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_comments/den_comments_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 
@@ -17,12 +15,14 @@ class FeedCard extends StatefulWidget {
   final String?
       userName; // for own feed , if user name is not available for post
   final void Function(Post post, bool isLiked)? onLikeToggled;
+  final void Function(Post post, bool isLiked)? onToggleBookMark;
 
   const FeedCard({
     super.key,
     required this.post,
     this.userName,
     this.onLikeToggled,
+    this.onToggleBookMark,
   });
 
   @override
@@ -34,6 +34,7 @@ class _FeedCardState extends State<FeedCard> {
   static const int _truncateLength = 220;
 
   bool _isLiked = false;
+  bool _isBookMarked = false;
   // int _likesCount = 0;
 
   @override
@@ -68,6 +69,15 @@ class _FeedCardState extends State<FeedCard> {
     });
 
     widget.onLikeToggled?.call(widget.post, _isLiked);
+  }
+
+  _handleLocalBookMarkToggle(){
+   setState(() {
+      _isBookMarked = !_isBookMarked;
+      // _likesCount += _isLiked ? 1 : -1;
+    });
+
+    widget.onToggleBookMark?.call(widget.post, _isBookMarked);
   }
 
   @override
@@ -270,9 +280,9 @@ class _FeedCardState extends State<FeedCard> {
 
               // Action buttons
               ToggleBookmarkIcon(
-                isBookMarked: false,
+                isBookMarked: widget.post.userSaved,
                 onToggle: () async {
-                  await Future.delayed(const Duration(milliseconds: 300));
+                 _handleLocalBookMarkToggle();
                 },
               ),
               // Icon(

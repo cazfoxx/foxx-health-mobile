@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/explore_den_screen.dart';
@@ -170,7 +171,7 @@ class CommunityDenRepository {
             (topic) => topic.title.toLowerCase() == den.name.toLowerCase(),
             orElse: () => DenTopic(title: den.name, svgPath: DenIcons.foxx),
           );
-          return den.copyWith(svgPath: matchedTopic.svgPath, isJoined:  true );
+          return den.copyWith(svgPath: matchedTopic.svgPath, isJoined: true);
         }).toList();
 
         return dens;
@@ -214,7 +215,43 @@ class CommunityDenRepository {
           queryParameters: queryParms);
 
       if (response.statusCode == 200) {
-        return FeedModel.fromJson(response.data);
+        // final List<dynamic> postsJson = response.data["posts"];
+        // final posts = postsJson.map((json) => Post.fromJson(json).copyWith(feedType: FeedType.feed)).toList();
+
+        return FeedModel.fromJson(response.data)
+            .copyWith(feedType: FeedType.feed);
+        // return FeedModel.fromJson(response.data);
+      }
+
+      final errorMsg =
+          response.data?["message"] ?? "Failed to load community den details";
+      throw Exception(errorMsg);
+    } catch (e, stack) {
+      log(' Error fetching community den details: $e', stackTrace: stack);
+      throw Exception(
+          "Unable to fetch community den details. Please try again later.");
+    }
+  }
+
+  // get saved feeds
+  Future<FeedModel> getOwnBookmarkedFeeds(
+      {Map<String, dynamic>? queryParms}) async {
+    try {
+      final response = await _apiClient.get(
+          '/api/v1/community-den/engagement/user/saved-posts',
+          queryParameters: queryParms);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> postsJson = response.data;
+        final posts = postsJson
+            .map((json) =>
+                Post.fromJson(json).copyWith(feedType: FeedType.bookmark))
+            .toList();
+
+        // return FeedModel.fromJson(response.data).copyWith(posts: posts);
+        // return FeedModel.fromJson(response.data).copyWith(feedType: FeedType.bookmark);
+        return FeedModel(posts: posts, totalCount: posts.length, hasMore: false)
+            .copyWith(feedType: FeedType.bookmark);
       }
 
       final errorMsg =
@@ -319,7 +356,28 @@ class CommunityDenRepository {
       log('Like failed with status: ${response.statusCode}');
       return false;
     } catch (e, stack) {
-      log(' Error leaving den: $e', stackTrace: stack);
+      log(' Error liking post: $e', stackTrace: stack);
+      return false;
+    }
+  }
+
+  // save or bookmark post
+
+  Future<bool> bookmarkPost({required int postID}) async {
+    try {
+      final response = await _apiClient.post(
+        '/api/v1/community-den/engagement/posts/$postID/save',
+      );
+
+      if (response.statusCode == 200) {
+        log(' post saved success: ${jsonEncode(response.data)}');
+        return true;
+      }
+
+      log('save failed with status: ${response.statusCode}');
+      return false;
+    } catch (e, stack) {
+      log(' Error saving post: $e', stackTrace: stack);
       return false;
     }
   }

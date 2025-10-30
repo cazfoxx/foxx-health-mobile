@@ -14,6 +14,9 @@ import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/services/dynamic_links_service.dart';
 import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
+import 'package:foxxhealth/features/data/repositories/den_comments_repository.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/forgot_password/forgot_password_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';
@@ -25,12 +28,11 @@ import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'firebase_options.dart';
 import 'package:get_storage/get_storage.dart';
 
-
 void main() async {
   // Replace SentryWidgetsFlutterBinding with regular Flutter initialization
   // SentryWidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Debug logging to verify logs are working
   print('🚀 App starting...');
   log('🚀 App starting with log()...');
@@ -62,7 +64,7 @@ void main() async {
 
   // Initialize Dynamic Links Service
   await DynamicLinksService().initialize();
-  
+
   // Initialize Premium Service
   await PremiumService.instance.initialize();
 
@@ -131,7 +133,7 @@ class _MyAppState extends State<MyApp> {
 
   void _handleDeepLink(Map<String, dynamic> linkData) {
     final String? linkType = linkData['type'] as String?;
-    
+
     switch (linkType) {
       case 'payment_success':
         // Navigate to payment success screen
@@ -163,7 +165,7 @@ class _MyAppState extends State<MyApp> {
   Future<bool> _checkAuthToken() async {
     // Load credentials from storage
     await AppStorage.loadCredentials();
-    
+
     if (AppStorage.accessToken != null && AppStorage.accessToken!.isNotEmpty) {
       return true;
     }
@@ -186,6 +188,10 @@ class _MyAppState extends State<MyApp> {
             BlocProvider(create: (context) => ForgotPasswordCubit()),
             BlocProvider(create: (context) => OnboardingCubit()),
             BlocProvider(create: (context) => SymptomSearchCubit()),
+            BlocProvider(create: (context) => FeedManagerCubit()),
+            BlocProvider(
+                create: (context) => CommentBloc(
+                    CommentRepository(), context.read<FeedManagerCubit>())),
           ],
           child: GetMaterialApp(
             scaffoldMessengerKey: ApiClient.scaffoldKey,

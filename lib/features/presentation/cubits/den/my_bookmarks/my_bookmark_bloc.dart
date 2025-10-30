@@ -1,80 +1,28 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
+import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/data/repositories/community_den_repository.dart';
-import 'my_bookmark_event.dart';
-import 'my_bookmark_state.dart';
+import 'package:foxxhealth/features/presentation/cubits/den/feed/base_feed_bloc.dart';
 
-class MyBookmarkBloc extends Bloc<MyBookmarkEvent, MyBookmarkState> {
-  final CommunityDenRepository _repository;
-  static const int _limit = 1;
-  int _skip = 0;
-  bool _isFetching = false;
+class MyBookmarkBloc extends BaseFeedBloc {
+  final CommunityDenRepository repository;
 
-  MyBookmarkBloc({required CommunityDenRepository repository})
-      : _repository = repository,
-        super(Initial()) {
-    on<LoadBookmark>(_onLoadBookmark);
-    on<LoadMoreBookmark>(_onLoadMoreBookmark);
-    on<RefreshBookmark>(_onRefreshBookmark);
+  MyBookmarkBloc(this.repository, FeedManagerCubit postManagerCubit)
+      : super(postManagerCubit: postManagerCubit);
+
+  @override
+  Future<FeedModel> fetchFeeds(
+      {required int skip, required int limit, int? id}) {
+    return repository
+        .getOwnBookmarkedFeeds(queryParms: {"skip": skip, "limit": limit});
   }
 
-  Future<void> _onLoadBookmark(LoadBookmark event, Emitter<MyBookmarkState> emit) async {
-    emit(BookmarkLoading());
-    _skip = 0;
-
-    try {
-      final feed = await _repository
-          .getFeeds(queryParms: {"skip": _skip, "limit": _limit});
-      _skip += feed.posts.length;
-      emit(BookmarkLoaded(
-        posts: feed.posts,
-        hasMore: feed.hasMore,
-        // totalCount: feed.totalCount,
-      ));
-    } catch (e) {
-      emit(BookmarkError(e.toString()));
-    }
+  @override
+  Future<bool> likePost(int postId) {
+    return repository.likePost(postID: postId);
   }
 
-  Future<void> _onLoadMoreBookmark(
-      LoadMoreBookmark event, Emitter<MyBookmarkState> emit) async {
-    if (_isFetching || state is! BookmarkLoaded) return;
-    final currentState = state as BookmarkLoaded;
-    if (!currentState.hasMore) return;
-
-    _isFetching = true;
-
-    try {
-      final feed = await _repository
-          .getMyBookmark(queryParms: {"skip": _skip, "limit": _limit});
-      _skip += feed.posts.length;
-
-      emit(currentState.copyWith(
-        posts: [...currentState.posts, ...feed.posts],
-        hasMore: feed.hasMore,
-        // totalCount: feed.totalCount,
-      ));
-    } catch (e) {
-      emit(BookmarkError(e.toString()));
-    } finally {
-      _isFetching = false;
-    }
-  }
-
-  Future<void> _onRefreshBookmark(
-      RefreshBookmark event, Emitter<MyBookmarkState> emit) async {
-    _skip = 0;
-    try {
-      final feed = await _repository
-          .getFeeds(queryParms: {"skip": _skip, "limit": _limit});
-      _skip += feed.posts.length;
-
-      emit(BookmarkLoaded(
-        posts: feed.posts,
-        hasMore: feed.hasMore,
-        // totalCount: feed.totalCount,
-      ));
-    } catch (e) {
-      emit(BookmarkError(e.toString()));
-    }
+  @override
+  Future<bool> bookMarkPost(int postId) {
+    return repository.bookmarkPost(postID: postId);
   }
 }

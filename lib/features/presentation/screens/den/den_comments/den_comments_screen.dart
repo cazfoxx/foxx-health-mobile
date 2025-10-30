@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,8 +9,6 @@ import 'package:foxxhealth/features/data/models/comments_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_state.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/feed/my_feed_bloc.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/feed/feed_event.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/report_comment/report_comment_page.dart';
 import 'package:foxxhealth/features/presentation/screens/den/widgets/den_bottom_sheet.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -48,7 +45,6 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
       //   avatarUrl: "https://i.pravatar.cc/150?img=9",
       // ),
     );
-
     context.read<CommentBloc>().add(AddComment(newComment));
     _textController.clear();
   }
@@ -61,7 +57,8 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
           header: _buildHeader(context),
           body: Expanded(
             child: state.isLoadingComments
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: SizedBox(child: CircularProgressIndicator()))
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
@@ -70,86 +67,97 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
                         const Divider(height: 8, color: Colors.transparent),
                     itemBuilder: (context, index) {
                       final c = state.comments[index];
-
-                      log("comments for mon $c");
                       return _CommentTile(comment: c);
                     },
                   ),
           ),
           footer: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: FoxxTextField(
-              controller: _textController,
-              focusBorderColor: AppColors.amethyst,
-              borderColor: AppColors.gray600,
-
-              minLines: 4,
-              maxLines: 4,
-              hint: "Comment",
-              suffixIcon: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SizedBox(
-                  child: SizedBox(
-                    height: 100,
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onTap: state.isPostingComment
-                              ? null
-                              : () => _onSendComment(context),
-                          child: Container(
-                            // height: 24,
-                            width: 24,
-                            decoration: const BoxDecoration(
-                              color: Color(0xffCECECF),
-                              shape: BoxShape.circle,
-                            ),
-                            child: state.isPostingComment
-                                ? const Padding(
-                                    padding: EdgeInsets.all(4.0),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.arrow_upward,
-                                    color: Colors.white),
-                          ),
-                        ),
-                      ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state.error != null)
+                  Text(
+                    "${state.error}",
+                    style: const TextStyle(
+                      color: Colors.red,
                     ),
                   ),
+                FoxxTextField(
+                  controller: _textController,
+                  focusBorderColor: AppColors.amethyst,
+                  borderColor: AppColors.gray600,
+
+                  minLines: 4,
+                  maxLines: 4,
+                  hint: "Comment",
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      child: SizedBox(
+                        height: 100,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: state.isPostingComment
+                                  ? null
+                                  : () => _onSendComment(context),
+                              child: Container(
+                                // height: 24,
+                                width: 24,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xffCECECF),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: state.isPostingComment
+                                    ? const Padding(
+                                        padding: EdgeInsets.all(4.0),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.arrow_upward,
+                                        color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Padding(
+                  //   padding: const EdgeInsets.all(10.0),
+                  //   child:
+                  //    GestureDetector(
+                  //     onTap: state.isPostingComment
+                  //         ? null
+                  //         : () => _onSendComment(context),
+                  //     child: Container(
+                  //       width: 28,
+                  //       height: 28,
+                  //       decoration: const BoxDecoration(
+                  //         color: Color(0xffCECECF),
+                  //         shape: BoxShape.circle,
+                  //       ),
+                  //       child: state.isPostingComment
+                  //           ? const Padding(
+                  //               padding: EdgeInsets.all(4.0),
+                  //               child: CircularProgressIndicator(
+                  //                 strokeWidth: 2,
+                  //                 color: Colors.white,
+                  //               ),
+                  //             )
+                  //           : const Icon(Icons.arrow_upward, color: Colors.white),
+
+                  //     ),
+                  //   ),
+                  // ),
+                  onChanged: (c) {},
                 ),
-              ),
-
-              // Padding(
-              //   padding: const EdgeInsets.all(10.0),
-              //   child:
-              //    GestureDetector(
-              //     onTap: state.isPostingComment
-              //         ? null
-              //         : () => _onSendComment(context),
-              //     child: Container(
-              //       width: 28,
-              //       height: 28,
-              //       decoration: const BoxDecoration(
-              //         color: Color(0xffCECECF),
-              //         shape: BoxShape.circle,
-              //       ),
-              //       child: state.isPostingComment
-              //           ? const Padding(
-              //               padding: EdgeInsets.all(4.0),
-              //               child: CircularProgressIndicator(
-              //                 strokeWidth: 2,
-              //                 color: Colors.white,
-              //               ),
-              //             )
-              //           : const Icon(Icons.arrow_upward, color: Colors.white),
-
-              //     ),
-              //   ),
-              // ),
-              onChanged: (c) {},
+              ],
             ),
           ),
         );
@@ -196,12 +204,16 @@ class _CommentTile extends StatelessWidget {
         child: const ReportCommentPage(),
       );
     } else {
-      _onDeleteComment(context, comment.id!);
+      _onDeleteComment(context);
     }
   }
 
-  void _onDeleteComment(BuildContext context, int commentId) {
-    context.read<CommentBloc>().add(DeleteComment(commentId));
+  void _onDeleteComment(
+    BuildContext context,
+  ) {
+    context.read<CommentBloc>().add(DeleteComment(
+          comment: comment,
+        ));
   }
 
   @override

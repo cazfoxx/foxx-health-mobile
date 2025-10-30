@@ -1,14 +1,17 @@
 import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/repositories/den_comments_repository.dart';
 import 'comment_event.dart';
 import 'comment_state.dart';
 
 class CommentBloc extends Bloc<CommentEvent, CommentState> {
   final CommentRepository repository;
+  final FeedManagerCubit postManagerCubit;
 
-  CommentBloc(this.repository) : super(const CommentState()) {
+  CommentBloc(this.repository, this.postManagerCubit)
+      : super(const CommentState()) {
     on<FetchComments>(_onFetchComments);
     on<AddComment>(_onAddComment);
     on<DeleteComment>(_onDeleteComment);
@@ -46,18 +49,31 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     AddComment event,
     Emitter<CommentState> emit,
   ) async {
-    emit(state.copyWith(postId: event.comment.postId, isPostingComment: true, error: null));
-
-    // Immediately update UI locally
-    final updatedComments = [...state.comments, event.comment];
-
-    emit(state.copyWith(comments: updatedComments));
+    emit(state.copyWith(
+        postId: event.comment.postId, isPostingComment: true, error: null));
 
     try {
-      await repository.addComment(comment: event.comment);
-      add(AddCommentSuccess(postId:  event.comment.postId!, comment:  event.comment));
-    } catch (e) {
-      add(AddCommentFailure(e.toString()));
+      final result = await repository.addComment(comment: event.comment);
+      if (result.id != null) {
+        // add posted comment in list to update
+        final updatedComments = [...state.comments, event.comment];
+
+        emit(state.copyWith(comments: updatedComments));
+        // update the comment count in  ui internally
+        postManagerCubit.updateCommentCount(event.comment.postId!);
+        //reset loading state
+        emit(state.copyWith(
+            postId: event.comment.postId,
+            isPostingComment: false,
+            error: null));
+      }
+    } catch (e, s) {
+      emit(state.copyWith(
+          postId: event.comment.postId,
+          isPostingComment: false,
+          error: "Failed to comment. Please try again."));
+
+      throw ("error on commenting $e, \n stackTrace: $s");
     }
   }
 
@@ -81,18 +97,46 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     Emitter<CommentState> emit,
   ) async {
     try {
-      print("delete comment from id ${event.commentId}");
-      bool successDelete =
-          await repository.deleteComment(commentID: event.commentId);
+      // Emit state to indicate deletion is in progress
+      emit(state.copyWith(
+        postId: event.comment.postId,
+        isDeletingComment: true,
+        error: null,
+      ));
+
+      final commentID = event.comment.id;
+      // Call the repository to delete the comment
+      final successDelete =
+          await repository.deleteComment(commentID: commentID!);
+
       if (successDelete) {
-        // Optimistically remove from UI
+        // Optimistically remove the comment from UI
         final updatedComments =
-            state.comments.where((c) => c.id != event.commentId).toList();
-        emit(state.copyWith(postId: event.commentId, comments: updatedComments));
-        add(DeleteCommentSuccess(event.commentId));
+            state.comments.where((c) => c.id != commentID).toList();
+
+        emit(state.copyWith(
+          postId: event.comment.postId,
+          isDeletingComment: false,
+          comments: updatedComments,
+        ));
+
+        // Optionally, update global comment count in PostManagerCubit
+        postManagerCubit.updateCommentCount(event.comment.postId!,
+            isAdd: false);
+      } else {
+        // If deletion failed on server, reset loading state and show error
+        emit(state.copyWith(
+          isDeletingComment: false,
+          error: "Failed to delete comment, please try again",
+        ));
       }
     } catch (e) {
-      add(DeleteCommentFailure(e.toString()));
+      // Handle exceptions
+      emit(state.copyWith(
+        isDeletingComment: false,
+        error: "Failed to delete comment, please try again",
+      ));
+      rethrow;
     }
   }
 

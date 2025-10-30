@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/features/data/models/comments_model.dart';
 
@@ -32,7 +31,7 @@ class CommentRepository {
     });
 
     if (response.statusCode == 201 || response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.data);
+      final Map<String, dynamic> data = response.data;
       return Comment.fromJson(data);
     } else {
       throw Exception(

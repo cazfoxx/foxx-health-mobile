@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foxxhealth/core/components/foxx_tab_bar.dart';
 import 'package:foxxhealth/core/constants/shared_pref_keys.dart';
+import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
 import 'package:foxxhealth/features/data/repositories/community_den_repository.dart';
-import 'package:foxxhealth/features/data/repositories/den_comments_repository.dart';
 import 'package:foxxhealth/features/data/repositories/den_profile_repositoty.dart';
-import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/feed/my_feed_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/community_den_user_profile/community_den_profile_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/my_bookmarks/my_bookmark_bloc.dart';
@@ -35,7 +34,7 @@ class _DenScreenState extends State<DenScreen>
   late TabController _tabController;
   String _searchQuery = '';
   final CommunityDenRepository _repository = CommunityDenRepository();
-   final DenProfileRepositoty _denProfileRepositoty = DenProfileRepositoty();
+  final DenProfileRepositoty _denProfileRepositoty = DenProfileRepositoty();
   late Future<List<CommunityDenModel>> _futureMyden;
 
   final List<String> _tabs = ['My feeds', 'My bookmarks'];
@@ -44,9 +43,10 @@ class _DenScreenState extends State<DenScreen>
   @override
   void initState() {
     super.initState();
-    loadMyDens();
+
     _tabController = TabController(length: _tabs.length, vsync: this);
     showInitialPopup();
+    loadMyDens();
   }
 
   void loadMyDens() {
@@ -92,25 +92,16 @@ class _DenScreenState extends State<DenScreen>
       providers: [
         BlocProvider<MyFeedBloc>(
           create: (context) =>
-              MyFeedBloc( _repository),
+              MyFeedBloc(_repository, context.read<FeedManagerCubit>()),
         ),
         BlocProvider<DenProfilePostBloc>(
           create: (context) => DenProfilePostBloc(
-            repo:_denProfileRepositoty,
+            repo: _denProfileRepositoty,
           ),
         ),
-        BlocProvider<CommentBloc>(
+        BlocProvider<MyBookmarkBloc>(
           create: (context) =>
-              CommentBloc(CommentRepository()),
-        ),
-       BlocProvider<MyBookmarkBloc>(
-          create: (context) =>
-              MyBookmarkBloc(repository: _repository),
-        ),
-
-          BlocProvider<CommentBloc>(
-          create: (context) =>
-              CommentBloc(CommentRepository()),
+              MyBookmarkBloc(_repository, context.read<FeedManagerCubit>()),
         ),
       ],
       child: Foxxbackground(
@@ -130,7 +121,9 @@ class _DenScreenState extends State<DenScreen>
                   },
                 ),
                 if (_searchQuery.isNotEmpty)
-                  DenUserProfilePage(userName: _searchQuery.trim(),)
+                  DenUserProfilePage(
+                    userName: _searchQuery.trim(),
+                  )
                 else
                   Expanded(
                     child: NestedScrollView(
