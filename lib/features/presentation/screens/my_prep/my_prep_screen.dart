@@ -65,7 +65,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClie
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: FoxxBackButton(),
+          leading: const FoxxBackButton(),
           title: Text(
             'My Prep',
             style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
@@ -226,7 +226,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClie
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No data available',
@@ -257,7 +257,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClie
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No appointment companions yet',
@@ -360,7 +360,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClie
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.amethyst,
               size: 16,
@@ -492,7 +492,7 @@ class _SortModalContentState extends State<_SortModalContent> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.sort, color: AppColors.amethystViolet),
+                const Icon(Icons.sort, color: AppColors.amethystViolet),
                 const SizedBox(width: 8),
                 Text(
                   'Sort by',
@@ -525,7 +525,7 @@ class _SortModalContentState extends State<_SortModalContent> {
                 activeColor: AppColors.amethystViolet,
               ),
               if (option != widget.sortOptions.last)
-                Divider(
+                const Divider(
                   color: AppColors.gray200,
                   height: 1,
                 ),
