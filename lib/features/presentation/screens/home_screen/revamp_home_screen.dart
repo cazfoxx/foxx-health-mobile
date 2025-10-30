@@ -31,7 +31,7 @@ class RevampHomeScreen extends StatefulWidget {
   State<RevampHomeScreen> createState() => _RevampHomeScreenState();
 }
 
-class _RevampHomeScreenState extends State<RevampHomeScreen> {
+class _RevampHomeScreenState extends State<RevampHomeScreen> with AutomaticKeepAliveClientMixin {
   List<BannerData> _banners = [];
   bool _isLoadingBanners = true;
   String? _bannerError;
@@ -351,6 +351,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -705,6 +706,9 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
       ),
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _RecentItemCard extends StatelessWidget {
