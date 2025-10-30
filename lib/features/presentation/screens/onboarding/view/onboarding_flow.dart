@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
-import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/onboarding/onboarding_cubit.dart';

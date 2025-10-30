@@ -12,6 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/services/dynamic_links_service.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/cubits/forgot_password/forgot_password_cubit.dart';
 import 'package:foxxhealth/features/presentation/cubits/login/login_cubit.dart';
@@ -61,6 +62,9 @@ void main() async {
 
   // Initialize Dynamic Links Service
   await DynamicLinksService().initialize();
+  
+  // Initialize Premium Service
+  await PremiumService.instance.initialize();
 
   const fatalError = true;
   FlutterError.onError = (errorDetails) {

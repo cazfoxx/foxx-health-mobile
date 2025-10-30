@@ -9,6 +9,7 @@ import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_sc
 import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_screen.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:dio/dio.dart';
 
 class PremiumOverlay extends StatefulWidget {
@@ -46,8 +47,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   }
 
   Future<void> _initializeStore() async {
+    log('=== INITIALIZING IN-APP PURCHASE STORE ===');
+    
     final bool available = await _inAppPurchase.isAvailable();
+    log('In-App Purchase Available: $available');
+    
     if (!available) {
+      log('In-App Purchases are not available on this device');
       setState(() {
         _isAvailable = false;
       });
@@ -63,25 +69,59 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     
     // Restore previous purchases to check for existing subscriptions
     await _restorePurchases();
+    
+    log('=== STORE INITIALIZATION COMPLETE ===');
   }
 
-  Future<void> _loadProductsWithRetry({int maxRetries = 3}) async {
+  Future<void> _refreshProducts() async {
+    log('Manually refreshing products...');
+    setState(() {
+      _isLoading = true;
+    });
+    
+    await _loadProductsWithRetry();
+    
+    setState(() {
+      _isLoading = false;
+    });
+    
+    if (_products.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Products refreshed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load products. Using fallback prices.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadProductsWithRetry({int maxRetries = 5}) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       log('Loading products - attempt $attempt of $maxRetries');
       await _loadProducts();
 
       if (_products.isNotEmpty) {
         log('Products loaded successfully on attempt $attempt');
+        log('Loaded products: ${_products.map((p) => '${p.id}: ${p.currencySymbol}${p.rawPrice}').join(', ')}');
         return;
       }
 
       if (attempt < maxRetries) {
-        log('No products found, retrying in 2 seconds...');
-        await Future.delayed(const Duration(seconds: 2));
+        final delay = Duration(seconds: attempt * 2); // Exponential backoff
+        log('No products found, retrying in ${delay.inSeconds} seconds...');
+        await Future.delayed(delay);
       }
     }
 
     log('Failed to load products after $maxRetries attempts');
+    log('This means the app will use fallback prices until products are available');
   }
 
   Future<void> _loadProducts() async {
@@ -96,6 +136,19 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       log('- Found products: ${response.productDetails.length}');
       log('- Not found IDs: ${response.notFoundIDs}');
       log('- Error: ${response.error}');
+
+      // Log detailed information about each product found
+      for (final product in response.productDetails) {
+        log('=== PRODUCT DETAILS FROM APP STORE CONNECT ===');
+        log('Product ID: ${product.id}');
+        log('Product Title: ${product.title}');
+        log('Product Description: ${product.description}');
+        log('Raw Price (exact): ${product.rawPrice}');
+        log('Currency Code: ${product.currencyCode}');
+        log('Currency Symbol: ${product.currencySymbol}');
+        log('Formatted Price: ${product.currencySymbol}${product.rawPrice.toStringAsFixed(2)}');
+        log('=== END PRODUCT DETAILS ===');
+      }
 
       if (response.notFoundIDs.isNotEmpty) {
         log('Products not found: ${response.notFoundIDs}');
@@ -115,6 +168,11 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         log('3. Testing on simulator (use real device for testing)');
         log('4. Incomplete tax/banking information in developer account');
         log('5. Bundle ID mismatch between app and App Store Connect');
+        log('6. Network connectivity issues');
+        log('7. App Store servers are temporarily unavailable');
+        log('8. Products are not in "Ready to Submit" or "Approved" status');
+        log('9. Missing App Store Connect agreement acceptance');
+        log('10. Testing with wrong Apple ID (need sandbox account)');
       }
 
       setState(() {
@@ -123,6 +181,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     } catch (e) {
       log('Error loading products: $e');
       log('This could indicate a network issue or App Store Connect configuration problem');
+      log('Error type: ${e.runtimeType}');
+      if (e.toString().contains('timeout')) {
+        log('This appears to be a timeout error - try again later');
+      } else if (e.toString().contains('network')) {
+        log('This appears to be a network error - check internet connection');
+      }
     }
   }
 
@@ -244,10 +308,18 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
   String _getProductPrice(String productId) {
     try {
       final product = _products.firstWhere((p) => p.id == productId);
-      return product.currencySymbol + product.rawPrice.toString();
+      // Debug logging to help identify currency issues
+      log('Product: $productId');
+      log('Raw Price: ${product.rawPrice}');
+      log('Currency Code: ${product.currencyCode}');
+      log('Currency Symbol: ${product.currencySymbol}');
+      log('Formatted Price: ${product.currencySymbol}${product.rawPrice.toStringAsFixed(2)}');
+      
+      return product.currencySymbol + product.rawPrice.toStringAsFixed(2);
     } catch (e) {
-      // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$22' : '\$2';
+      // Fallback prices if products are not loaded - MUST match App Store Connect configuration
+      log('Using fallback price for $productId');
+      return productId == yearlyProductId ? '\$19.99' : '\$2.00';
     }
   }
 
@@ -271,11 +343,12 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
         final monthlyPrice = product.rawPrice / 12;
         return '${product.currencySymbol}${monthlyPrice.toStringAsFixed(2)}/month';
       } else {
-        return '${product.currencySymbol}${product.rawPrice}/month';
+        // For monthly subscription, don't show per-unit price to avoid duplication
+        return '';
       }
     } catch (e) {
-      // Fallback prices if products are not loaded
-      return productId == yearlyProductId ? '\$1.67/month' : '\$2.00/month';
+      // Fallback prices if products are not loaded - MUST match App Store Connect
+      return productId == yearlyProductId ? '\$1.67/month' : ''; // $19.99/12 = $1.67
     }
   }
 
@@ -363,10 +436,21 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
       if (verificationSuccess) {
         log('Purchase verification successful: ${purchaseDetails.productID}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Purchase successful! Welcome to Premium!')),
-        );
+        
+        // Set premium status to true
+        await PremiumService.instance.enablePremium();
+        log('🔓 Premium status enabled in SharedPreferences');
+        
+        // Show success snackbar (the backend verification already shows one, but this is a fallback)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🎉 Purchase successful! Welcome to Premium!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
 
         // Close the premium overlay
         if (mounted) {
@@ -377,9 +461,24 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       }
     } catch (e) {
       log('Purchase verification error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Purchase verification failed: $e')),
-      );
+      
+      // Show detailed error snackbar
+      if (mounted) {
+        String errorMessage = 'Purchase verification failed';
+        if (e.toString().contains('No receipt data available')) {
+          errorMessage = 'Receipt data not available - please try again';
+        } else if (e.toString().contains('Purchase verification failed')) {
+          errorMessage = 'Verification failed - please contact support';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ $errorMessage'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -422,13 +521,74 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
       if (response.statusCode == 200) {
         final responseData = response.data;
         log('Verification successful: $responseData');
+        
+        // Set premium status to true
+        await PremiumService.instance.enablePremium();
+        log('🔓 Premium status enabled in SharedPreferences');
+        
+        // Show success snackbar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Purchase verified successfully! Welcome to Premium!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
         return true;
       } else {
         log('Verification failed with status: ${response.statusCode}');
+        
+        // Show error snackbar for non-200 status
+        if (mounted) {
+          String errorMessage = 'Server error';
+          if (response.statusCode == 401) {
+            errorMessage = 'Authentication failed - please log in again';
+          } else if (response.statusCode == 400) {
+            errorMessage = 'Invalid receipt data - please try again';
+          } else if (response.statusCode == 500) {
+            errorMessage = 'Server error - please try again later';
+          } else if (response.statusCode == 422) {
+            errorMessage = 'Invalid receipt format - please try again';
+          }
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ $errorMessage (${response.statusCode})'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
         return false;
       }
     } catch (e) {
       log('Backend verification error: $e');
+
+      // Show error snackbar for exceptions
+      if (mounted) {
+        String errorMessage = 'Network error';
+        if (e.toString().contains('401')) {
+          errorMessage = 'Authentication failed - please log in again';
+        } else if (e.toString().contains('timeout') || e.toString().contains('TimeoutException')) {
+          errorMessage = 'Request timeout - please check your connection';
+        } else if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
+          errorMessage = 'No internet connection';
+        } else if (e.toString().contains('500') || e.toString().contains('502') || e.toString().contains('503')) {
+          errorMessage = 'Server error - please try again later';
+        } else if (e.toString().contains('422')) {
+          errorMessage = 'Invalid receipt format - please try again';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ $errorMessage'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
 
       // If it's a network error or server error, we should still allow the purchase
       // to complete to avoid blocking legitimate purchases due to temporary server issues
@@ -487,7 +647,8 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            isMonthlySelected = true;
+                            isYearlySelected = true;
+                            isMonthlySelected = false;
                           });
                         },
                         child: _buildSubscriptionOption(
@@ -495,14 +656,15 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                           price: _getProductPrice(yearlyProductId),
                           pricePerUnit: _getPricePerUnit(yearlyProductId),
                           description: _getProductDescription(yearlyProductId),
-                          isSelected: !isMonthlySelected,
+                          isSelected: isYearlySelected,
                         ),
                       ),
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            isMonthlySelected = false;
+                            isMonthlySelected = true;
+                            isYearlySelected = false;
                           });
                         },
                         child: _buildSubscriptionOption(
@@ -525,12 +687,13 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
 
                 _buildTrialButton(),
                 _buildRestoreButton(),
-                // if (_products.isEmpty) _buildRefreshButton(),
+                if (_products.isEmpty) _buildRefreshButton(),
+                _buildPriceSourceIndicator(),
                 const SizedBox(height: 10),
                 const Padding(
                   padding: EdgeInsets.only(left: 32.0),
                   child: Text(
-                      'Once your free trial ends, your subscription renews automatically at \$2/month',
+                      'Once your free trial ends, your subscription renews automatically at the selected plan price',
                       style: TextStyle(color: AppColors.gray700, fontSize: 16)),
                 )
               ],
@@ -617,15 +780,17 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
                 const SizedBox(height: 4),
                 Text(description,
                     style: AppTextStyles.captionOpenSans.copyWith()),
-                const SizedBox(height: 2),
-                Text(
-                  pricePerUnit,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.amethystViolet,
-                    fontWeight: FontWeight.w500,
+                if (pricePerUnit.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    pricePerUnit,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.amethystViolet,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -652,16 +817,6 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     );
   }
 
-  Widget _buildTestimonial() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.7,
-      child: Text(
-        "Every woman deserves a tool like the FoXx Health app",
-        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w400),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
 
   Widget _buildTermsOfService() {
     return Center(
@@ -778,77 +933,55 @@ class _PremiumOverlayState extends State<PremiumOverlay> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       margin: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.orange.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.shade200),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Colors.orange.shade700,
-                  size: 24,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Products not available',
-                  style: TextStyle(
-                    color: Colors.orange.shade700,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'This is normal during development or if your app is under review. Tap refresh to try again.',
-                  style: TextStyle(
-                    color: Colors.orange.shade600,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _refreshProducts,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orange,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                log('User tapped refresh button');
-                await _loadProductsWithRetry();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_products.isEmpty
-                          ? 'Products still not available. Check App Store Connect configuration.'
-                          : 'Products loaded successfully!'),
-                      backgroundColor:
-                          _products.isEmpty ? Colors.orange : Colors.green,
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh Products'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.amethystViolet,
-                side: BorderSide(color: AppColors.amethystViolet),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Refresh Products',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildPriceSourceIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _products.isNotEmpty ? Icons.check_circle : Icons.warning,
+            color: _products.isNotEmpty ? Colors.green : Colors.orange,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _products.isNotEmpty 
+                ? 'Prices loaded from App Store Connect' 
+                : 'Using fallback prices - tap Refresh Products',
+            style: TextStyle(
+              color: _products.isNotEmpty ? Colors.green : Colors.orange,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
     );
   }
+
 }

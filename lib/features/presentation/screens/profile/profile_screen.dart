@@ -5,11 +5,13 @@ import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_o
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
+import 'package:foxxhealth/features/presentation/screens/splash/splash_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/update_password_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/den_privacy_screen.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_storage/get_storage.dart';
@@ -70,6 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Clear AppStorage
         AppStorage.clearCredentials();
+        
+        // Clear premium status
+        await PremiumService.instance.clearPremiumStatus();
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,10 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Navigate to login screen and clear all previous routes
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => LoginScreen(
-              showBackButton: false,
-              isSign: true,
-            ),
+            builder: (context) => const SplashScreen(),
           ),
           (route) => false,
         );
@@ -675,6 +677,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Clear AppStorage
         AppStorage.clearCredentials();
+        
+        // Clear premium status
+        await PremiumService.instance.clearPremiumStatus();
 
         // Show success message
         if (mounted) {
