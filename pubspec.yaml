@@ -38,6 +38,7 @@ dependencies:
   logger: ^2.5.0
   get: ^4.7.2
   omni_datetime_picker: ^2.1.1
+  carousel_slider: ^5.1.1
 
 
 

@@ -215,7 +215,7 @@ class _MyAppState extends State<MyApp> {
                 }
 
                 if (snapshot.hasData && snapshot.data == true) {
-                  return MainNavigationScreen();
+                  return const MainNavigationScreen();
                 }
 
                 return const SplashScreen();
