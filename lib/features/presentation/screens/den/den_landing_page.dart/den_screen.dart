@@ -179,7 +179,7 @@ class _DenScreenState extends State<DenScreen>
                         // 🔹 Tab Content
                         body: TabBarView(
                           controller: _tabController,
-                          physics: const NeverScrollableScrollPhysics(),
+                          physics: const BouncingScrollPhysics(),
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(8.0),
