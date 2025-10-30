@@ -150,7 +150,7 @@ class _CarouselWithDotsState extends State<_CarouselWithDots> {
 
   static const int _pageCount = 3; // number of logical slides
 
-  static const Duration _autoPlayInterval = Duration(milliseconds: 2000);
+  static const Duration _autoPlayInterval = Duration(milliseconds: 5000);
   static const Duration _transitionDuration = Duration(milliseconds: 350);
 
   @override
