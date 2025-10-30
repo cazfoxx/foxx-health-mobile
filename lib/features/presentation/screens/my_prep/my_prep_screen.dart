@@ -15,7 +15,7 @@ class MyPrepScreen extends StatefulWidget {
   State<MyPrepScreen> createState() => _MyPrepScreenState();
 }
 
-class _MyPrepScreenState extends State<MyPrepScreen> {
+class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClientMixin {
   String selectedTag = 'All';
   final List<String> tags = ['All', 'Upcoming Visit', 'Past'];
   
@@ -58,6 +58,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -424,6 +425,9 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
       },
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 
 }
 

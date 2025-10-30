@@ -351,6 +351,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> with AutomaticKeepA
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,

@@ -18,7 +18,7 @@ import 'package:foxxhealth/features/data/models/symptom_model.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  const MainNavigationScreen({super.key});
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
@@ -257,7 +257,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
 // Tab Screen Widgets
 class HomeTab extends StatelessWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -339,13 +339,13 @@ class MyPrepTab extends StatelessWidget {
 }
 
 class TrackerTab extends StatefulWidget {
-  const TrackerTab({Key? key}) : super(key: key);
+  const TrackerTab({super.key});
 
   @override
   State<TrackerTab> createState() => _TrackerTabState();
 }
 
-class _TrackerTabState extends State<TrackerTab> {
+class _TrackerTabState extends State<TrackerTab>  with AutomaticKeepAliveClientMixin{
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _symptomController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
@@ -458,9 +458,10 @@ class _TrackerTabState extends State<TrackerTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (!PremiumService.instance.hasPremiumAccess()) {
-      return _buildPremiumRequiredScreen(context, 'Tracker');
-    }
+    super.build(context);
+    // if (!PremiumService.instance.hasPremiumAccess()) {
+    //   return _buildPremiumRequiredScreen(context, 'Tracker');
+    // }
     
     return Foxxbackground(
       child: Scaffold(
@@ -1036,16 +1037,19 @@ class _TrackerTabState extends State<TrackerTab> {
       _loadHealthTrackers(); // Reload data for new date
     }
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class InsightTab extends StatefulWidget {
-  const InsightTab({Key? key}) : super(key: key);
+  const InsightTab({super.key});
 
   @override
   State<InsightTab> createState() => _InsightTabState();
 }
 
-class _InsightTabState extends State<InsightTab> {
+class _InsightTabState extends State<InsightTab> with AutomaticKeepAliveClientMixin {
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
 
@@ -1126,6 +1130,7 @@ class _InsightTabState extends State<InsightTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (!PremiumService.instance.hasPremiumAccess()) {
       return _buildPremiumRequiredScreen(context, 'Insights');
     }
@@ -1661,6 +1666,9 @@ class _InsightTabState extends State<InsightTab> {
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class DenTab extends StatelessWidget {
