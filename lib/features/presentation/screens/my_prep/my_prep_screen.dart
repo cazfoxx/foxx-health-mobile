@@ -15,7 +15,7 @@ class MyPrepScreen extends StatefulWidget {
   State<MyPrepScreen> createState() => _MyPrepScreenState();
 }
 
-class _MyPrepScreenState extends State<MyPrepScreen> {
+class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClientMixin {
   String selectedTag = 'All';
   final List<String> tags = ['All', 'Upcoming Visit', 'Past'];
   
@@ -58,13 +58,14 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: FoxxBackButton(),
+          leading: const FoxxBackButton(),
           title: Text(
             'My Prep',
             style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
@@ -225,7 +226,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No data available',
@@ -256,7 +257,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No appointment companions yet',
@@ -359,7 +360,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.amethyst,
               size: 16,
@@ -424,6 +425,9 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
       },
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 
 }
 
@@ -488,7 +492,7 @@ class _SortModalContentState extends State<_SortModalContent> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.sort, color: AppColors.amethystViolet),
+                const Icon(Icons.sort, color: AppColors.amethystViolet),
                 const SizedBox(width: 8),
                 Text(
                   'Sort by',
@@ -521,7 +525,7 @@ class _SortModalContentState extends State<_SortModalContent> {
                 activeColor: AppColors.amethystViolet,
               ),
               if (option != widget.sortOptions.last)
-                Divider(
+                const Divider(
                   color: AppColors.gray200,
                   height: 1,
                 ),

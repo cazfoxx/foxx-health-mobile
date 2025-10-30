@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
@@ -30,7 +31,7 @@ class RevampHomeScreen extends StatefulWidget {
   State<RevampHomeScreen> createState() => _RevampHomeScreenState();
 }
 
-class _RevampHomeScreenState extends State<RevampHomeScreen> {
+class _RevampHomeScreenState extends State<RevampHomeScreen> with AutomaticKeepAliveClientMixin {
   List<BannerData> _banners = [];
   bool _isLoadingBanners = true;
   String? _bannerError;
@@ -59,6 +60,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
     _loadAppointmentCompanions();
     _loadBanners();
   }
+  
 
   Future<void> _loadAppointmentCompanions() async {
     try {
@@ -109,8 +111,29 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
       final bannerCubit = BannerCubit();
       final bannerResponse = await bannerCubit.getBanners();
+      
+      // Filter banners based on premium status
+      List<BannerData> filteredBanners = bannerResponse.allBanners;
+      
+      if (PremiumService.instance.hasPremiumAccess()) {
+        // For premium users, filter out upsell banners and show marketing/product banners
+        filteredBanners = bannerResponse.allBanners.where((banner) => 
+          banner.type != 'upsell'
+        ).toList();
+        
+        // If no banners available for premium users, show a welcome message
+        if (filteredBanners.isEmpty) {
+          filteredBanners = [_createWelcomeBanner()];
+        }
+      } else {
+        // For non-premium users, show upsell banners
+        filteredBanners = bannerResponse.allBanners.where((banner) => 
+          banner.type == 'upsell'
+        ).toList();
+      }
+      
       setState(() {
-        _banners = bannerResponse.allBanners;
+        _banners = filteredBanners;
         _isLoadingBanners = false;
       });
     } catch (e) {
@@ -119,6 +142,16 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
         _isLoadingBanners = false;
       });
     }
+  }
+  
+  BannerData _createWelcomeBanner() {
+    return BannerData(
+      type: 'welcome',
+      title: 'Welcome to Premium!',
+      subtitle: 'You have full access to all features',
+      message: 'Enjoy unlimited access to My Prep, Tracker, and Insights. Thank you for upgrading!',
+      priority: 1,
+    );
   }
 
   void _onBannerTap(BannerData banner) {
@@ -130,10 +163,71 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
       case 'get_to_know_me':
         _showQuestionDialog(banner);
         break;
+      case 'welcome':
+        // Show a thank you message for premium users
+        _showWelcomeMessage();
+        break;
       default:
         // Handle other banner types
         break;
     }
+  }
+  
+  void _showWelcomeMessage() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.star, color: AppColors.primary01),
+              const SizedBox(width: 8),
+              Text('Premium Member'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Thank you for being a premium member! You have unlimited access to all features.',
+                style: AppOSTextStyles.osSmSemiboldLabel,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary01.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: AppColors.primary01, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Unlock My Prep, Tracker, and Insights',
+                        style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                          color: AppColors.primary01,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Got it!'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showPremiumOverlay() {
@@ -257,6 +351,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -611,6 +706,9 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
       ),
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _RecentItemCard extends StatelessWidget {

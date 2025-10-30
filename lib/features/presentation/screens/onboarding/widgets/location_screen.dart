@@ -223,10 +223,10 @@ class _LocationScreenState extends State<LocationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              OnboardingQuestionHeader(
-                questions: const [],
+              const OnboardingQuestionHeader(
+                questions: [],
                 questionType: 'ADDRESS',
-                questionOverride: 'Where do you live?',
+                questionOverride: 'What state do you live?',
                 descriptionOverride:
                     "Where you live can shape your health in real ways, whether it’s care availability, environmental factors, or local support resources.",
               ),

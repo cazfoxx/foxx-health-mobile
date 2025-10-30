@@ -172,6 +172,8 @@ class _BannerCarouselState extends State<BannerCarousel> {
         return Icons.star;
       case 'get_to_know_me':
         return Icons.psychology;
+      case 'welcome':
+        return Icons.celebration;
       default:
         return Icons.info;
     }

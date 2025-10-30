@@ -11,6 +11,7 @@ import 'package:foxxhealth/features/presentation/screens/profile/privacy_policy_
 import 'package:foxxhealth/features/presentation/screens/profile/terms_of_use_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/profile/den_privacy_screen.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_storage/get_storage.dart';
@@ -71,6 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Clear AppStorage
         AppStorage.clearCredentials();
+        
+        // Clear premium status
+        await PremiumService.instance.clearPremiumStatus();
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -673,6 +677,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Clear AppStorage
         AppStorage.clearCredentials();
+        
+        // Clear premium status
+        await PremiumService.instance.clearPremiumStatus();
 
         // Show success message
         if (mounted) {

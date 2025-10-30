@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/network/api_logger_interceptor.dart';
+import 'package:foxxhealth/core/services/premium_service.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
 import 'package:get/get.dart' as getx;
@@ -198,6 +199,9 @@ class LoggerInterceptor extends Interceptor {
         GetStorage().erase();
         // Clear AppStorage
         await AppStorage.clearCredentials();
+        
+        // Clear premium status
+        await PremiumService.instance.clearPremiumStatus();
         Navigator.of(getx.Get.context!).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => LoginScreen(
@@ -238,8 +242,7 @@ class AuthInterceptor extends Interceptor {
     '/api/v1/auth/login',
     '/api/v1/auth/forgot-password',
     '/api/v1/auth/reset-password',
-    '/api/v1/subscriptions/verify-purchase',
-    '/api/v1/payments/verify-apple-receipt',
+
   ];
 
   @override
