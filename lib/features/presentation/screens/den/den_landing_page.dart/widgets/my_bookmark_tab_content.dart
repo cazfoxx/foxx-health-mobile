@@ -51,7 +51,7 @@ class _MyBookmarkTabContentState extends State<MyBookmarkTabContent> {
             },
             child: PaginatedListView<Post>(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                 data: posts,
                 hasMore: state.hasMoreMap[bookmark] ?? false,
                 emptyWidget: const Align(

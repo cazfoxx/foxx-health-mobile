@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/components/photo_grid_view.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
 import 'package:foxxhealth/features/presentation/screens/den/pages/den_details/widgets/faq_widget.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -41,13 +42,15 @@ class DenAboutPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: AppColors.secondaryTxtLight,
               )),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(den.description,
               style: AppOSTextStyles.osMd.copyWith(
                   letterSpacing: 1.1,
                   height: 1.5,
                   color: AppColors.secondaryTxtLight,
                   fontWeight: FontWeight.w400)),
+          if (den.imageUrls.isNotEmpty) const SizedBox(height: 24),
+          PhotoGrid(imageUrls: den.imageUrls)
         ],
       ),
     );

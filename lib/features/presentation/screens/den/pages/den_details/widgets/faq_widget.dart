@@ -14,7 +14,7 @@ class FaqWidget extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

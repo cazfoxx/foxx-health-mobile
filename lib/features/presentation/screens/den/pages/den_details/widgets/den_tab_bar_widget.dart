@@ -7,8 +7,8 @@ class DenTabBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: TabBar(
         padding: EdgeInsets.zero,
         isScrollable: true, // Allows tabs to be wider than the screen if needed
@@ -31,9 +31,10 @@ class DenTabBarWidget extends StatelessWidget {
         unselectedLabelStyle: AppTextStyles.heading3.copyWith(
             color: AppColors.secondaryTxt, fontWeight: FontWeight.bold),
 
-        tabs: ['About', 'Feed', 'Talk/Events'].map((title) => Tab(text: title)).toList(),
+        tabs: ['About', 'Feed', 'Talk/Events']
+            .map((title) => Tab(text: title))
+            .toList(),
       ),
     );
-  
   }
 }

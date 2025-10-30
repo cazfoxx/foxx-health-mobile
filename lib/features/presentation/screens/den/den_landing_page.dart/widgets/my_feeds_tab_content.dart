@@ -78,7 +78,7 @@ class _MyFeedsTabContentState extends State<MyFeedsTabContent>
             context.read<MyFeedBloc>().add(const RefreshFeeds(feedType: feed));
           },
           child: PaginatedListView<Post>(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             data: posts,
             hasMore: context.read<FeedManagerCubit>().hasMore(FeedType.feed),
             fetchMore: () async {

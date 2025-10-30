@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/core/components/bookmark_icon.dart';
 import 'package:foxxhealth/core/components/heart_toggle_button.dart';
+import 'package:foxxhealth/core/components/photo_grid_view.dart';
 import 'package:foxxhealth/core/utils/app_ui_helper.dart';
 import 'package:foxxhealth/core/utils/share.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_comments/den_comments_screen.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
+import 'package:photo_view/photo_view.dart';
 
 class FeedCard extends StatefulWidget {
   final Post post;
@@ -44,24 +46,6 @@ class _FeedCardState extends State<FeedCard> {
     // _likesCount = widget.post.likesCount;
   }
 
-  // void _handleLikeToggle() async {
-  //   setState(() {
-  //     _isLiked = !_isLiked;
-  //     _likesCount += _isLiked ? 1 : -1;
-  //   });
-
-  //   // Optional: call API to sync like state
-  //   try {
-  //     // await FeedRepository().toggleLike(widget.post.id, _isLiked);
-  //   } catch (e) {
-  //     // Rollback UI if API fails
-  //     setState(() {
-  //       _isLiked = !_isLiked;
-  //       _likesCount += _isLiked ? 1 : -1;
-  //     });
-  //   }
-  // }
-
   void _handleLocalToggle() {
     setState(() {
       _isLiked = !_isLiked;
@@ -71,8 +55,8 @@ class _FeedCardState extends State<FeedCard> {
     widget.onLikeToggled?.call(widget.post, _isLiked);
   }
 
-  _handleLocalBookMarkToggle(){
-   setState(() {
+  _handleLocalBookMarkToggle() {
+    setState(() {
       _isBookMarked = !_isBookMarked;
       // _likesCount += _isLiked ? 1 : -1;
     });
@@ -85,7 +69,7 @@ class _FeedCardState extends State<FeedCard> {
     final content = widget.post.content;
     final bool showMoreButton = content.length > _truncateLength;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.45),
@@ -154,6 +138,10 @@ class _FeedCardState extends State<FeedCard> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+
+          /// photo view
+          PhotoGrid(imageUrls: widget.post.mediaUrls ?? []),
           const SizedBox(height: 12),
 
           RichText(
@@ -236,27 +224,10 @@ class _FeedCardState extends State<FeedCard> {
                   AppHelper.showBottomModalSheet(
                     context: context,
                     child: BlocProvider.value(
-                      value:  context.read<CommentBloc>(),
-                      // create: (_) => CommentBloc(CommentRepository())
-                      //   ..add(FetchComments(widget.post.id)),
+                      value: context.read<CommentBloc>(),
                       child: DenCommentsScreen(postId: widget.post.id),
                     ),
                   );
-
-                  // showModalBottomSheet(
-                  //   backgroundColor: Colors.white,
-                  //   context: context,
-                  //   isScrollControlled: true,
-                  //   builder: (context) => Padding(
-                  //     padding: EdgeInsets.only(
-                  //       bottom: MediaQuery.of(context).viewInsets.bottom,
-                  //     ),
-                  //     child: SizedBox(
-                  //       height: MediaQuery.of(context).size.height * 0.6,
-                  //       child: const DenCommentsScreen(),
-                  //     ),
-                  //   ),
-                  // );
                 },
                 child: Row(
                   children: [
@@ -282,7 +253,7 @@ class _FeedCardState extends State<FeedCard> {
               ToggleBookmarkIcon(
                 isBookMarked: widget.post.userSaved,
                 onToggle: () async {
-                 _handleLocalBookMarkToggle();
+                  _handleLocalBookMarkToggle();
                 },
               ),
               // Icon(
@@ -310,122 +281,4 @@ class _FeedCardState extends State<FeedCard> {
       ),
     );
   }
-
-  // void _showCommentDialog(Post post) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text('Comments on ${post['userName']}\'s post'),
-  //         content: Container(
-  //           width: double.maxFinite,
-  //           height: 300,
-  //           child: Column(
-  //             children: [
-  //               Expanded(
-  //                 child: ListView(
-  //                   children: [
-  //                     // Sample comments
-  //                     _buildCommentItem('SarahM',
-  //                         'Thanks for sharing this! I\'ve been dealing with similar issues.'),
-  //                     _buildCommentItem('HealthJourney',
-  //                         'This is really helpful information.'),
-  //                     _buildCommentItem(
-  //                         'WellnessSeeker', 'I can relate to this experience.'),
-  //                     _buildCommentItem(
-  //                         'FitLife', 'Great insights, thank you!'),
-  //                   ],
-  //                 ),
-  //               ),
-  //               const Divider(),
-  //               Row(
-  //                 children: [
-  //                   Expanded(
-  //                     child: TextField(
-  //                       decoration: InputDecoration(
-  //                         hintText: 'Add a comment...',
-  //                         border: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(20),
-  //                         ),
-  //                         contentPadding: const EdgeInsets.symmetric(
-  //                             horizontal: 16, vertical: 8),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                   IconButton(
-  //                     onPressed: () {
-  //                       // Handle comment submission
-  //                       Navigator.of(context).pop();
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         const SnackBar(
-  //                           content: Text('Comment posted successfully!'),
-  //                           backgroundColor: Colors.green,
-  //                         ),
-  //                       );
-  //                     },
-  //                     icon: const Icon(Icons.send),
-  //                     color: AppColors.amethystViolet,
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: const Text('Close'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // Widget _buildCommentItem(String username, String comment) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 8),
-  //     child: Row(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         CircleAvatar(
-  //           radius: 16,
-  //           backgroundColor: AppColors.amethystViolet.withOpacity(0.2),
-  //           child: Text(
-  //             username[0].toUpperCase(),
-  //             style: const TextStyle(
-  //               color: AppColors.amethystViolet,
-  //               fontWeight: FontWeight.bold,
-  //               fontSize: 12,
-  //             ),
-  //           ),
-  //         ),
-  //         const SizedBox(width: 12),
-  //         Expanded(
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 username,
-  //                 style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //               const SizedBox(height: 2),
-  //               Text(
-  //                 comment,
-  //                 style: AppOSTextStyles.osSmSemiboldBody.copyWith(
-  //                   color: Colors.black87,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

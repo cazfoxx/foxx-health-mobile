@@ -42,7 +42,7 @@ class _DenFeedPageState extends State<DenFeedPage>
     return BlocProvider.value(
       value: _bloc,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: Column(
           children: [
             FoxxTextField(
@@ -112,7 +112,7 @@ class _DenFeedPageState extends State<DenFeedPage>
                     },
                     child: PaginatedListView<Post>(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 16),
+                           vertical: 12),
                       data: posts,
                       hasMore: state.hasMoreMap[den] ?? false,
                       fetchMore: () async {
