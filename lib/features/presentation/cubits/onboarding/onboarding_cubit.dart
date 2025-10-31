@@ -372,7 +372,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     _overTheCounterMedications = [];
     _vitaminsAndSupplements = [];
     _herbalAndAdaptogens = [];
-    _privacyPolicyAccepted = false;
+    _privacyPolicyAccepted = true;//false;
     _sixteenAndOver = true;
     _isActive = true;
     _denPrivacy = [];

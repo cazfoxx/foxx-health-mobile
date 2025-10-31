@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:foxxhealth/core/network/api_client.dart';
 import 'package:foxxhealth/core/utils/app_storage.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -26,7 +28,6 @@ import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart
 import 'package:foxxhealth/features/presentation/widgets/foxx_app_bar.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_buttons.dart';
 
-
 abstract class HasNextButtonState {
   NextButtonState getNextButtonState();
 }
@@ -42,7 +43,8 @@ class OnboardingFlow extends StatefulWidget {
   final String email;
   final String password;
 
-  const OnboardingFlow({super.key, required this.email, required this.password});
+  const OnboardingFlow(
+      {super.key, required this.email, required this.password});
 
   @override
   State<OnboardingFlow> createState() => _OnboardingFlowState();
@@ -151,11 +153,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
-  // Account creation and onboarding submission
   Future<void> _createAccount() async {
-    setState(() {
-      _isCreatingAccount = true;
-    });
+    print('🚀 Starting account creation...');
+    setState(() => _isCreatingAccount = true);
 
     try {
       final loginCubit = context.read<LoginCubit>();
@@ -174,81 +174,479 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       }
 
       final registrationResponse = await loginCubit.registerUser(context);
+      print('📩 registerUser() returned: $registrationResponse');
 
-      setState(() {
-        _isCreatingAccount = false;
-      });
+      setState(() => _isCreatingAccount = false);
 
-      if (registrationResponse != null) {
-        if (registrationResponse['direct_login'] == true) {
-          await _completeOnboardingAfterLogin(onboardingCubit);
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => OTPVerificationScreen(
-                email: widget.email,
-                onSuccess: () async {
-                  Navigator.of(context).pop();
-                  await _completeOnboardingAfterLogin(onboardingCubit);
-                },
-              ),
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration failed!'), backgroundColor: Colors.red),
-        );
+      if (registrationResponse == null ||
+          registrationResponse['direct_login'] == true) {
+        // Already registered → direct login, skip OTP
+        print('✅ Direct login detected, completing onboarding immediately');
+        await _completeOnboardingAfterLogin(onboardingCubit);
+        return;
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating account: $e'), backgroundColor: Colors.red),
+
+      // Normal registration → navigate to OTP
+      print('📬 Navigating to OTPVerificationScreen...');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OTPVerificationScreen(
+            email: widget.email,
+            onSuccess: () async {
+              print('✅ OTP verified successfully — completing onboarding');
+              await _completeOnboardingAfterLogin(onboardingCubit);
+            },
+          ),
+        ),
       );
-      setState(() {
-        _isCreatingAccount = false;
-      });
+    } catch (e, st) {
+      print('❌ Error creating account: $e\n$st');
+      setState(() => _isCreatingAccount = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating account: $e')),
+      );
     }
   }
 
-  Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
-    try {
-      final token = AppStorage.accessToken;
-      if (token == null) await AppStorage.loadCredentials();
-      await Future.delayed(const Duration(seconds: 2));
+  // Future<void> _completeOnboardingAfterLogin(
+  //     OnboardingCubit onboardingCubit) async {
+  //   try {
+  //     final token = AppStorage.accessToken;
+  //     if (token == null) await AppStorage.loadCredentials();
+  //     // await Future.delayed(const Duration(seconds: 2));
 
-      onboardingCubit.setOnboardingData(
-        userName: username,
-        gender: genderIdentity,
-        age: age,
-        weight: weight,
-        height: height?['feet'] != null
-            ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
-            : null,
-        ethnicity: ethnicity?.join(', '),
-        address: location,
-        householdIncomeRange: income,
-        healthConcerns: healthConcerns?.toList() ?? [],
-        healthHistory: diagnoses?.toList() ?? [],
-        medicationsOrSupplementsIndicator: medicationStatus,
-        medicationsOrSupplements: medications ?? [],
-        currentStageInLife: lifeStage != null ? [lifeStage!] : [],
-        privacyPolicyAccepted: dataPrivacyAccepted ?? false,
-        sixteenAndOver: true,
-        isActive: true,
-        denPrivacy: ['posts'],
-        profileIconUrl: null,
-      );
+  //     onboardingCubit.setOnboardingData(
+  //       userName: username,
+  //       gender: genderIdentity,
+  //       age: age,
+  //       weight: weight,
+  //       height: height?['feet'] != null
+  //           ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
+  //           : null,
+  //       ethnicity: ethnicity?.join(', '),
+  //       address: location,
+  //       householdIncomeRange: income,
+  //       healthConcerns: healthConcerns?.toList() ?? [],
+  //       healthHistory: diagnoses?.toList() ?? [],
+  //       medicationsOrSupplementsIndicator: medicationStatus,
+  //       medicationsOrSupplements: medications ?? [],
+  //       currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+  //       privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+  //       sixteenAndOver: true,
+  //       isActive: true,
+  //       denPrivacy: ['posts'],
+  //       profileIconUrl: null,
+  //     );
 
-      await onboardingCubit.submitOnboardingData();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error completing onboarding: $e'), backgroundColor: Colors.red),
+  //     await onboardingCubit.submitOnboardingData();
+  //     Navigator.of(context).pushReplacement(
+  //       MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //           content: Text('Error completing onboarding: $e'),
+  //           backgroundColor: Colors.red),
+  //     );
+  //   }
+  // }
+
+//   Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+//   setState(() => _isCreatingAccount = true);
+
+//   try {
+//     final loginCubit = context.read<LoginCubit>();
+
+//     // Ensure token is loaded
+//     final token = AppStorage.accessToken;
+//     if (token == null) await AppStorage.loadCredentials();
+
+//     // Submit onboarding data
+//     onboardingCubit.setOnboardingData(
+//       userName: username,
+//       gender: genderIdentity,
+//       age: age,
+//       weight: weight,
+//       height: height?['feet'] != null
+//           ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
+//           : null,
+//       ethnicity: ethnicity?.join(', '),
+//       address: location,
+//       householdIncomeRange: income,
+//       healthConcerns: healthConcerns?.toList() ?? [],
+//       healthHistory: diagnoses?.toList() ?? [],
+//       medicationsOrSupplementsIndicator: medicationStatus,
+//       medicationsOrSupplements: medications ?? [],
+//       currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+//       privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+//       sixteenAndOver: true,
+//       isActive: true,
+//       denPrivacy: ['posts'],
+//       profileIconUrl: null,
+//     );
+
+//     await onboardingCubit.submitOnboardingData();
+
+//     // Optionally: preload critical user info directly from LoginCubit or API
+//     // await loginCubit.loadCurrentUserData(); // implement if needed
+
+//     // Navigate directly to MainNavigationScreen
+//     if (!mounted) return;
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+//     );
+//   } catch (e) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text('Error completing onboarding: $e'),
+//         backgroundColor: Colors.red,
+//       ),
+//     );
+//   } finally {
+//     setState(() => _isCreatingAccount = false);
+//   }
+// }
+
+// Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+//   setState(() => _isCreatingAccount = true);
+
+//   try {
+//     // Load token if not already
+//     final token = AppStorage.accessToken;
+//     if (token == null) await AppStorage.loadCredentials();
+
+//     // Prepare onboarding data
+//     onboardingCubit.setOnboardingData(
+//       userName: username,
+//       gender: genderIdentity,
+//       age: age,
+//       weight: weight,
+//       height: height?['feet'] != null
+//           ? (height!['feet'] * 30.48 + height!['inches'] * 2.54)
+//           : null,
+//       ethnicity: ethnicity?.join(', '),
+//       address: location,
+//       householdIncomeRange: income,
+//       healthConcerns: healthConcerns?.toList() ?? [],
+//       healthHistory: diagnoses?.toList() ?? [],
+//       medicationsOrSupplementsIndicator: medicationStatus,
+//       medicationsOrSupplements: medications ?? [],
+//       currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+//       privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+//       sixteenAndOver: true,
+//       isActive: true,
+//       denPrivacy: ['posts'],
+//       profileIconUrl: null,
+//     );
+
+//     // Submit onboarding
+//     await onboardingCubit.submitOnboardingData();
+
+//     final ApiClient apiClient = ApiClient();
+
+//     // Fetch optional appointment companions (silently ignore 404)
+//     try {
+//       final companionsResponse =
+//           await apiClient.get('/api/v1/appointment-companions/me');
+//       print('Companions: ${companionsResponse.data}');
+//     } catch (error) {
+//       if (error is DioError && error.response?.statusCode == 404) {
+//         print('No appointment companions found — safe to ignore.');
+//       } else {
+//         print('Unexpected error fetching companions: $error');
+//       }
+//     }
+
+//     // Navigate directly to MainNavigationScreen
+//     if (!mounted) return;
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+//     );
+//   } catch (e) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text('Error completing onboarding: $e'),
+//         backgroundColor: Colors.red,
+//       ),
+//     );
+//   } finally {
+//     setState(() => _isCreatingAccount = false);
+//   }
+// }
+
+// Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+//   setState(() => _isCreatingAccount = true);
+
+//   try {
+//     final token = AppStorage.accessToken;
+//     if (token == null) await AppStorage.loadCredentials();
+
+//     onboardingCubit.setOnboardingData(
+//       userName: username,
+//       gender: genderIdentity,
+//       age: age ?? 0,
+//       weight: weight ?? 0,
+//       height: height?['feet'] != null
+//           ? (height!['feet'] * 30.48 + height!['inches'] * 2.54).round()
+//           : 0,
+//       ethnicity: ethnicity?.join(', ') ?? '',
+//       address: location ?? '',
+//       householdIncomeRange: income ?? '',
+//       healthConcerns: healthConcerns?.toList() ?? [],
+//       healthHistory: diagnoses?.toList() ?? [],
+//       medicationsOrSupplementsIndicator: medicationStatus ?? '',
+//       medicationsOrSupplements: medications ?? [],
+//       currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+//       // ✅ NEW required fields
+//       moodEnergyCognitiveSupport: [],
+//       gutAndImmuneSupport: [],
+//       overTheCounterMedications: [],
+//       vitaminsAndSupplements: [],
+//       herbalAndAdaptogens: [],
+//       // role: 'user',
+//       // Existing
+//       privacyPolicyAccepted: dataPrivacyAccepted ?? false,
+//       sixteenAndOver: true,
+//       isActive: true,
+//       denPrivacy: ['posts'],
+//       profileIconUrl: null,
+//     );
+
+//     await onboardingCubit.submitOnboardingData();
+
+//     if (!mounted) return;
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+//     );
+//   } catch (e) {
+//     if (e is DioError && e.response != null) {
+//       print('❌ DioError: ${e.response?.statusCode}');
+//       print('❌ Response data: ${e.response?.data}');
+//     } else {
+//       print('❌ Error: $e');
+//     }
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text('Error completing onboarding: ${e.toString()}'),
+//         backgroundColor: Colors.red,
+//       ),
+//     );
+//   } finally {
+//     setState(() => _isCreatingAccount = false);
+//   }
+// }
+
+// Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+//   setState(() => _isCreatingAccount = true);
+
+//   try {
+//     final token = AppStorage.accessToken;
+//     if (token == null) await AppStorage.loadCredentials();
+
+//     print('🔥 Submitting onboarding data...');
+//     await onboardingCubit.submitOnboardingData();
+//     print('✅ Onboarding submission done!');
+
+//     if (!mounted) return;
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+//     );
+//   } catch (e) {
+//     if (e is DioError && e.response != null) {
+//       print('❌ DioError: ${e.response?.statusCode}');
+//       print('❌ Response data: ${e.response?.data}');
+//     } else {
+//       print('❌ Error: $e');
+//     }
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text('Error completing onboarding: ${e.toString()}'),
+//         backgroundColor: Colors.red,
+//       ),
+//     );
+//   } finally {
+//     setState(() => _isCreatingAccount = false);
+//   }
+// }
+
+
+Future<void> _completeOnboardingAfterLogin(OnboardingCubit onboardingCubit) async {
+  setState(() => _isCreatingAccount = true);
+  try {
+    final success = await onboardingCubit.submitOnboardingData();
+    if (!mounted) return;
+
+    if (success) {
+      // ✅ Onboarding done
+      await AppStorage.setBool('onboardingCompleted', true);
+
+      // 🚫 Remove any extra AccountService call here!
+      // await AccountService().getCurrentUser(); <-- remove
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
     }
+  } catch (e) {
+    print('❌ Error completing onboarding: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+    );
+  } finally {
+    setState(() => _isCreatingAccount = false);
   }
+}
+
+
+
+
+
+  // Future<void> _completeOnboarding() async {
+  //   setState(() => _isCreatingAccount = true);
+
+  //   try {
+  //     final onboardingCubit = context.read<OnboardingCubit>();
+
+  //     // Prepare data from all pages
+  //     onboardingCubit.setOnboardingData(
+  //       userName: username,
+  //       gender: genderIdentity,
+  //       age: age,
+  //       weight: weight,
+  //       // height: height != null ? 
+  //       height: (height?['feet'] != null && height?['inches'] != null) ?//height!['feet'] * 30.48 + height!['inches'] * 2.54
+  //          (height?['feet'] * 30.48) + (height?['inches'] * 2.54) : null,
+  //       ethnicity: ethnicity?.join(', '),
+  //       address: location,
+  //       householdIncomeRange: income,
+  //       healthConcerns: healthConcerns?.toList() ?? [],
+  //       healthHistory: diagnoses?.toList() ?? [],
+  //       medicationsOrSupplementsIndicator: medicationStatus,
+  //       medicationsOrSupplements: medications ?? [],
+  //       currentStageInLife: lifeStage != null ? [lifeStage!] : [],
+  //       privacyPolicyAccepted: dataPrivacyAccepted ?? true,
+  //       moodEnergyCognitiveSupport: [],
+  //       gutAndImmuneSupport: [],
+  //       overTheCounterMedications: [],
+  //       vitaminsAndSupplements: [],
+  //       herbalAndAdaptogens: [],
+  //       sixteenAndOver: true,
+  //       isActive: true,
+  //       denPrivacy: ['posts'],
+  //       profileIconUrl: null,
+  //     );
+
+  //     await onboardingCubit.submitOnboardingData();
+
+  //     if (!mounted) return;
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error completing onboarding: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   } finally {
+  //     setState(() => _isCreatingAccount = false);
+  //   }
+  // }
+  
+
+
+  Future<void> _completeOnboarding() async {
+  setState(() => _isCreatingAccount = true);
+
+  try {
+    final onboardingCubit = context.read<OnboardingCubit>();
+
+    // Ensure required fields are valid
+    final safeGender = (genderIdentity != null && genderIdentity!.isNotEmpty)
+        ? genderIdentity
+        : 'unspecified';
+    final safeWeight = (weight != null && weight! > 0) ? weight : 50.0; // default 50 kg
+    final safeHeight = (height != null &&
+            height!['feet'] != null &&
+            height!['inches'] != null)
+        ? (height!['feet'] * 30.48) + (height!['inches'] * 2.54)
+        : 160.0; // default 160 cm
+    final safeAge = (age != null && age! > 0) ? age : 25; // default age
+    final safePrivacyAccepted = dataPrivacyAccepted ?? true;
+
+    // Normalize strings
+    final safeIncome = income?.replaceAll('–', '-') ?? 'Not specified';
+    final safeEthnicity = ethnicity?.join(', ') ?? 'Not specified';
+    final safeHealthConcerns = healthConcerns?.toList() ?? [];
+    final safeDiagnoses = diagnoses?.toList() ?? [];
+    final safeMedications = medications ?? [];
+    final safeLifeStage = lifeStage != null
+    ? [lifeStage.toString()]
+    : <String>[];
+    // final safeLifeStage = lifeStage != null ? [lifeStage!] : [];
+
+    // Bulk update the cubit with sanitized data
+    onboardingCubit.setOnboardingData(
+      userName: username ?? 'User',
+      gender: safeGender,
+      age: safeAge,
+      weight: safeWeight,
+      height: safeHeight,
+      ethnicity: safeEthnicity,
+      address: location ?? 'Not specified',
+      householdIncomeRange: safeIncome,
+      healthConcerns: safeHealthConcerns,
+      healthHistory: safeDiagnoses,
+      medicationsOrSupplementsIndicator: medicationStatus ?? 'Prefer not to say',
+      medicationsOrSupplements: safeMedications,
+      currentStageInLife: safeLifeStage,
+      moodEnergyCognitiveSupport: [], // optional, leave empty
+      gutAndImmuneSupport: [],
+      overTheCounterMedications: [],
+      vitaminsAndSupplements: [],
+      herbalAndAdaptogens: [],
+      privacyPolicyAccepted: safePrivacyAccepted,
+      sixteenAndOver: true,
+      isActive: true,
+      denPrivacy: ['posts'],
+      profileIconUrl: null,
+    );
+
+    // Submit to API
+    final success = await onboardingCubit.submitOnboardingData();
+
+    if (!mounted) return;
+
+    if (success) {
+      await AppStorage.setBool('onboardingCompleted', true);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error completing onboarding: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    setState(() => _isCreatingAccount = false);
+  }
+}
+
 
   // Data update methods
   void _updateUsername(String username) {
@@ -306,7 +704,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _updateMedicationStatus(String medicationStatus) {
     this.medicationStatus = medicationStatus;
-    context.read<OnboardingCubit>().setMedicationsOrSupplementsIndicator(medicationStatus);
+    context
+        .read<OnboardingCubit>()
+        .setMedicationsOrSupplementsIndicator(medicationStatus);
   }
 
   void _updateMedications(List<String> medications) {
@@ -321,101 +721,103 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _updateDataPrivacy(bool dataPrivacyAccepted) {
     this.dataPrivacyAccepted = dataPrivacyAccepted;
-    context.read<OnboardingCubit>().setPrivacyPolicyAccepted(dataPrivacyAccepted);
+    context
+        .read<OnboardingCubit>()
+        .setPrivacyPolicyAccepted(dataPrivacyAccepted);
   }
 
   List<Widget> get screens => [
-    UsernameScreen(
-      onNext: _nextPage,
-      onDataUpdate: _updateUsername,
-      currentValue: username,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    GenderIdentityScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateGender,
-      currentValue: genderIdentity,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    AgeSelectionRevampScreen(
-      onNext: _nextPage,
-      onDataUpdate: _updateAge,
-      questions: _questions,
-      currentValue: age,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    WeightInputScreen(
-      onNext: _nextPage,
-      onDataUpdate: _updateWeight,
-      questions: _questions,
-      currentValue: weight,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    HeightInputScreen(
-      onNext: _nextPage,
-      onDataUpdate: _updateHeight,
-      questions: _questions,
-      currentValue: height,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    EthnicityScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateEthnicity,
-      currentValue: ethnicity,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    LocationScreen(
-      onNext: _nextPage,
-      onDataUpdate: _updateLocation,
-      currentValue: location,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    IncomeScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateIncome,
-      currentValue: income,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    HealthConcernsScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateHealthConcerns,
-      currentValue: healthConcerns,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    DiagnosisHistoryScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateDiagnoses,
-      currentValue: diagnoses,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    MedicationsScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateMedicationStatus,
-      currentValue: medicationStatus,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    AddMedicationsScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateMedications,
-      currentValue: medications,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    LifeStageScreen(
-      onNext: _nextPage,
-      questions: _questions,
-      onDataUpdate: _updateLifeStage,
-      currentValue: lifeStage,
-      onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
-    ),
-    DataPrivacyScreen(onNext: _nextPage),
-  ];
+        UsernameScreen(
+          onNext: _nextPage,
+          onDataUpdate: _updateUsername,
+          currentValue: username,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        GenderIdentityScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateGender,
+          currentValue: genderIdentity,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        AgeSelectionRevampScreen(
+          onNext: _nextPage,
+          onDataUpdate: _updateAge,
+          questions: _questions,
+          currentValue: age,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        WeightInputScreen(
+          onNext: _nextPage,
+          onDataUpdate: _updateWeight,
+          questions: _questions,
+          currentValue: weight,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        HeightInputScreen(
+          onNext: _nextPage,
+          onDataUpdate: _updateHeight,
+          questions: _questions,
+          currentValue: height,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        EthnicityScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateEthnicity,
+          currentValue: ethnicity,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        LocationScreen(
+          onNext: _nextPage,
+          onDataUpdate: _updateLocation,
+          currentValue: location,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        IncomeScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateIncome,
+          currentValue: income,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        HealthConcernsScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateHealthConcerns,
+          currentValue: healthConcerns,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        DiagnosisHistoryScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateDiagnoses,
+          currentValue: diagnoses,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        MedicationsScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateMedicationStatus,
+          currentValue: medicationStatus,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        AddMedicationsScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateMedications,
+          currentValue: medications,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        LifeStageScreen(
+          onNext: _nextPage,
+          questions: _questions,
+          onDataUpdate: _updateLifeStage,
+          currentValue: lifeStage,
+          onEligibilityChanged: (valid) => _canProceedNotifier.value = valid,
+        ),
+        DataPrivacyScreen(onNext: _completeOnboarding, onDataUpdate: _updateDataPrivacy,),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +830,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         listener: (context, state) {
           if (state is OnboardingError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text(state.message), backgroundColor: Colors.red),
             );
           }
         },
@@ -469,7 +872,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                       SizedBox(height: 16),
                                       Text('Creating your account...'),
                                       SizedBox(height: 8),
-                                      Text('Please wait while we set up your profile',
+                                      Text(
+                                          'Please wait while we set up your profile',
                                           style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey)),
@@ -484,20 +888,33 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                   itemCount: screens.length,
                                   itemBuilder: (context, index) {
                                     final child = screens[index];
-                                    final noPaddingPages = [screens.length - 1]; // DataPrivacyScreen
-                                    final scrollablePages = [1, 5, 7, 8, 9, 10, 11, 12];
-                                    
+                                    final noPaddingPages = [
+                                      screens.length - 1
+                                    ]; // DataPrivacyScreen
+                                    final scrollablePages = [
+                                      1,
+                                      5,
+                                      7,
+                                      8,
+                                      9,
+                                      10,
+                                      11,
+                                      12
+                                    ];
+
                                     if (noPaddingPages.contains(index)) {
                                       return child;
                                     }
                                     if (scrollablePages.contains(index)) {
                                       return SingleChildScrollView(
-                                        padding: AppSpacing.safeAreaHorizontalPadding,
+                                        padding: AppSpacing
+                                            .safeAreaHorizontalPadding,
                                         child: child,
                                       );
                                     }
                                     return Padding(
-                                      padding: AppSpacing.safeAreaHorizontalPadding,
+                                      padding:
+                                          AppSpacing.safeAreaHorizontalPadding,
                                       child: child,
                                     );
                                   },

@@ -13,6 +13,8 @@ class LoginLoading extends LoginState {}
 
 class LoginSuccess extends LoginState {}
 
+class OTPPending extends LoginState {} // OTP pending
+
 class LoginError extends LoginState {
   final String message;
 
