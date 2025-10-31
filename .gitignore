@@ -47,4 +47,5 @@ app.*.map.json
 sentry.properties
 
 keystore/
-ios/Podfile.lock
+# Ignore lock file for apps
+pubspec.lock
