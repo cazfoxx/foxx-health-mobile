@@ -42,6 +42,7 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
   Widget build(BuildContext context) {
     return Foxxbackground(
       child: Scaffold(
+        resizeToAvoidBottomInset : false,
         extendBody: true,
         backgroundColor: Colors.transparent,
         body: SafeArea(

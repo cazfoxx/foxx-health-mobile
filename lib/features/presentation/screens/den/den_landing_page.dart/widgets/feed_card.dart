@@ -9,8 +9,8 @@ import 'package:foxxhealth/core/utils/share.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/screens/den/den_comments/den_comments_screen.dart';
+import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
-import 'package:photo_view/photo_view.dart';
 
 class FeedCard extends StatefulWidget {
   final Post post;
@@ -42,7 +42,7 @@ class _FeedCardState extends State<FeedCard> {
   @override
   void initState() {
     super.initState();
-    _isLiked = widget.post.userLiked;
+    _isLiked = widget.post.userLiked ?? false;
     // _likesCount = widget.post.likesCount;
   }
 
@@ -67,6 +67,7 @@ class _FeedCardState extends State<FeedCard> {
   @override
   Widget build(BuildContext context) {
     final content = widget.post.content;
+    final post = widget.post;
     final bool showMoreButton = content.length > _truncateLength;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -86,11 +87,11 @@ class _FeedCardState extends State<FeedCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Posted in section
-          if (widget.post.den?.name != null)
+          if (post.den?.name != null)
             Row(
               children: [
                 Text(
-                  'Posted in ',
+                  'Posted in  ',
                   style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
                     color: Colors.grey[600],
                   ),
@@ -100,7 +101,7 @@ class _FeedCardState extends State<FeedCard> {
                     // Navigate to specific den
                   },
                   child: Text(
-                    widget.post.den?.name ?? "",
+                    post.den?.name ?? "",
                     style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
                       color: const Color(0xFF9B7EDE), // Purple color
                     ),
@@ -120,16 +121,18 @@ class _FeedCardState extends State<FeedCard> {
                   shape: BoxShape.circle,
                   color: Colors.grey[200],
                 ),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.grey[600],
-                  size: 24,
-                ),
+                child: post.userProfile?.profilePictureUrl != null
+                    ? Image.network(post.userProfile!.profilePictureUrl)
+                    : Icon(
+                        Icons.person,
+                        color: Colors.grey[600],
+                        size: 24,
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  widget.userName ?? widget.post.userProfile.username,
+                  widget.userName ?? widget.post.userProfile?.username ?? '',
                   style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -142,12 +145,21 @@ class _FeedCardState extends State<FeedCard> {
 
           /// photo view
           PhotoGrid(imageUrls: widget.post.mediaUrls ?? []),
-          const SizedBox(height: 12),
-
+          if ((widget.post.mediaUrls ?? []).isNotEmpty)
+            const SizedBox(height: 12),
+          RichText(
+              text: TextSpan(
+            style: AppOSTextStyles.osLg
+                .copyWith(color: Colors.black, fontWeight: FontWeight.bold),
+            children: [
+              TextSpan(text: widget.post.title),
+            ],
+          )),
+          const SizedBox(height: 4),
           RichText(
             text: TextSpan(
               style: AppOSTextStyles.osMd.copyWith(
-                color: Colors.black,
+                color: AppColors.secondaryTxt,
                 height: 1.4,
               ),
               children: [
@@ -203,7 +215,7 @@ class _FeedCardState extends State<FeedCard> {
               Row(
                 children: [
                   HeartToggleButton(
-                      isLiked: widget.post.userLiked,
+                      isLiked: widget.post.userLiked ?? false,
                       onToggle: () async {
                         _handleLocalToggle();
                       }),
@@ -251,7 +263,7 @@ class _FeedCardState extends State<FeedCard> {
 
               // Action buttons
               ToggleBookmarkIcon(
-                isBookMarked: widget.post.userSaved,
+                isBookMarked: widget.post.userSaved ?? false,
                 onToggle: () async {
                   _handleLocalBookMarkToggle();
                 },

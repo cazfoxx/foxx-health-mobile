@@ -118,6 +118,28 @@ class FeedManagerCubit extends Cubit<FeedManagerState> {
     emit(state.copyWith(feedMap: updatedMap, hasMoreMap: updatedHasMoreMap));
   }
 
+  /// add  user posted feed locally, assuming user can only post in dens from den page.
+  void addPostToden({FeedType feedType = FeedType.den, required Post post}) {
+  // Get current feed group for this type, or empty if null
+  final currentGroup = state.feedMap[feedType] ?? FeedGroup();
+
+  // Create a new list with the new post at the start (so newest shows first)
+  final updatedPosts = [
+    post.copyWith(feedType: feedType),
+    ...currentGroup.posts,
+  ];
+
+  // Update feed map
+  final updatedMap = Map<FeedType, FeedGroup>.from(state.feedMap);
+  updatedMap[feedType] = currentGroup.copyWith(
+    posts: updatedPosts,
+    hasMore: currentGroup.hasMore,
+  );
+
+  // Emit updated state
+  emit(state.copyWith(feedMap: updatedMap));
+}
+
   /// Update post globally across all feeds (feed/bookmark/den)
   void _updateEverywhere(Post Function(Post) updater) {
     final updatedMap = state.feedMap.map((type, group) {
@@ -132,8 +154,8 @@ class FeedManagerCubit extends Cubit<FeedManagerState> {
     _updateEverywhere((p) {
       if (p.id == postId) {
         final newLikes = isLiked
-            ? p.likesCount + 1
-            : (p.likesCount - 1).clamp(0, double.infinity).toInt();
+            ? (p.likesCount ?? 0) + 1
+            : ((p.likesCount ?? 0) - 1).clamp(0, double.infinity).toInt();
         return p.copyWith(likesCount: newLikes, userLiked: isLiked);
       }
       return p;
@@ -156,8 +178,8 @@ class FeedManagerCubit extends Cubit<FeedManagerState> {
       if (p.id == postId) {
         final oldCount = p.commentsCount;
         final newCount = isAdd
-            ? oldCount + 1
-            : (oldCount - 1).clamp(0, double.infinity).toInt();
+            ? (oldCount ?? 0) + 1
+            : ((oldCount ?? 0) - 1).clamp(0, double.infinity).toInt();
 
         final updatedPost = p.copyWith(commentsCount: newCount);
         return updatedPost;

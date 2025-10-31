@@ -1,17 +1,11 @@
-import 'dart:convert';
 import 'package:foxxhealth/features/data/managers/feed_manager.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
-
-FeedModel feedModelFromJson(String str) =>
-    FeedModel.fromJson(json.decode(str));
-
-String feedModelToJson(FeedModel data) => json.encode(data.toJson());
 
 class FeedModel {
   final List<Post> posts;
   final int totalCount;
   final bool hasMore;
-  final String ? userName;
+  final String? userName;
 
   FeedModel({
     required this.posts,
@@ -20,12 +14,11 @@ class FeedModel {
     this.userName,
   });
 
-  FeedModel copyWith({
-    List<Post>? posts,
-    int? totalCount,
-    bool? hasMore,
-    FeedType ?feedType
-  }) =>
+  FeedModel copyWith(
+          {List<Post>? posts,
+          int? totalCount,
+          bool? hasMore,
+          FeedType? feedType}) =>
       FeedModel(
         posts: posts ?? this.posts,
         totalCount: totalCount ?? this.totalCount,
@@ -40,12 +33,6 @@ class FeedModel {
         userName: json["username"],
         hasMore: json["has_more"] ?? false,
       );
-
-  Map<String, dynamic> toJson() => {
-        "posts": posts.map((x) => x.toJson()).toList(),
-        "total_count": totalCount,
-        "has_more": hasMore,
-      };
 }
 
 class Post {
@@ -56,42 +43,42 @@ class Post {
   final String postType;
   final List<String>? hashtags;
   final List<String>? mediaUrls;
-  final int accountId;
-  final bool isActive;
+  final int? accountId;
+  final bool? isActive;
   // final DateTime createdAt;
   // final DateTime updatedAt;
   final CommunityDenModel? den;
-  final UserProfile userProfile;
-  final int likesCount;
-  final int commentsCount;
-  final int savesCount;
-  final bool userLiked;
-  final bool userSaved;
-  final bool isReported;
-  final String reportStatus;
+  final UserProfile? userProfile;
+  final int? likesCount;
+  final int? commentsCount;
+  final int? savesCount;
+  final bool? userLiked;
+  final bool? userSaved;
+  final bool? isReported;
+  final String? reportStatus;
 
   Post({
     required this.id,
     required this.denId,
     required this.title,
     required this.content,
-    required this.postType,
+    this.postType = "post",
     this.hashtags,
     this.mediaUrls,
-    required this.accountId,
-    required this.isActive,
-    
+    this.accountId,
+    this.isActive,
+
     // required this.createdAt,
     // required this.updatedAt,
     this.den,
-    required this.userProfile,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.savesCount,
-    required this.userLiked,
-    required this.userSaved,
-    required this.isReported,
-    required this.reportStatus,
+    this.userProfile,
+    this.likesCount,
+    this.commentsCount,
+    this.savesCount,
+    this.userLiked,
+    this.userSaved,
+    this.isReported,
+    this.reportStatus,
   });
 
   Post copyWith({
@@ -173,29 +160,34 @@ class Post {
         reportStatus: json["report_status"] ?? '',
       );
 
-  Map<String, dynamic> toJson() => {
-        "id": id,
+  // factory for creating a new post without needing an id
+  factory Post.create({
+    required int denId,
+    required String title,
+    required String content,
+    List<String>? hashtags,
+    List<String>? mediaUrls,
+  }) {
+    return Post(
+      id: 0, // temporary
+      denId: denId,
+      title: title,
+      content: content,
+      hashtags: hashtags,
+      mediaUrls: mediaUrls,
+    );
+  }
+
+  Map<String, dynamic> toApiJson() => {
         "den_id": denId,
         "title": title,
         "content": content,
         "post_type": postType,
         "hashtags":
             hashtags != null ? List<dynamic>.from(hashtags!.map((x) => x)) : [],
-        "media_urls":
-            mediaUrls != null ? List<dynamic>.from(mediaUrls!.map((x) => x)) : [],
-        "account_id": accountId,
-        "is_active": isActive,
-        // "created_at": createdAt.toIso8601String(),
-        // "updated_at": updatedAt.toIso8601String(),
-        "den": den?.toJson(),
-        "user_profile": userProfile.toJson(),
-        "likes_count": likesCount,
-        "comments_count": commentsCount,
-        "saves_count": savesCount,
-        "user_liked": userLiked,
-        "user_saved": userSaved,
-        "is_reported": isReported,
-        "report_status": reportStatus,
+        "media_urls": mediaUrls != null
+            ? List<dynamic>.from(mediaUrls!.map((x) => x))
+            : [],
       };
 }
 

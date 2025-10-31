@@ -6,6 +6,8 @@ import 'package:foxxhealth/features/presentation/cubits/den/feed/feed_state.dart
 
 // I have not removed the states as it might be useful for independent data fetching
 
+// refactor is need when fully controlled from post feed manager
+
 abstract class BaseFeedBloc extends Bloc<FeedEvent, FeedState> {
   final int _limit = 10;
   int _skip = 0;
@@ -92,8 +94,8 @@ abstract class BaseFeedBloc extends Bloc<FeedEvent, FeedState> {
       final updatedPosts = currentState.posts.map((post) {
         if (post.id == event.postId) {
           final newLikesCount = event.isLiked
-              ? post.likesCount + 1
-              : (post.likesCount - 1).clamp(0, double.infinity).toInt();
+              ? (post.likesCount ?? 0) + 1
+              : ((post.likesCount??0 )- 1).clamp(0, double.infinity).toInt();
           final updatedPost = post.copyWith(
             likesCount: newLikesCount,
             userLiked: event.isLiked,

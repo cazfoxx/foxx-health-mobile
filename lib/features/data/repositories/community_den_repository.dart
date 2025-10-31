@@ -381,4 +381,16 @@ class CommunityDenRepository {
       return false;
     }
   }
+
+  /// Post feed to den
+  Future<Post> postFeedToDen(Post post) async {
+    try {
+      final response = await _apiClient.post("/api/v1/community-den/posts",
+          data: post.toApiJson());
+
+      return Post.fromJson(response.data);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
