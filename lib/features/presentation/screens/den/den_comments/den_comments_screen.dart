@@ -104,7 +104,7 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
                                   ? null
                                   : () => _onSendComment(context),
                               child: Container(
-                                // height: 24,
+                                height: 24,
                                 width: 24,
                                 decoration: const BoxDecoration(
                                   color: Color(0xffCECECF),
@@ -114,7 +114,7 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
                                     ? const Padding(
                                         padding: EdgeInsets.all(4.0),
                                         child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                          strokeWidth: 1,
                                           color: Colors.white,
                                         ),
                                       )
