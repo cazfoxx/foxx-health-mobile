@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foxxhealth/features/presentation/screens/loginScreen/login_screen.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
+import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
 import 'package:foxxhealth/features/presentation/theme/app_spacing.dart';
 import 'package:foxxhealth/features/presentation/widgets/foxx_buttons.dart';
@@ -15,7 +16,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Foxxbackground(
@@ -100,8 +100,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       height: 350,
                       child: CarouselWithDotsScreen(
                         starburstBuilder: () => _buildStarburstSeparator(),
-                      )
-                      ),
+                      )),
 
                   const SizedBox(height: 60),
                 ],
@@ -202,7 +201,6 @@ class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
       children: [
         Expanded(
           child: CarouselSlider.builder(
-            // carouselController: _controller,
             itemCount: _slides.length,
             itemBuilder: (context, index, realIndex) {
               return _slides[index];
@@ -236,7 +234,9 @@ class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _currentPage == index ? Colors.black : Colors.grey,
+                color: _currentPage == index
+                    ? AppColors.foxxBlack
+                    : AppColors.gray600,
               ),
             ),
           ),
