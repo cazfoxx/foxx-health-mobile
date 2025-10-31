@@ -24,11 +24,21 @@ class DenCommentsScreen extends StatefulWidget {
 
 class _DenCommentsScreenState extends State<DenCommentsScreen> {
   final _textController = TextEditingController();
+  final _scrollController = ScrollController(); // ✅ Step 1
+
+  int _lastCommentCount = 0;
 
   @override
   void initState() {
     super.initState();
     context.read<CommentBloc>().add(FetchComments(widget.postId));
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose(); // ✅ Dispose controller
+    super.dispose();
   }
 
   void _onSendComment(BuildContext context) {
@@ -39,11 +49,6 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
       postId: widget.postId,
       content: text,
       createdAt: DateTime.now(),
-      // userProfile: UserProfile(
-      //   id: 999,
-      //   username: "You",
-      //   avatarUrl: "https://i.pravatar.cc/150?img=9",
-      // ),
     );
     context.read<CommentBloc>().add(AddComment(newComment));
     _textController.clear();
@@ -51,15 +56,31 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CommentBloc, CommentState>(
+    return BlocConsumer<CommentBloc, CommentState>( // ✅ Use BlocConsumer
+      listener: (context, state) {
+        // ✅ Step 3: Scroll when new comment is added
+        if (state.comments.length > _lastCommentCount) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
+        _lastCommentCount = state.comments.length;
+      },
       builder: (context, state) {
-        return DenBottomSheet(
+           return DenBottomSheet(
           header: _buildHeader(context),
           body: Expanded(
             child: state.isLoadingComments
                 ? const Center(
                     child: SizedBox(child: CircularProgressIndicator()))
                 : ListView.separated(
+                  controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
                     itemCount: state.comments.length,
@@ -161,11 +182,10 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
             ),
           ),
         );
-      },
+    },
     );
   }
-
-  Widget _buildHeader(BuildContext context) {
+   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
@@ -188,6 +208,7 @@ class _DenCommentsScreenState extends State<DenCommentsScreen> {
     );
   }
 }
+
 
 class _CommentTile extends StatelessWidget {
   final Comment comment;

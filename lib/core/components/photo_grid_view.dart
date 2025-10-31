@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-
-import 'package:flutter/material.dart';
-
 class PhotoGrid extends StatelessWidget {
   final List<String> imageUrls;
   final double spacing;
