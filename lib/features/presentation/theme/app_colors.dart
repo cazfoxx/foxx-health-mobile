@@ -13,7 +13,7 @@ class AppColors {
   static const optionBG = Color(0xffF1EFF7);
   static const foxxwhite = Color(0xffFFFCFC);
 
-
+  static const  foxxBlack = Colors.black;
 // ============================
 /// Primitive Colors
 // ============================
