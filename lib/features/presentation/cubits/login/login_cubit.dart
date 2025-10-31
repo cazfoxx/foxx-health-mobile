@@ -68,39 +68,45 @@ class LoginCubit extends Cubit<LoginState> {
     _healthConcerns = concerns;
   }
 
-  Future<void> _saveEmailToPrefs(String email, String token, String firebaseToken) async {
+  Future<void> _saveEmailToPrefs(
+      String email, String token, String firebaseToken) async {
     print('🔧 _saveEmailToPrefs called with:');
     print('   Email: $email');
-    print('   Token: ${token.isNotEmpty ? "${token.substring(0, 20)}..." : "EMPTY"}');
-    print('   Firebase Token: ${firebaseToken.isNotEmpty ? "${firebaseToken.substring(0, 20)}..." : "EMPTY"}');
-    
+    print(
+        '   Token: ${token.isNotEmpty ? "${token.substring(0, 20)}..." : "EMPTY"}');
+    print(
+        '   Firebase Token: ${firebaseToken.isNotEmpty ? "${firebaseToken.substring(0, 20)}..." : "EMPTY"}');
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_email', email);
     await prefs.setString('access_token', token);
     await prefs.setString('firebase_token', firebaseToken);
-    
+
     // Verify the save worked
     final savedToken = prefs.getString('access_token');
-    print('🔍 Token verification - saved: ${savedToken != null ? "${savedToken.substring(0, 20)}..." : "NULL"}');
-    
+    print(
+        '🔍 Token verification - saved: ${savedToken != null ? "${savedToken.substring(0, 20)}..." : "NULL"}');
+
     log('📝 Email saved to prefs: $email');
     log('📝 Token saved to prefs: $token');
     log('📝 Firebase token saved to prefs: $firebaseToken');
-    
+
     print('🔧 Setting credentials in AppStorage...');
     await AppStorage.setCredentials(token: token, email: email);
-    print('🔧 AppStorage credentials set. Token: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
-    
+    print(
+        '🔧 AppStorage credentials set. Token: ${AppStorage.accessToken != null ? "Present (${AppStorage.accessToken!.length} chars)" : "NULL"}');
+
     // Verify AppStorage was set correctly
     final appStorageToken = AppStorage.accessToken;
-    print('🔍 AppStorage verification - token: ${appStorageToken != null ? "${appStorageToken.substring(0, 20)}..." : "NULL"}');
+    print(
+        '🔍 AppStorage verification - token: ${appStorageToken != null ? "${appStorageToken.substring(0, 20)}..." : "NULL"}');
   }
 
   Future<Map<String, dynamic>?> registerUser(BuildContext context) async {
     try {
       emit(LoginLoading());
-      
-      // Register with your API using the new endpoint
+
+      // Register with API
       final response = await _apiClient.post(
         '/api/v1/auth/register',
         data: {
@@ -111,63 +117,73 @@ class LoginCubit extends Cubit<LoginState> {
 
       if (response.statusCode == 200) {
         print('🔍 Register API Response Data: ${response.data}');
-        
+
         // Log signup event
         await _analytics.logSignUp();
-        
+
+        // Show success snackbar
         SnackbarUtils.showSuccess(
-            context: context,
-            title: 'Registration Successful',
-            message: 'OTP sent to your email address');
-        
-        emit(LoginSuccess());
-        return response.data; // Return the response data containing OTP info
-      } else if (response.statusCode == 400 && 
-                 response.data['detail'] == 'Email already registered') {
-        // Handle existing user - try to login directly
+          context: context,
+          title: 'Registration Successful',
+          message: 'OTP sent to your email address',
+        );
+
+        // Emit OTPPending state instead of LoginSuccess
+        emit(OTPPending());
+
+        return response.data; // Return data containing OTP info
+      } else if (response.statusCode == 400 &&
+          response.data['detail'] == 'Email already registered') {
+        // Email already registered → try direct login
         print('🔍 Email already registered, attempting direct login...');
-        
+
         final loginSuccess = await signInWithEmail(_email!, _password!);
-        
+
         if (loginSuccess) {
           print('✅ Direct login successful for existing user');
           SnackbarUtils.showSuccess(
-              context: context,
-              title: 'Welcome Back!',
-              message: 'You are already registered. Logging you in...');
-          
-          // Return a special indicator that user was logged in directly
+            context: context,
+            title: 'Welcome Back!',
+            message: 'You are already registered. Logging you in...',
+          );
+
+          emit(LoginSuccess());
           return {'direct_login': true};
         } else {
           print('❌ Direct login failed for existing user');
           SnackbarUtils.showError(
-              context: context,
-              title: 'Login Failed',
-              message: 'Email is registered but login failed. Please check your password.');
+            context: context,
+            title: 'Login Failed',
+            message:
+                'Email is registered but login failed. Please check your password.',
+          );
+          emit(LoginError('Direct login failed for existing user'));
           return null;
         }
       } else {
-        // Log error
         await _analytics.logError(
           errorName: 'Registration Failed',
           errorDescription: 'Status code: ${response.statusCode}',
         );
         emit(LoginError('Registration failed: ${response.data}'));
         SnackbarUtils.showError(
-            context: context,
-            title: 'Registration Failed',
-            message: response.data['detail'] ?? 'Registration failed');
+          context: context,
+          title: 'Registration Failed',
+          message: response.data['detail'] ?? 'Registration failed',
+        );
         return null;
       }
     } catch (e) {
-      // Log error
       await _analytics.logError(
         errorName: 'Registration Error',
         errorDescription: e.toString(),
       );
       emit(LoginError('Registration failed: $e'));
       SnackbarUtils.showError(
-          context: context, title: 'Error', message: e.toString());
+        context: context,
+        title: 'Error',
+        message: e.toString(),
+      );
       return null;
     }
   }
@@ -178,15 +194,12 @@ class LoginCubit extends Cubit<LoginState> {
 
       final response = await _apiClient.post(
         '/api/v1/auth/verify-registration-otp',
-        data: {
-          'email_address': email,
-          'otp': otp,
-        },
+        data: {'email_address': email, 'otp': otp},
       );
 
       if (response.statusCode == 200) {
         print('🔍 OTP Verification Response: ${response.data}');
-        emit(LoginSuccess());
+        emit(LoginSuccess()); // Only emit LoginSuccess **after OTP verified**
         return true;
       } else {
         await _analytics.logError(
@@ -212,14 +225,12 @@ class LoginCubit extends Cubit<LoginState> {
 
       final response = await _apiClient.post(
         '/api/v1/auth/resend-registration-otp',
-        data: {
-          'email_address': email,
-        },
+        data: {'email_address': email},
       );
 
       if (response.statusCode == 200) {
         print('🔍 Resend OTP Response: ${response.data}');
-        emit(LoginSuccess());
+        emit(OTPPending()); // Keep user in OTP pending state
         return true;
       } else {
         await _analytics.logError(
@@ -257,7 +268,7 @@ class LoginCubit extends Cubit<LoginState> {
         print('🔍 Login API Response Data: $tokenData');
         print('🔍 Access Token from response: ${tokenData['access_token']}');
         print('🔍 Token type: ${tokenData['access_token'].runtimeType}');
-        
+
         if (tokenData['access_token'] != null) {
           await _saveEmailToPrefs(email, tokenData['access_token'], '');
         } else {
@@ -265,10 +276,10 @@ class LoginCubit extends Cubit<LoginState> {
           emit(LoginError('No access token received from server'));
           return false;
         }
-        
+
         // Log login event
         await _analytics.logLogin();
-        
+
         emit(LoginSuccess());
         return true;
       } else {
