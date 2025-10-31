@@ -24,6 +24,7 @@ import 'package:foxxhealth/features/presentation/screens/feedback/index.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/widgets/create_appointment_intro_screen.dart';
 
 class RevampHomeScreen extends StatefulWidget {
   const RevampHomeScreen({Key? key}) : super(key: key);
@@ -31,7 +32,7 @@ class RevampHomeScreen extends StatefulWidget {
   State<RevampHomeScreen> createState() => _RevampHomeScreenState();
 }
 
-class _RevampHomeScreenState extends State<RevampHomeScreen> {
+class _RevampHomeScreenState extends State<RevampHomeScreen> with AutomaticKeepAliveClientMixin {
   List<BannerData> _banners = [];
   bool _isLoadingBanners = true;
   String? _bannerError;
@@ -351,6 +352,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -632,7 +634,7 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const MyPrepScreen(),
+          builder: (context) => const CreateAppointmentIntroScreen(),
         ));
       },
       child: Container(
@@ -705,6 +707,9 @@ class _RevampHomeScreenState extends State<RevampHomeScreen> {
       ),
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _RecentItemCard extends StatelessWidget {
