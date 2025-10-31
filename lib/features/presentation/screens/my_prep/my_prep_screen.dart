@@ -7,6 +7,7 @@ import 'package:foxxhealth/features/presentation/screens/appointment/view/appoin
 import 'package:foxxhealth/features/data/models/appointment_companion_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/appointment_companion/appointment_companion_cubit.dart';
 import 'package:foxxhealth/features/presentation/widgets/navigation_buttons.dart';
+import 'package:foxxhealth/features/presentation/screens/appointment/widgets/create_appointment_intro_screen.dart';
 
 class MyPrepScreen extends StatefulWidget {
   const MyPrepScreen({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class MyPrepScreen extends StatefulWidget {
   State<MyPrepScreen> createState() => _MyPrepScreenState();
 }
 
-class _MyPrepScreenState extends State<MyPrepScreen> {
+class _MyPrepScreenState extends State<MyPrepScreen> with AutomaticKeepAliveClientMixin {
   String selectedTag = 'All';
   final List<String> tags = ['All', 'Upcoming Visit', 'Past'];
   
@@ -58,18 +59,11 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Foxxbackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: FoxxBackButton(),
-          title: Text(
-            'My Prep',
-            style: AppOSTextStyles.osMdBold.copyWith(color: AppColors.primary01),
-          ),
-        ),
+        // 👇 Removed the entire AppBar section
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,8 +77,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                   children: [
                     Text(
                       'Tags',
-                      style: AppOSTextStyles.osSmSemiboldLabel
-                          .copyWith(color: AppColors.davysGray),
+                      style: AppTypography.labelSmBold,
                     ),
                     const SizedBox(height: 12),
                     _buildTagsSection(),
@@ -102,8 +95,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                   children: [
                     Text(
                       'My Prep',
-                      style: AppHeadingTextStyles.h2
-                          .copyWith(color: AppColors.primary01),
+                      style: AppTypography.h2,
                     ),
                     Row(
                       children: [
@@ -111,10 +103,8 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => AppointmentFlow(
-                                  onRefresh: _loadAppointmentCompanions,
-                                ),
-                              ),
+                                builder: (context) => CreateAppointmentIntroScreen (origin: 'myprep'),  
+                                ),                              
                             );
                           },
                           child: _buildActionButton('New', Icons.add),
@@ -200,7 +190,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: text.isNotEmpty
             ? Text(
                 text,
-                style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                style: AppTypography.labelSmSemibold.copyWith(
                   color: AppColors.amethyst,
                 ),
               )
@@ -225,7 +215,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.inbox_outlined, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No data available',
@@ -256,7 +246,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
+            const Icon(Icons.note_add, color: AppColors.amethystViolet, size: 48),
             const SizedBox(height: 16),
             Text(
               'No appointment companions yet',
@@ -359,7 +349,7 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.amethyst,
               size: 16,
@@ -424,6 +414,9 @@ class _MyPrepScreenState extends State<MyPrepScreen> {
       },
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 
 }
 
@@ -488,7 +481,7 @@ class _SortModalContentState extends State<_SortModalContent> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.sort, color: AppColors.amethystViolet),
+                const Icon(Icons.sort, color: AppColors.amethystViolet),
                 const SizedBox(width: 8),
                 Text(
                   'Sort by',
@@ -521,7 +514,7 @@ class _SortModalContentState extends State<_SortModalContent> {
                 activeColor: AppColors.amethystViolet,
               ),
               if (option != widget.sortOptions.last)
-                Divider(
+                const Divider(
                   color: AppColors.gray200,
                   height: 1,
                 ),

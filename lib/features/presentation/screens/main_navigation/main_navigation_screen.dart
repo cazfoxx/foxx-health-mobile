@@ -18,7 +18,7 @@ import 'package:foxxhealth/features/data/models/symptom_model.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  const MainNavigationScreen({super.key});
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
@@ -77,10 +77,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _currentIndex = index;
     });
-    _pageController.animateToPage(
+    _pageController.jumpToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
     );
   }
   
@@ -92,10 +90,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: Row(
+          title: const Row(
             children: [
               Icon(Icons.lock, color: AppColors.primary01),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text('Premium Required'),
             ],
           ),
@@ -115,7 +113,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.star, color: AppColors.primary01, size: 20),
+                    const Icon(Icons.star, color: AppColors.primary01, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -133,7 +131,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -158,7 +156,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text('Upgrade Now'),
+              child: const Text('Upgrade Now'),
             ),
           ],
         );
@@ -259,7 +257,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
 // Tab Screen Widgets
 class HomeTab extends StatelessWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  const HomeTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +284,7 @@ class MyPrepTab extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -330,7 +328,7 @@ class MyPrepTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
@@ -341,13 +339,13 @@ class MyPrepTab extends StatelessWidget {
 }
 
 class TrackerTab extends StatefulWidget {
-  const TrackerTab({Key? key}) : super(key: key);
+  const TrackerTab({super.key});
 
   @override
   State<TrackerTab> createState() => _TrackerTabState();
 }
 
-class _TrackerTabState extends State<TrackerTab> {
+class _TrackerTabState extends State<TrackerTab>  with AutomaticKeepAliveClientMixin{
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _symptomController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
@@ -405,7 +403,7 @@ class _TrackerTabState extends State<TrackerTab> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -449,7 +447,7 @@ class _TrackerTabState extends State<TrackerTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
@@ -460,9 +458,10 @@ class _TrackerTabState extends State<TrackerTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (!PremiumService.instance.hasPremiumAccess()) {
-      return _buildPremiumRequiredScreen(context, 'Tracker');
-    }
+    super.build(context);
+    // if (!PremiumService.instance.hasPremiumAccess()) {
+    //   return _buildPremiumRequiredScreen(context, 'Tracker');
+    // }
     
     return Foxxbackground(
       child: Scaffold(
@@ -1038,16 +1037,19 @@ class _TrackerTabState extends State<TrackerTab> {
       _loadHealthTrackers(); // Reload data for new date
     }
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class InsightTab extends StatefulWidget {
-  const InsightTab({Key? key}) : super(key: key);
+  const InsightTab({super.key});
 
   @override
   State<InsightTab> createState() => _InsightTabState();
 }
 
-class _InsightTabState extends State<InsightTab> {
+class _InsightTabState extends State<InsightTab> with AutomaticKeepAliveClientMixin {
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
 
@@ -1073,7 +1075,7 @@ class _InsightTabState extends State<InsightTab> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 size: 80,
                 color: AppColors.gray400,
@@ -1117,7 +1119,7 @@ class _InsightTabState extends State<InsightTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text('Upgrade Now'),
+                child: const Text('Upgrade Now'),
               ),
             ],
           ),
@@ -1128,6 +1130,7 @@ class _InsightTabState extends State<InsightTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (!PremiumService.instance.hasPremiumAccess()) {
       return _buildPremiumRequiredScreen(context, 'Insights');
     }
@@ -1663,6 +1666,9 @@ class _InsightTabState extends State<InsightTab> {
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class DenTab extends StatelessWidget {
