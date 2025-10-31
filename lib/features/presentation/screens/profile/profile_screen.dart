@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
+import 'package:foxxhealth/core/utils/image_util.dart';
 import 'package:foxxhealth/features/presentation/screens/background/foxxbackground.dart';
 import 'package:foxxhealth/features/presentation/screens/premiumScreen/premium_overlay.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
@@ -913,7 +914,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   radius: 32,
                   backgroundColor: AppColors.mauve50,
                   backgroundImage: _hasProfileIcon && _profileIconUrl != null
-                      ? NetworkImage(_getFullImageUrl(_profileIconUrl!))
+                      ? ImageUtil.cachedImageNetworkProviderWidget(_getFullImageUrl(_profileIconUrl!))
                       : null,
                   child: _hasProfileIcon && _profileIconUrl != null
                       ? null
@@ -923,7 +924,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(
                                   AppColors.amethyst),
                             )
-                          : Icon(
+                          : const  Icon(
                               Icons.person,
                               size: 32,
                               color: AppColors.amethyst,

@@ -31,7 +31,7 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
   void initState() {
     super.initState();
     fetchDenDetails();
-    isMember =widget.den.isJoined;
+    isMember = widget.den.isJoined;
   }
 
   fetchDenDetails() {
@@ -42,10 +42,11 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
   Widget build(BuildContext context) {
     return Foxxbackground(
       child: Scaffold(
-        resizeToAvoidBottomInset : false,
+        resizeToAvoidBottomInset: false,
         extendBody: true,
         backgroundColor: Colors.transparent,
         body: SafeArea(
+          bottom: false,
           child: DefaultTabController(
             length: 3,
             child: Column(
@@ -67,27 +68,48 @@ class _DenDetailScreenState extends State<DenDetailScreen> {
                         }
 
                         final den = snapshot.data!;
-                        return Column(
-                          children: [
-                            DenBannerWidget(
-                                den: den,
-                                onTap: () {
-                                  _joinOrLeaveDen();
-                                },
-                                isMember: isMember),
-
-                            const DenTabBarWidget(),
-
-                            // TAB BAR  CONTENTES
-                            Expanded(
-                                child: TabBarView(children: [
-                              DenAboutPage(den: den),
-                              DenFeedPage(
-                                den: den,
+                        return NestedScrollView(
+                          headerSliverBuilder: (context, innerBoxIsScrolled) {
+                            return [
+                              SliverAppBar(
+                                pinned: true,
+                                floating: false,
+                                snap: false,
+                                expandedHeight: 180,
+                                backgroundColor: Colors.transparent,
+                                forceMaterialTransparency: true,
+                                automaticallyImplyLeading: false,
+                                flexibleSpace: FlexibleSpaceBar(
+                                  collapseMode: CollapseMode.parallax,
+                                  background: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      DenBannerWidget(
+                                        den: den,
+                                        onTap: _joinOrLeaveDen,
+                                        isMember: isMember,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              const DenTalkEventPage(),
-                            ]))
-                          ],
+                            ];
+                          },
+                          body: Column(
+                            children: [
+                              const DenTabBarWidget(),
+
+                              // TAB BAR  CONTENTES
+                              Expanded(
+                                  child: TabBarView(children: [
+                                DenAboutPage(den: den),
+                                DenFeedPage(
+                                  den: den,
+                                ),
+                                const DenTalkEventPage(),
+                              ]))
+                            ],
+                          ),
                         );
                       }),
                 ),

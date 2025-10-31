@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foxxhealth/core/components/foxx_button.dart';
+import 'package:foxxhealth/core/utils/image_util.dart';
 import 'package:foxxhealth/features/data/models/community_den_model.dart';
 import 'package:foxxhealth/features/presentation/theme/app_colors.dart';
 import 'package:foxxhealth/features/presentation/theme/app_text_styles.dart';
@@ -8,7 +9,11 @@ class DenBannerWidget extends StatelessWidget {
   final CommunityDenModel den;
   final void Function() onTap;
   final bool isMember;
-  const DenBannerWidget({super.key, required this.den, required this.onTap, required this.isMember});
+  const DenBannerWidget(
+      {super.key,
+      required this.den,
+      required this.onTap,
+      required this.isMember});
 
   @override
   Widget build(BuildContext context) {
@@ -23,48 +28,66 @@ class DenBannerWidget extends StatelessWidget {
           width: double.infinity,
           height: 180,
           child: imageUrl != null
-              ? Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.5),
-                            Colors.black.withOpacity(0.5)
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
+              ? ImageUtil.getImage(imageUrl,
+                  errorWidget: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.5),
+                          Colors.black.withOpacity(0.5)
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-                      child: const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    // show placeholder container if image fails
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.5),
-                            Colors.black.withOpacity(0.5)
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.image_not_supported,
-                            color: Colors.white, size: 48),
-                      ),
-                    );
-                  },
-                )
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.image_not_supported,
+                          color: Colors.white, size: 48),
+                    ),
+                  ))
+
+              // Image.network(
+              //     imageUrl,
+              //     fit: BoxFit.cover,
+              //     loadingBuilder: (context, child, progress) {
+              //       if (progress == null) return child;
+              //       return Container(
+              //         decoration: BoxDecoration(
+              //           color: Colors.black,
+              //           gradient: LinearGradient(
+              //             colors: [
+              //               Colors.black.withOpacity(0.5),
+              //               Colors.black.withOpacity(0.5)
+              //             ],
+              //             begin: Alignment.topCenter,
+              //             end: Alignment.bottomCenter,
+              //           ),
+              //         ),
+              //         child: const Center(
+              //           child: CircularProgressIndicator(color: Colors.white),
+              //         ),
+              //       );
+              //     },
+              //     errorBuilder: (context, error, stackTrace) {
+              //       // show placeholder container if image fails
+              //       return Container(
+              //         decoration: BoxDecoration(
+              //           gradient: LinearGradient(
+              //             colors: [
+              //               Colors.black.withOpacity(0.5),
+              //               Colors.black.withOpacity(0.5)
+              //             ],
+              //             begin: Alignment.topCenter,
+              //             end: Alignment.bottomCenter,
+              //           ),
+              //         ),
+              //         child: const Center(
+              //           child: Icon(Icons.image_not_supported,
+              //               color: Colors.white, size: 48),
+              //         ),
+              //       );
+              //     },
+              //   )
               : Container(
                   height: 180,
                   decoration: BoxDecoration(

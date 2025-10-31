@@ -8,7 +8,7 @@ class DenTabBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
       child: TabBar(
         padding: EdgeInsets.zero,
         isScrollable: true, // Allows tabs to be wider than the screen if needed

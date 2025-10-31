@@ -5,6 +5,7 @@ import 'package:foxxhealth/core/components/bookmark_icon.dart';
 import 'package:foxxhealth/core/components/heart_toggle_button.dart';
 import 'package:foxxhealth/core/components/photo_grid_view.dart';
 import 'package:foxxhealth/core/utils/app_ui_helper.dart';
+import 'package:foxxhealth/core/utils/image_util.dart';
 import 'package:foxxhealth/core/utils/share.dart';
 import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
@@ -87,32 +88,12 @@ class _FeedCardState extends State<FeedCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Posted in section
-          if (post.den?.name != null)
-            Row(
-              children: [
-                Text(
-                  'Posted in  ',
-                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                    color: Colors.grey[600],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    // Navigate to specific den
-                  },
-                  child: Text(
-                    post.den?.name ?? "",
-                    style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                      color: const Color(0xFF9B7EDE), // Purple color
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
           const SizedBox(height: 12),
 
           // User info
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 40,
@@ -121,21 +102,54 @@ class _FeedCardState extends State<FeedCard> {
                   shape: BoxShape.circle,
                   color: Colors.grey[200],
                 ),
-                child: post.userProfile?.profilePictureUrl != null
-                    ? Image.network(post.userProfile!.profilePictureUrl)
-                    : Icon(
-                        Icons.person,
-                        color: Colors.grey[600],
-                        size: 24,
-                      ),
+                child: ImageUtil.getImage(post.userProfile?.profilePictureUrl,
+                    errorWidget: ImageUtil.defaultUserImageWidget()),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  widget.userName ?? widget.post.userProfile?.username ?? '',
-                  style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.userName ??
+                            widget.post.userProfile?.username ??
+                            'Unknown',
+                        style: AppOSTextStyles.osMdSemiboldTitle.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 2,
+                      ),
+                      if (post.den?.name != null)
+                      Row(
+                        children: [
+                          Text(
+                            'Posted in ',
+                            style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                            
+                               fontWeight: FontWeight.normal
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              // Navigate to specific den
+                            },
+                            child: Text(
+                              post.den?.name ?? "",
+                              style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                                color:  AppColors.amethyst, 
+                                fontWeight: FontWeight.normal// Purple color
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),

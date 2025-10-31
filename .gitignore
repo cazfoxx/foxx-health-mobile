@@ -47,3 +47,4 @@ app.*.map.json
 sentry.properties
 
 keystore/
+ios/Podfile.lock
