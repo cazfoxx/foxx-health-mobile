@@ -56,7 +56,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
       final result = await repository.addComment(comment: event.comment);
       if (result.id != null) {
         // add posted comment in list to update
-        final updatedComments = [...state.comments, event.comment];
+        final updatedComments = [...state.comments, result];
 
         emit(state.copyWith(comments: updatedComments));
         // update the comment count in  ui internally
