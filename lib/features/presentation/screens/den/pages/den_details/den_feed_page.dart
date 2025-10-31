@@ -111,8 +111,7 @@ class _DenFeedPageState extends State<DenFeedPage>
                           id: widget.den.id, feedType: FeedType.den));
                     },
                     child: PaginatedListView<Post>(
-                      padding: const EdgeInsets.symmetric(
-                           vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       data: posts,
                       hasMore: state.hasMoreMap[den] ?? false,
                       fetchMore: () async {
@@ -191,7 +190,7 @@ class _ConversationSheetContentState extends State<ConversationSheetContent> {
     const borderColor = Color(0xffCEA2FD);
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: MediaQuery.of(context).size.height * 0.5,
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -205,37 +204,53 @@ class _ConversationSheetContentState extends State<ConversationSheetContent> {
               child: Column(
                 children: [
                   // Text Field
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      autofocus: true,
-                      minLines: 8,
-                      maxLines: 8,
-                      decoration: InputDecoration(
-                        hintText: 'Share your thoughts...',
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: borderColor, width: 2),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: borderColor, width: 2),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: borderColor, width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                      ),
-                    ),
+                  FoxxTextField(
+                      hint: "Title",
+                      borderColor: AppColors.amethyst,
+                      focusBorderColor: AppColors.amethyst,
+                      onChanged: (v) {}),
+                  const SizedBox(
+                    height: 16,
                   ),
-                  const SizedBox(height: 12),
+
+                  Expanded(child: FoxxTextField(
+                      hint: "Title",
+                      maxLines: 6,
+                      borderColor: AppColors.amethyst,
+                      focusBorderColor: AppColors.amethyst,
+                      onChanged: (v) {}),
+                  ),
+                  // Expanded(
+                  //   child: TextField(
+                  //     controller: _controller,
+                  //     autofocus: true,
+                  //     minLines: 8,
+                  //     maxLines: 8,
+                  //     decoration: InputDecoration(
+                  //       hintText: 'Share your thoughts...',
+                  //       fillColor: Colors.white,
+                  //       filled: true,
+                  //       border: OutlineInputBorder(
+                  //         borderRadius: BorderRadius.circular(8),
+                  //         borderSide:
+                  //             const BorderSide(color: borderColor, width: 2),
+                  //       ),
+                  //       enabledBorder: OutlineInputBorder(
+                  //         borderRadius: BorderRadius.circular(8),
+                  //         borderSide:
+                  //             const BorderSide(color: borderColor, width: 2),
+                  //       ),
+                  //       focusedBorder: OutlineInputBorder(
+                  //         borderRadius: BorderRadius.circular(8),
+                  //         borderSide:
+                  //             const BorderSide(color: borderColor, width: 2),
+                  //       ),
+                  //       contentPadding: const EdgeInsets.symmetric(
+                  //           horizontal: 10, vertical: 10),
+                  //     ),
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 12),
                   // Footer with Post button
                   _buildFooter(),
                 ],

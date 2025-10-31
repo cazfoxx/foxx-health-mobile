@@ -17,7 +17,7 @@ class AppColors {
 // ============================
 /// Primitive Colors
 // ============================
-
+ static const lightViolet2 =Color(0xffDEBFFF);
 
 
   // Brand Colors
@@ -255,6 +255,7 @@ class AppButtonColors {
   // Backgrounds
   static const Color buttonSecondaryBackgroundEnabled = AppColors.foxxWhite;
   static const Color buttonSecondaryBackgroundDisabled = AppColors.gray500;
+  static const Color colorBackgroundSelected = AppColors.lightViolet2;
 
   // Text
   static const Color buttonSecondaryTextEnabled = AppColors.amethyst;

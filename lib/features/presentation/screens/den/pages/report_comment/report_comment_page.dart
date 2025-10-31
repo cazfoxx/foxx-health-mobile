@@ -78,10 +78,10 @@ class _ReportCommentPageState extends State<ReportCommentPage> {
                     (topic) => FoxxSelectableChips(
                         isSelected: selectedTopics.contains(topic),
                         // unselectedColor: Colors.transparent,
-                        unselectedBorderColor: AppColors.amethyst,
-                        selectedTextColor: Colors.white,
-                        selectedColor: AppColors.amethyst,
-                        unselectedTextColor: Colors.black87,
+                        // unselectedBorderColor: AppColors.amethyst,
+                        // selectedTextColor: Colors.white,
+                        // selectedColor: AppColors.amethyst,
+                        // unselectedTextColor: Colors.black87,
                         label: topic,
                         onTap: () {
                           if (selectedTopics.contains(topic)) {
