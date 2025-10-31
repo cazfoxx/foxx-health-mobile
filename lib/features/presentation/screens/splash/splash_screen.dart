@@ -135,65 +135,30 @@ class CarouselWithDotsScreen extends StatefulWidget {
 class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
   int _currentPage = 0;
 
-  List<Widget> get _slides => [
-        // Slide 1
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
-              ),
-              child: Text(
-                'FoXX exists because women deserve better. Better answers, better tools, and care that actually listens.',
-                textAlign: TextAlign.center,
-                style: AppOSTextStyles.osMd
-                    .copyWith(fontWeight: AppTypography.semibold),
-              ),
-            ),
-            const SizedBox(height: 10),
-            widget.starburstBuilder(),
-          ],
-        ),
-        // Slide 2
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
-              ),
-              child: Text(
-                'We\'ll start with a few questions, and your answers help us give you support that\'s truly personal.\n\nEvery detail matters. Your story, your experience, and your body all deserve to be understood.\n\nWe\'ll keep what you share safe, and always use it with care.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMd
-                    .copyWith(fontWeight: AppTypography.regular),
-              ),
-            ),
-            const SizedBox(height: 10),
-            widget.starburstBuilder(),
-          ],
-        ),
-        // Slide 3
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
-              ),
-              child: Text(
-                'At the end of setup, you\'ll enter your payment details to begin your free trial. You\'re in control - no charge until it ends, and you can cancel anytime.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMd
-                    .copyWith(fontWeight: AppTypography.regular),
-              ),
-            ),
-            const SizedBox(height: 10),
-            widget.starburstBuilder(),
-          ],
-        ),
-      ];
+  // 🧩 1. Centralized data-driven slide definitions
+  final List<_SlideData> _slideData = [
+    _SlideData(
+      text:
+          'FoXX exists because women deserve better. Better answers, better tools, and care that actually listens.',
+      textStyle: AppOSTextStyles.osMd.copyWith(
+        fontWeight: AppTypography.semibold,
+      ),
+    ),
+    _SlideData(
+      text:
+          'We\'ll start with a few questions, and your answers help us give you support that\'s truly personal.\n\nEvery detail matters. Your story, your experience, and your body all deserve to be understood.\n\nWe\'ll keep what you share safe, and always use it with care.',
+      textStyle: AppTypography.bodyMd.copyWith(
+        fontWeight: AppTypography.regular,
+      ),
+    ),
+    _SlideData(
+      text:
+          'At the end of setup, you\'ll enter your payment details to begin your free trial. You\'re in control - no charge until it ends, and you can cancel anytime.',
+      textStyle: AppTypography.bodyMd.copyWith(
+        fontWeight: AppTypography.regular,
+      ),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -201,9 +166,14 @@ class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
       children: [
         Expanded(
           child: CarouselSlider.builder(
-            itemCount: _slides.length,
+            itemCount: _slideData.length,
             itemBuilder: (context, index, realIndex) {
-              return _slides[index];
+              final slide = _slideData[index];
+              return _SlideContent(
+                text: slide.text,
+                textStyle: slide.textStyle,
+                starburst: widget.starburstBuilder(),
+              );
             },
             options: CarouselOptions(
               height: double.infinity,
@@ -215,19 +185,17 @@ class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
               pauseAutoPlayOnTouch: true,
               enableInfiniteScroll: true,
               onPageChanged: (index, reason) {
-                setState(() {
-                  _currentPage = index;
-                });
+                setState(() => _currentPage = index);
               },
             ),
           ),
         ),
 
-        // Dots Indicator
+        // 🟣 Dots indicator
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _slides.length,
+            _slideData.length,
             (index) => Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: 8,
@@ -241,6 +209,51 @@ class _CarouselWithDotsScreenState extends State<CarouselWithDotsScreen> {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Extracted model for each slide
+class _SlideData {
+  final String text;
+  final TextStyle textStyle;
+
+  const _SlideData({
+    required this.text,
+    required this.textStyle,
+  });
+}
+
+/// Reusable slide widget
+class _SlideContent extends StatelessWidget {
+  final String text;
+  final TextStyle textStyle;
+  final Widget starburst;
+
+  const _SlideContent({
+    required this.text,
+    required this.textStyle,
+    required this.starburst,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.textBoxHorizontalNoSafeArea,
+          ),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: textStyle,
+          ),
+        ),
+        const SizedBox(height: 10),
+        starburst,
       ],
     );
   }
