@@ -393,4 +393,18 @@ class CommunityDenRepository {
       rethrow;
     }
   }
+
+  // search hashtag
+
+  Future<FeedModel> searchHashtag(
+      {required String hashtag, Map<String, dynamic>? queryParms}) async {
+    try {
+      final response = await _apiClient.get(
+          "/api/v1/community-den/posts/search/hashtag/$hashtag",
+          queryParameters: queryParms);
+      return FeedModel.fromJson(response.data);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

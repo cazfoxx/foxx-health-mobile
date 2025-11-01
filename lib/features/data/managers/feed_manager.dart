@@ -5,7 +5,7 @@ import 'package:foxxhealth/features/data/models/community_feed_model.dart';
 // on ui for like status, count, comments count and book mark
 
 // Enum for multiple feed sections
-enum FeedType { feed, bookmark, den }
+enum FeedType { feed, bookmark, den, hashtag}
 
 class FeedGroup {
   final List<Post> posts;

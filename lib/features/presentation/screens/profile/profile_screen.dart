@@ -914,7 +914,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   radius: 32,
                   backgroundColor: AppColors.mauve50,
                   backgroundImage: _hasProfileIcon && _profileIconUrl != null
-                      ? ImageUtil.cachedImageNetworkProviderWidget(_getFullImageUrl(_profileIconUrl!))
+                      ? NetworkImage(_getFullImageUrl(_profileIconUrl!))
                       : null,
                   child: _hasProfileIcon && _profileIconUrl != null
                       ? null

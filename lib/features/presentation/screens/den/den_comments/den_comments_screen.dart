@@ -5,6 +5,7 @@ import 'package:foxxhealth/core/components/foxx_text_field.dart';
 import 'package:foxxhealth/core/components/heart_toggle_button.dart';
 import 'package:foxxhealth/core/constants/user_profile_constants.dart';
 import 'package:foxxhealth/core/utils/app_ui_helper.dart';
+import 'package:foxxhealth/core/utils/image_util.dart';
 import 'package:foxxhealth/features/data/models/comments_model.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_bloc.dart';
 import 'package:foxxhealth/features/presentation/cubits/den/comments/comment_event.dart';
@@ -242,7 +243,7 @@ class _CommentTile extends StatelessWidget {
     final username =
         comment.userProfile?.userName ?? UserProfileConstants.getDisplayName();
     final avatar =
-        comment.userProfile?.profileIconUrl ?? "https://i.pravatar.cc/150";
+        comment.userProfile?.profileIconUrl;
     final time = _formatTime(comment.createdAt);
 
     return Padding(
@@ -250,7 +251,7 @@ class _CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(radius: 18, backgroundImage: NetworkImage(avatar)),
+          CircleAvatar(radius: 18, child: ImageUtil.getUserImage(avatar),),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
