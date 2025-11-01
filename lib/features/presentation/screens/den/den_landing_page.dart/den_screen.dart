@@ -182,7 +182,7 @@ class _DenScreenState extends State<DenScreen>
                           physics: const BouncingScrollPhysics(),
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(2.0),
                               child:
                                   MyFeedsTabContent(searchQuery: _searchQuery),
                             ),

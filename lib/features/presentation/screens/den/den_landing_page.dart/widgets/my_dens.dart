@@ -14,38 +14,41 @@ class MyDens extends StatelessWidget {
   Widget build(BuildContext context) {
         return Container(
           color: Colors.white.withOpacity(0.45),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // My Dens Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'My dens',
-                style: AppHeadingTextStyles.h3.copyWith(
-                  color: AppColors.primary01,
-                  fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'My dens',
+                  style: AppHeadingTextStyles.h3.copyWith(
+                    color: AppColors.primary01,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  // Navigate to explore dens
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ExploreDenScreen()),
-                  );
-                },
-                child: Text(
-                  'Explore dens',
-                  style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
-                      color: AppColors.amethystViolet, // Purple color
-                      decoration: TextDecoration.underline),
+                GestureDetector(
+                  onTap: () {
+                    // Navigate to explore dens
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ExploreDenScreen()),
+                    );
+                  },
+                  child: Text(
+                    'Explore dens',
+                    style: AppOSTextStyles.osSmSemiboldLabel.copyWith(
+                        color: AppColors.amethystViolet, // Purple color
+                        decoration: TextDecoration.underline),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -72,7 +75,7 @@ class MyDens extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => ExploreDenScreen(),
+                                builder: (context) => const ExploreDenScreen(),
                               ),
                             );
                           },
@@ -92,7 +95,7 @@ class MyDens extends StatelessWidget {
                               const Text(
                                 "Explore dens",
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF333333),
                                   fontWeight: FontWeight.w600,
@@ -108,6 +111,7 @@ class MyDens extends StatelessWidget {
                   }
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
+                    padding: const   EdgeInsets.symmetric(horizontal: 14),
                     itemCount: myDens.length,
                     itemBuilder: (context, index) {
                       return SizedBox(

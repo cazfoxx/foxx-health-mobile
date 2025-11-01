@@ -102,8 +102,7 @@ class _FeedCardState extends State<FeedCard> {
                   shape: BoxShape.circle,
                   color: Colors.grey[200],
                 ),
-                child: ImageUtil.getImage(post.userProfile?.profilePictureUrl,
-                    errorWidget: ImageUtil.defaultUserImageWidget()),
+                child: ImageUtil.getUserImage(post.userProfile?.profilePictureUrl)
               ),
               const SizedBox(width: 12),
               Expanded(
